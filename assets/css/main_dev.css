@@ -2425,3 +2425,36 @@ ol ol{margin: 0 0 0 2em;}
      background-image: linear-gradient(to right, #eb3941, #f15e64, #e14e53, #e2373f);  box-shadow: 0 5px 15px rgba(242, 97, 103, .4);
 
 }
+
+point,enable,baseup,fixed {
+  padding: .2rem .4rem;
+  border-radius: .25rem;
+}
+
+point {
+  color: #008069;
+  background-color: #e2f1ee;
+  font-weight: bold;
+}
+
+enable {
+  color: #31A1FF;
+  background-color: #e2f1ee;
+}
+
+baseup {
+  background-color: #d5dee2;
+  color: #506874;
+  font-weight: blod;
+}
+
+fixed {
+  color: #da2626;
+  background-color: #ffe0e0;
+  font-weight: bold;
+}
+
+date {
+  font-family: monospace;
+  color: #636363;
+}
