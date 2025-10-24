@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Download - Telegram Verify කරන්න</title>
+    <title>App Download - Telegram Verification</title>
     <style>
         * {
             margin: 0;
@@ -239,62 +239,62 @@
     <div class="container">
         <div class="header">
             <div class="app-icon">📱</div>
-            <h1>App Download කරන්න</h1>
-            <p>පහත instructions අනුගමනය කරන්න</p>
+            <h1>Download App</h1>
+            <p>Follow the instructions below</p>
         </div>
 
         <div class="content">
             <div class="step">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                    <h3>Telegram Channel එකට Join වෙන්න</h3>
-                    <p>පහත button එක click කරල අපේ Telegram channel එකට join වෙන්න</p>
+                    <h3>Join Telegram Channel</h3>
+                    <p>Click the button below to join our Telegram channel</p>
                 </div>
             </div>
 
             <div class="step">
                 <div class="step-number">2</div>
                 <div class="step-content">
-                    <h3>Verify කරන්න</h3>
-                    <p>Join වුනාට පස්සේ "Verify කරන්න" button එක click කරන්න</p>
+                    <h3>Verify Membership</h3>
+                    <p>After joining, click the "Verify" button to confirm</p>
                 </div>
             </div>
 
             <div class="step">
                 <div class="step-number">3</div>
                 <div class="step-content">
-                    <h3>Download කරන්න</h3>
-                    <p>Verification එක success වුනාම download link එක unlock වේවි</p>
+                    <h3>Download App</h3>
+                    <p>Once verified, the download link will be unlocked</p>
                 </div>
             </div>
 
-            <a href="https://t.me/YOUR_CHANNEL_USERNAME" class="telegram-btn" target="_blank" id="joinBtn">
+            <a href="https://t.me/SPModsSandun" class="telegram-btn" target="_blank" id="joinBtn">
                 <span class="telegram-icon">✈️</span>
-                Telegram Channel එකට Join වෙන්න
+                Join Telegram Channel
             </a>
 
             <div id="verifySection">
-                <h3>⚠️ Join වුනාද? දැන් Verify කරන්න</h3>
-                <button class="verify-btn" onclick="verifyMembership()">✓ Verify කරන්න</button>
+                <h3>⚠️ Already Joined? Verify Now</h3>
+                <button class="verify-btn" onclick="verifyMembership()">✓ Verify Membership</button>
             </div>
 
             <div id="downloadSection">
                 <div class="success-icon">✅</div>
-                <h2 style="color: #28a745; margin-bottom: 20px;">සාර්ථකයි! 🎉</h2>
-                <p style="margin-bottom: 25px; color: #666;">ඔබගේ download link unlock වුණා</p>
-                <a href="YOUR_APP_DOWNLOAD_LINK" class="download-btn" download>
-                    📥 App එක Download කරන්න
+                <h2 style="color: #28a745; margin-bottom: 20px;">Success! 🎉</h2>
+                <p style="margin-bottom: 25px; color: #666;">Your download link is now unlocked</p>
+                <a href="https://www.mediafire.com/file/f5m0i8sl778cicf/SPWA_V56.2_By_SPMods.apk/file" class="download-btn" download>
+                    📥 Download App
                 </a>
             </div>
 
             <div id="lockedSection" style="text-align: center; color: #999;">
                 <div class="locked-icon">🔒</div>
-                <p>Download link එක locked වෙලා තියෙන්නේ</p>
+                <p>Download link is locked</p>
             </div>
         </div>
 
         <div class="footer">
-            <p>© 2025 Your App Name. All rights reserved.</p>
+            <p>© 2025 SPMods. All rights reserved.</p>
         </div>
     </div>
 
@@ -304,17 +304,17 @@
         const downloadSection = document.getElementById('downloadSection');
         const lockedSection = document.getElementById('lockedSection');
 
-        // Join button එක click කරපු ගමන්
+        // Show verify section after clicking join button
         joinBtn.addEventListener('click', function() {
             setTimeout(function() {
                 verifySection.style.display = 'block';
             }, 2000);
         });
 
-        // Verify කරන්න function එක
+        // Verify membership function
         function verifyMembership() {
-            // මෙතන ඔබට real Telegram API verification එකක් implement කරන්න පුළුවන්
-            // දැනට demo එකක් විදිහට delay එකක් දාල unlock කරනවා
+            // Here you can implement real Telegram API verification
+            // For now, this is a demo with a delay before unlocking
             
             const verifyBtn = document.querySelector('.verify-btn');
             verifyBtn.textContent = 'Checking... ⏳';
@@ -328,9 +328,9 @@
             }, 2000);
         }
 
-        // Optional: Page load වෙද්දී check කරන්න user already joined කියල
+        // Optional: Check if user already joined on page load
         window.addEventListener('load', function() {
-            // මෙතන localStorage use කරල track කරන්න පුළුවන්
+            // You can use localStorage to track this
             if (localStorage.getItem('telegramJoined') === 'true') {
                 verifySection.style.display = 'block';
             }
