@@ -1,241 +1,565 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
-  <head>
-
+<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+      <script src="https://fpyf8.com/88/tag.min.js" data-zone="161357" async data-cfasync="false"></script>
 
-    <title>SPMods</title>
+    <title>SP WhatsApp - Enhanced Messaging Experience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <!-- Bootstrap core CSS -->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
 
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
 
+        .navbar.scrolled {
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
 
-    <!-- Additional CSS Files -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/main_dev.css">
-    <link rel="stylesheet" href="assets/css/animated.css">
-    <link rel="stylesheet" href="assets/css/owl.css">
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-	  <script src="https://fpyf8.com/88/tag.min.js" data-zone="161357" async data-cfasync="false"></script>
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
 
-  </head>
+        .nav-menu a {
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
 
+        .nav-menu a:hover {
+            color: #00ff88;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 100px 20px 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .hero-content {
+            max-width: 800px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(45deg, #00ff88, #00d4ff);
+            color: #000;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease 0.4s backwards;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.4);
+        }
+
+        .section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            margin: 20px auto;
+            border-radius: 2px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .steps-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            background: linear-gradient(45deg, #00ff88, #00d4ff);
+            color: #000;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h4 {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .download-section {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ff88, #00d4ff);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .features-list {
+            list-style: none;
+            text-align: left;
+            max-width: 600px;
+            margin: 30px auto;
+        }
+
+        .features-list li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #00ff88;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .tag-added {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .tag-fixed {
+            background: #00d4ff;
+            color: #000;
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 15px;
+            color: #00ff88;
+        }
+
+        .footer-section a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            opacity: 1;
+            color: #00ff88;
+        }
+
+        .copyright {
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
 <body>
-
-  <!-- ***** Preloader Start ***** -->
-  <div id="js-preloader" class="js-preloader">
-    <div class="preloader-inner">
-      <span class="dot"></span>
-      <div class="dots">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-    </div>
-  </div>
-  <!-- ***** Preloader End ***** -->
-
-  <!-- ***** Header Area Start ***** -->
-  <header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <nav class="main-nav">
-            <!-- ***** Logo Start ***** -->
-            <a href="index.html" class="logo">
-              <img src="assets/images/logo.png" width="85" height="80" alt="Chain App Dev">
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <span>📱</span>
+                <span>SP WhatsApp</span>
             </a>
-           <!-- ***** Menu Start ***** -->
-           <ul class="nav">
-            <li class="scroll-to-section"><a href="#top" class="active">Home</a></li>
-            <li class="scroll-to-section"><a href="#howto">How To Login</a></li>
-            <li class="scroll-to-section"><a href="#new">What's New</a></li>
-            <li class="scroll-to-section"><a href="#download">Download</a></li>
-            <li class="scroll-to-section"><a href="#newsletter">Newsletter</a></li>
-            <li><div class="gradient-button"><a id="modal_trigger" href="https://www.t.me/SPModsSandun"><i class="fa fa-sign-in-alt"></i> Join Now</a></div></li> 
-          </ul>        
-          <a class='menu-trigger'>
-              <span>Menu</span>
-          </a>
-          <!-- ***** Menu End ***** -->
-        </nav>
-      </div>
-    </div>
-  </div>
-</header>
-<div id="top" class="left-content show-up header-text wow fadeInLeft" data-wow-duration="1s" data-wow-delay="1s"></div><br><br>
-<!-- ***** Header Area End ***** -->
-
-
-  <div id="howto" class="pricing-tables" style="text-align: center;">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <div class="section-heading">
-            <div class="Nikk-Frame">
-              <div class="sb sb_blue">
-                <div class="nik-highlight">
-                  <h2>Please read before installing!</h2>
-                  <img src="assets/images/heading-line-dec.png" alt="">
-                </div>
-                <div class="box_content">
-                  <ol class="rounded-list">
-                  <a>Install the official WhatsApp from the Play Store and register your number there.</a>
-                  <a>Download the SP WhatsApp.</a>
-                  <a>Install the SP WhatsApp first and open it, then click on the 3 dots and select Link device.</a>
-                  <a>With another mobile take a picture of that QR code (you must be quick or the QR may change).</a>
-                  <a>Open your official WhatsApp and select Link a device (as if you were going to link with WhatsApp Web) and scan the QR photo you made on the other mobile.</a>
-                  <a>Wait for the linking process to finish and and you’re done.</a>
-                 </ol>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>    
-    </div>
-  </div>
-
-  <div id="new">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <div class="section-heading">
-            <div class="Nikk-Frame">
-              <div class="sb sb_blue">
-		      <div class="nik-highlight" style="text-align: center;">
-                  <h2>What's News in V56.1</h2>
-                  <img src="assets/images/heading-line-dec.png" alt="">
-                </div><br>
-                 <p>
- 	<point>Added</point> More AI Chat Assistants.. <br>
- <fixed>Fixed</fixed> Device linking now works 100% reliably.</br>
-<fixed>Fixed</fixed> The app is now stable and fully functional on Android 6, 7, and 8, as well as all older versions — with the device linking issue resolved.</br>
-<fixed>Fixed</fixed> Added the ability to edit or save contact names.</br>
-<fixed>Fixed</fixed> Added ability to take screenshots of view-once photos and contact info.</br>
-<fixed>Fixed</fixed> Fixed issue where blue ticks only appeared after reply on some devices.</br>
-<fixed>Fixed</fixed> Fixed disappearing voice messages when sent as "view once".</br>
-<fixed>Fixed</fixed> Fixed crash when changing profile picture on some devices.</br>
-<fixed>More</fixed> General enhancements and additional fixes to improve performance and stability.<br>
-<fixed>Misc</fixed> General bug fixes.<br>
-<fixed>Misc</fixed> Other fixes and improvements.<br>
-	
-	    </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div><br><br> 
-
-  <div id="download" style="text-align: center;">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <div class="section-heading">
-            <div class="Nikk-Frame">
-              <div class="sb sb_blue">
-                <div class="nik-highlight">
-                  <h2>Download SP WhatsApp Apk </h2>
-                  <img src="assets/images/heading-line-dec.png" alt="">
-                </div>
-                <div class="box_content">
-                  <center>
-                    <div class="buttons">
-                      <a href="download.html"><button class="btn-hover color-2"><font color="#FFFFFFFF">DOWNLOAD</font></button></a>
-                    </div>
-                  </center>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div><br><br> 
-
-  
-  <footer id="newsletter">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <div class="section-heading">
-            <h4>Join our channal to receive the news &amp; latest trends</h4>
-          </div>
-        </div>
-        <div class="col-lg-6 offset-lg-3">
-          <form id="search" action="#" method="GET">
-            <div class="row">
-             
-             
-            </div>
-          </form>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-3">
-          <div class="footer-widget">
-            <h4>Contact Us</h4>
-            <p><a href="#">Telegram</a></p>
-            <p><a href="#">WhatsApp</a></p>
-            <p><a href="spmodsofficial@gmail.com">Email</a></p>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="footer-widget">
-            <h4>About Us</h4>
-            <ul>
-              <li><a href="#">Home</a></li>
-              <li><a href="#features">Features</a></li>
-              <li><a href="#about">About</a></li>
+            <ul class="nav-menu">
+                <li><a href="#features">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#howto">How To Install</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="#contact">Contact</a></li>
             </ul>
-          </div>
         </div>
-        <div class="col-lg-3">
-          <div class="footer-widget">
-            <h4>Useful Links</h4>
-            <ul>
-              <li><a href="#">Free Apps</a></li>
-              <li><a href="#">App Engine</a></li>
-              <li><a href="#">App News</a></li>
+    </nav>
+
+
+
+    <section id="features" class="section">
+        <h2 class="section-title">Amazing Features</h2>
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-icon">🤖</div>
+                <h3>AI Chat Assistants</h3>
+                <p>Integrated multiple AI chat assistants to help you with smart replies and automated responses.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🔒</div>
+                <h3>Enhanced Privacy</h3>
+                <p>Advanced privacy controls including screenshot protection, view-once bypass, and hide blue ticks.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🎨</div>
+                <h3>Custom Themes</h3>
+                <p>Personalize your WhatsApp with hundreds of themes and customization options.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <h3>Fast & Stable</h3>
+                <p>Optimized performance for all Android versions from 6 to latest, with improved stability.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">📸</div>
+                <h3>Media Freedom</h3>
+                <p>Save view-once photos and videos, take screenshots without restrictions.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🔗</div>
+                <h3>Easy Device Linking</h3>
+                <p>100% reliable device linking that works flawlessly on all Android versions.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="howto" class="section">
+        <h2 class="section-title">Installation Guide</h2>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Install Official WhatsApp</h4>
+                    <p>Download and install the official WhatsApp from the Play Store and register your number.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Download SP WhatsApp</h4>
+                    <p>Get the latest version of SP WhatsApp from our official download section below.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Install & Open SP WhatsApp</h4>
+                    <p>Install the SP WhatsApp APK and open it. Tap on the 3 dots menu and select "Link device".</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>Capture QR Code</h4>
+                    <p>Take a screenshot or photo of the QR code quickly before it changes.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h4>Link Devices</h4>
+                    <p>Open your official WhatsApp, select "Link a device" and scan the QR photo you captured.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <h4>Complete Setup</h4>
+                    <p>Wait for the linking process to finish and enjoy your enhanced WhatsApp experience!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="section">
+        <h2 class="section-title">What's New in V56.1</h2>
+        
+        <div class="download-section">
+            <div class="version-badge">Latest Version: V56.1</div>
+            <h3 style="margin-bottom: 30px;">Changelog & Features</h3>
+            
+            <ul class="features-list">
+                <li>
+                    <span class="tag tag-added">ADDED</span>
+                    Multiple AI Chat Assistants for smart messaging
+                </li>
+                <li>
+                    <span class="tag tag-fixed">FIXED</span>
+                    Device linking now works 100% reliably across all devices
+                </li>
+                <li>
+                    <span class="tag tag-fixed">FIXED</span>
+                    Full stability on Android 6, 7, 8 and all older versions
+                </li>
+                <li>
+                    <span class="tag tag-fixed">FIXED</span>
+                    Edit and save contact names functionality restored
+                </li>
+                <li>
+                    <span class="tag tag-fixed">FIXED</span>
+                    Screenshot capability for view-once photos and contact info
+                </li>
+                <li>
+                    <span class="tag tag-fixed">FIXED</span>
+                    Blue ticks appearance issue on certain devices resolved
+                </li>
+                <li>
+                    <span class="tag tag-fixed">FIXED</span>
+                    Voice messages no longer disappear when sent as "view once"
+                </li>
+                <li>
+                    <span class="tag tag-fixed">FIXED</span>
+                    Profile picture change crash resolved
+                </li>
+                <li>
+                    <span class="tag tag-fixed">MORE</span>
+                    General performance enhancements and stability improvements
+                </li>
             </ul>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="footer-widget">
-            <h4>About Our Company</h4>
-            <p>Providing users with enhanced features and functionalities to elevate their messaging experience.</p>
-          </div>
-        </div>
-        <div class="col-lg-12">
-          <div class="copyright-text">
-            <p>Copyright © 2025 SPMods. All Rights Reserved. 
-          <br>Design: <a href="https://www.spmods.download/" target="_blank" title="css templates">Sandun Piumal</a></p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </footer>
 
+            <a href="download.html" class="cta-button" style="margin-top: 20px;">Download SP WhatsApp V56.1</a>
+        </div>
+    </section>
 
-  <!-- Scripts -->
-  <script src="vendor/jquery/jquery.min.js"></script>
-  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/js/owl-carousel.js"></script>
-  <script src="assets/js/animation.js"></script>
-  <script src="assets/js/imagesloaded.js"></script>
-  <script src="assets/js/popup.js"></script>
-  <script src="assets/js/custom.js"></script>
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <a href="https://t.me/SPModsSandun">📱 Telegram</a>
+                <a href="#">💬 WhatsApp</a>
+                <a href="mailto:spmodsofficial@gmail.com">📧 Email</a>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="#features">Home</a>
+                <a href="#features">Features</a>
+                <a href="#howto">Installation Guide</a>
+                <a href="#download">Download</a>
+            </div>
+
+            <div class="footer-section">
+                <h4>About SP Mods</h4>
+                <p>Providing users with enhanced features and functionalities to elevate their messaging experience since 2020.</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>Copyright © 2025 SPMods. All Rights Reserved. | Designed by Sandun Piumal</p>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
