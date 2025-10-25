@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SP WhatsApp V57.0 - Premium Features</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-      <script src="https://fpyf8.com/88/tag.min.js" data-zone="161357" async data-cfasync="false"></script>
+    <script src="https://fpyf8.com/88/tag.min.js" data-zone="161357" async data-cfasync="false"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
  
     <style>
@@ -82,6 +82,15 @@
             gap: 30px;
         }
 
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
         nav a {
             color: #fff;
             text-decoration: none;
@@ -119,7 +128,7 @@
         .cta-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(231, 60, 126, 0.5);
-            }
+        }
 
         .hero-section {
             min-height: 100vh;
@@ -136,6 +145,7 @@
             height: 100%;
             overflow: hidden;
         }
+
         .orb {
             position: absolute;
             border-radius: 50%;
@@ -603,6 +613,47 @@
         }
 
         @media (max-width: 968px) {
+            header {
+                padding: 20px 30px;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            nav {
+                position: fixed;
+                top: 80px;
+                left: 0;
+                right: 0;
+                background: rgba(10, 14, 39, 0.98);
+                backdrop-filter: blur(10px);
+                padding: 20px;
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: all 0.3s ease;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            nav.active {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            nav li {
+                text-align: center;
+                padding: 10px 0;
+            }
+
+            .cta-btn {
+                display: none;
+            }
+
             .content-grid {
                 grid-template-columns: 1fr;
                 gap: 40px;
@@ -661,6 +712,26 @@
     </style>
 </head>
 <body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">
+            <i class="fab fa-whatsapp"></i>
+            SPMods
+        </a>
+        <nav id="mainNav">
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </nav>
+        <button class="cta-btn">Join Telegram</button>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
     <div class="hero-section">
         <div class="animated-bg">
             <div class="orb orb1"></div>
@@ -677,28 +748,9 @@
 
         <div class="container">
             <div class="content-grid">
-        <!-- Header -->
-    <header>
-        <a href="#" class="logo">
-            <i class="fab fa-whatsapp"></i>
-            SPMods
-        </a>
-        <nav>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#download">Download</a></li>
-                <li><a href="#faq">FAQ</a></li>
-            </ul>
-        </nav>
-        <button class="cta-btn">Join Telegram</button>
-    </header>
-
-
-            
-                <div class="left-content">
+                <div class="left-content"><br><br><br><br>
                     <span class="badge">✨ NEW VERSION 57.0</span>
-                    <h1>SP WhatsApp</h1>
+
                     <p class="subtitle">The most advanced WhatsApp modification with AI-powered features, enhanced privacy, and unlimited customization options.</p>
                     
                     <ul class="feature-list">
