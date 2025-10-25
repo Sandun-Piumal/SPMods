@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <!-- Google tag (gtag.js) -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-6DG8L4NCNX"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -57,23 +57,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
-
-    <title>SPMods</title>
-
-    <!-- Bootstrap core CSS -->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-
-
-
-    <!-- Additional CSS Files -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/main_dev.css">
-    <link rel="stylesheet" href="assets/css/animated.css">
-    <link rel="stylesheet" href="assets/css/owl.css">
-
     
     
-    <!-- Google tag (gtag.js) -->
+        <!-- Google tag (gtag.js) -->
     <script async='async' src='https://www.googletagmanager.com/gtag/js?id=G-6DG8L4NCNX'/>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -92,629 +78,592 @@
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
     <!--Tag-->
 
-  </head>
 
+    <title>SPMods</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            background: #000;
+        }
+
+        /* Animated Gradient Background */
+        .gradient-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 32px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #fff;
+            transition: width 0.3s;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .cta-btn {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #e73c7e, #23a6d5);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(231, 60, 126, 0.5);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 50px 50px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 56px;
+            color: #fff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero-text p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            animation: fadeInUp 1s ease 0.4s backwards;
+        }
+
+        .download-btn {
+            padding: 15px 40px;
+            background: #fff;
+            color: #e73c7e;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255, 255, 255, 0.4);
+        }
+
+        .learn-more-btn {
+            padding: 15px 40px;
+            background: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .learn-more-btn:hover {
+            background: #fff;
+            color: #e73c7e;
+        }
+
+        .hero-image {
+            position: relative;
+            animation: fadeInUp 1s ease 0.6s backwards;
+        }
+
+        .phone-frame {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 9/19;
+            background: #1a1a1a;
+            border-radius: 35px;
+            padding: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            animation: float-phone 3s ease-in-out infinite;
+        }
+
+        @keyframes float-phone {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 25px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+        }
+
+        .phone-speaker {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 6px;
+            background: #333;
+            border-radius: 10px;
+            z-index: 11;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 28px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screenshot {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 50px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 42px;
+            color: #fff;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        /* Download Section */
+        .download-section {
+            padding: 100px 50px;
+            text-align: center;
+        }
+
+        .download-box {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 60px 40px;
+        }
+
+        .download-box h2 {
+            font-size: 36px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            padding: 10px 25px;
+            background: linear-gradient(45deg, #e73c7e, #23a6d5);
+            border-radius: 50px;
+            color: #fff;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .download-features {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .download-features li {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .download-features i {
+            color: #23d5ab;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text h1 {
+                font-size: 36px;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav ul {
+                display: none;
+            }
+
+            header {
+                padding: 15px 20px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
 <body>
+    <!-- Animated Background -->
+    <div class="gradient-bg"></div>
+    <div class="particles" id="particles"></div>
 
-  <!-- ***** Preloader Start ***** -->
-  <div id="js-preloader" class="js-preloader">
-    <div class="preloader-inner">
-      <span class="dot"></span>
-      <div class="dots">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-    </div>
-  </div>
-  <!-- ***** Preloader End ***** -->
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">
+            <i class="fab fa-whatsapp"></i>
+            SPMods
+        </a>
+        <nav>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </nav>
+        <button class="cta-btn">Join Telegram</button>
+    </header>
 
-  <!-- ***** Header Area Start ***** -->
-  <header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <nav class="main-nav">
-            <!-- ***** Logo Start ***** -->
-            <a href="index.html" class="logo">
-              <img src="assets/images/logo.png" width="85" height="80" alt="SPMods">
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Enhanced WhatsApp Experience</h1>
+                <p>SPWhatsApp is a modified version of WhatsApp developed by SPMods, providing users with enhanced features and functionalities to elevate their messaging experience.</p>
+                <div class="hero-buttons">
+                    <a href="#download" class="download-btn">
+                        <i class="fas fa-download"></i>
+                        Download Now
+                    </a>
+                    <a href="#features" class="learn-more-btn">Learn More</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="phone-frame">
+                    <div class="phone-notch"></div>
+                    <div class="phone-speaker"></div>
+                    <div class="phone-screen">
+                        <img src="https://www.spmods.download/assets/images/ssmain.jpg" alt="SPWhatsApp Settings" class="screenshot">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title">Amazing Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>Anti-Ban Protection</h3>
+                <p>Advanced anti-ban system keeps your account safe from official WhatsApp restrictions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-image"></i></div>
+                <h3>HD Media Quality</h3>
+                <p>Send high-quality images and videos up to 1GB without compression.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-palette"></i></div>
+                <h3>Full Customization</h3>
+                <p>Customize themes, emojis, icons, and every aspect of your WhatsApp experience.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-undo"></i></div>
+                <h3>Anti-Revoke</h3>
+                <p>See deleted messages and statuses even after they're removed by senders.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-eye-slash"></i></div>
+                <h3>Privacy Controls</h3>
+                <p>Hide online status, blue ticks, typing indicator, and recording status.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-language"></i></div>
+                <h3>Built-in Translator</h3>
+                <p>Translate messages instantly with one-click translation feature.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download-section" id="download">
+        <div class="download-box">
+            <h2>Download SP WhatsApp</h2>
+            <div class="version-badge">Version 56.1</div>
+            <ul class="download-features">
+                <li><i class="fas fa-check-circle"></i> Package: com.spwhatsapp</li>
+                <li><i class="fas fa-check-circle"></i> No Activator Required</li>
+                <li><i class="fas fa-check-circle"></i> Fix Number Login Problem 99%</li>
+                <li><i class="fas fa-check-circle"></i> Link Device Method Supported</li>
+            </ul>
+            <a href="#" class="download-btn" style="margin: 0 auto;">
+                <i class="fab fa-android"></i>
+                Download APK
             </a>
-            <!-- ***** Logo End ***** -->
-            <!-- ***** Menu Start ***** -->
-            <ul class="nav">
-              <li class="scroll-to-section"><a href="#top" class="active">Home</a></li>
-              <li class="scroll-to-section"><a href="#features">features</a></li>
-              <li class="scroll-to-section"><a href="#about">About</a></li>
-              <li class="scroll-to-section"><a href="#download">Download</a></li>
-              <li class="scroll-to-section"><a href="#faq">FAQ</a></li>
-              <li class="scroll-to-section"><a href="#newsletter">Newsletter</a></li>
-              <li><div class="gradient-button"><a id="modal_trigger" href="https://www.t.me/SPModsSandun"><i class="fa fa-sign-in-alt"></i> Join Now</a></div></li> 
-            </ul>        
-            <a class='menu-trigger'>
-                <span>Menu</span>
-            </a>
-            <!-- ***** Menu End ***** -->
-          </nav>
         </div>
-      </div>
-    </div>
-  </header>
-  <!-- ***** Header Area End ***** -->
-  
-  <div id="modal" class="popupContainer" style="display:none;">
-    <div class="popupHeader">
-        <span class="header_title">Login</span>
-        <span class="modal_close"><i class="fa fa-times"></i></span>
-    </div>
-  </div>
+    </section>
 
-  <div class="main-banner wow fadeIn" id="top" data-wow-duration="1s" data-wow-delay="0.5s">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12">
-          <div class="row">
-            <div class="col-lg-6 align-self-center">
-              <div class="left-content show-up header-text wow fadeInLeft" data-wow-duration="1s" data-wow-delay="1s">
-                <div class="row">
-                  <div class="col-lg-12">
-                    <h2>Download latest Version From SPMods Apps</h2>
-                    <p>SPWhatsApp is a modified version of WhatsApp developed by SPMods, providing users with enhanced features and functionalities to elevate their messaging experience.</p>
-                  </div>
-                  <div class="col-lg-12">     
-                    <div class="white-button scroll-to-section">
-                      <a href="#download">DOWNLOAD <i class="fab fa-google-play"></i></a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="right-image wow fadeInRight" data-wow-duration="1s" data-wow-delay="0.5s">
-                <img src="assets/images/slider-dec.png" alt="">
-              </div>
-            </div>
-          </div>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#"><i class="fab fa-telegram"></i> Telegram</a>
+            <a href="#"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+            <a href="#"><i class="fas fa-envelope"></i> Email</a>
         </div>
-      </div>
-    </div>
-  </div>
+        <p>Copyright © 2025 SPMods. All Rights Reserved.</p>
+        <p>Design: Sandun Piumal</p>
+    </footer>
 
-  <div id="features" class="features section">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <div class="section-heading  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
-            <h4 style="text-align: center;">Amazing <em>Services &amp; Features</em> for you</h4><br>
-            <p></p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-3">
-          <div class="service-item first-service">
-            <div class="icon"></div>
-            <h4>Anti-Ban</h4>
-            <p>With the anti-ban system, third-party programmers attempt to maintain your account from being officially outlawed by WhatsApp. Some WhatsApp mods likewise utilize this mechanism. This is a fantastic feature of SP WhatsApp. Now you will not have to worry about the restriction system anymore due to the fact that right here we have an anti-ban mechanism.</p>
-            <div class="text-button">
-              
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="service-item second-service">
-            <div class="icon"></div>
-            <h4>High-quality of images and videos</h4>
-            <p>The most recent variation of SP WhatsApp is not such as the insane official WhatsApp that reduces the quality when sharing media files. With SP Mods, you can send high-grade images as well as video clips to your calls. With the brand-new upgraded feature,you are even able to send 1Gb of data each time.You can also send out greater than 10 photos at a time. Share top quality media data.</p>
-            <div class="text-button">
-              
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="service-item third-service">
-            <div class="icon"></div>
-            <h4>Customization Features</h4>
-            <p>SP WhatsApp Latest Version 2023 has customized features with which you are able to do lots of things like, able to customize ‘who can call you’, ‘who can message you‘, even you can customize your contacts profile pictures as well as status. You can customize themes, emojis, launcher icons, sticker packs, etc. Even you can change the notification icons of SP WhatsApp.</p>
-            <div class="text-button">
-             
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="service-item fourth-service">
-            <div class="icon"></div>
-            <h4>Anti-revoke Messages and Status</h4>
-            <p>Maybe you are feeling anxious about the deleted messages in your chat history. Now, don’t worry about those permanently deleted messages anymore, because you are using the greatest WhatsApp mod, “SP WhatsApp”. With it, you can conveniently see those deleted messages. You can also see the status of your friends, for example, if your friend on the list, raised his status and deleted it, you can see it by using this anti-revocation status feature.</p>
-            <div class="text-button">
-              
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <script>
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+            particlesContainer.appendChild(particle);
+        }
 
-  <div id="about" class="about-us section"style="text-align: center;" >
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-6 align-self-center">
-          <div class="section-heading">
-            <center style="background: linear-gradient(to right, rgb(238, 238, 238), rgb(238, 238, 238)) rgb(255, 255, 255); border-color: rgb(0, 119, 181) rgb(0, 119, 181) rgb(0, 119, 181) rgb(51, 11, 239); border-image: initial; border-radius: 5px; border-style: solid; border-width: 1px 1px 1px 3px; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 15px; font-family: sans-serif; font-size: 15px; font-weight: 900; margin: 0px 0px 1.5em; padding: 8px;">
-            <h4>About Us!</h4><br>
-            <h5 style="text-align: center;">Welcome To SPMods</span></h5>
-            <p><span id="W_Name2">SPMods</span> is a Professional <span id="W_Type1">Mod Apk Download</span> Platform. Here we will provide you only interesting content, which you will like very much. We're dedicated to providing you the best of <span id="W_Type2">Mod Apk Download</span>, with a focus on dependability and <span id="W_Spec">SP WhatsApp Mod And Other Mod Apk Download</span>. We're working to turn our passion for <span id="W_Type3">Mod Apk Download</span> into a booming <a href="https://www.blogearns.com/2021/05/free-about-us-page-generator.html" rel="do-follow" style="color: inherit; text-decoration: none;">online website</a>. We hope you enjoy our <span id="W_Type4">Mod Apk Download</span> as much as we enjoy offering them to you.</p>
-            <p>I will keep posting more important posts on my Website for all of you. Please give your support and love.</p>
-            <p style="font-weight: bold; text-align: center;">Thanks For Visiting Our Site<br><br>
-            <span style="color: blue; font-size: 16px; font-weight: bold; text-align: center;">Have a nice day!</span></p>
-          </center>
-          </div>
-          <!--div class="row">
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="#">Maintance Problems</a></h4>
-                <p>Lorem Ipsum Text</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="#">24/7 Support &amp; Help</a></h4>
-                <p>Lorem Ipsum Text</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="#">Fixing Issues About</a></h4>
-                <p>Lorem Ipsum Text</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="#">Co. Development</a></h4>
-                <p>Lorem Ipsum Text</p>
-              </div>
-            </div>
-            <div class="col-lg-12">
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eismod tempor idunte ut labore et dolore adipiscing  magna.</p>
-              <div class="gradient-button">
-                <a href="#">Start 14-Day Free Trial</a>
-              </div>
-              <span>*No Credit Card Required</span>
-            </div>
-          </div-->
-        </div>
-        <!--div class="col-lg-6">
-          <div class="right-image">
-            <img src="assets/images/about-right-dec.png" alt="">
-          </div>
-        </div-->
-      </div>
-    </div>
-  </div>
-
-  <!--div id="clients" class="the-clients">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <div class="section-heading">
-            <h4>Check What <em>The Clients Say</em> About Our App Dev</h4>
-            <img src="assets/images/heading-line-dec.png" alt="">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eismod tempor incididunt ut labore et dolore magna.</p>
-          </div>
-        </div>
-        <div class="col-lg-12">
-          <div class="naccs">
-            <div class="grid">
-              <div class="row">
-                <div class="col-lg-7 align-self-center">
-                  <div class="menu">
-                    <div class="first-thumb active">
-                      <div class="thumb">
-                        <div class="row">
-                          <div class="col-lg-4 col-sm-4 col-12">
-                            <h4>David Martino Co</h4>
-                            <span class="date">30 November 2021</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 d-none d-sm-block">
-                            <span class="category">Financial Apps</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 col-12">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <span class="rating">4.8</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <div class="thumb">
-                        <div class="row">
-                          <div class="col-lg-4 col-sm-4 col-12">
-                            <h4>Jake Harris Nyo</h4>
-                            <span class="date">29 November 2021</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 d-none d-sm-block">
-                            <span class="category">Digital Business</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 col-12">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <span class="rating">4.5</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <div class="thumb">
-                        <div class="row">
-                          <div class="col-lg-4 col-sm-4 col-12">
-                            <h4>May Catherina</h4>
-                            <span class="date">27 November 2021</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 d-none d-sm-block">
-                            <span class="category">Business &amp; Economics</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 col-12">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <span class="rating">4.7</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <div class="thumb">
-                        <div class="row">
-                          <div class="col-lg-4 col-sm-4 col-12">
-                            <h4>Random User</h4>
-                            <span class="date">24 November 2021</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 d-none d-sm-block">
-                            <span class="category">New App Ecosystem</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 col-12">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <span class="rating">3.9</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="last-thumb">
-                      <div class="thumb">
-                        <div class="row">
-                          <div class="col-lg-4 col-sm-4 col-12">
-                            <h4>Mark Amber Do</h4>
-                            <span class="date">21 November 2021</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 d-none d-sm-block">
-                            <span class="category">Web Development</span>
-                          </div>
-                          <div class="col-lg-4 col-sm-4 col-12">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <span class="rating">4.3</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div> 
-                <div class="col-lg-5">
-                  <ul class="nacc">
-                    <li class="active">
-                      <div>
-                        <div class="thumb">
-                          <div class="row">
-                            <div class="col-lg-12">
-                              <div class="client-content">
-                                <img src="assets/images/quote.png" alt="">
-                                <p>“Lorem ipsum dolor sit amet, consectetur adpiscing elit, sed do eismod tempor idunte ut labore et dolore magna aliqua darwin kengan
-                                  lorem ipsum dolor sit amet, consectetur picing elit massive big blasta.”</p>
-                              </div>
-                              <div class="down-content">
-                                <img src="assets/images/client-image.jpg" alt="">
-                                <div class="right-content">
-                                  <h4>David Martino</h4>
-                                  <span>CEO of David Company</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div>
-                        <div class="thumb">
-                          <div class="row">
-                            <div class="col-lg-12">
-                              <div class="client-content">
-                                <img src="assets/images/quote.png" alt="">
-                                <p>“CTO, Lorem ipsum dolor sit amet, consectetur adpiscing elit, sed do eismod tempor idunte ut labore et dolore magna aliqua darwin kengan
-                                  lorem ipsum dolor sit amet, consectetur picing elit massive big blasta.”</p>
-                              </div>
-                              <div class="down-content">
-                                <img src="assets/images/client-image.jpg" alt="">
-                                <div class="right-content">
-                                  <h4>Jake H. Nyo</h4>
-                                  <span>CTO of Digital Company</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div>
-                        <div class="thumb">
-                          <div class="row">
-                            <div class="col-lg-12">
-                              <div class="client-content">
-                                <img src="assets/images/quote.png" alt="">
-                                <p>“May, Lorem ipsum dolor sit amet, consectetur adpiscing elit, sed do eismod tempor idunte ut labore et dolore magna aliqua darwin kengan
-                                  lorem ipsum dolor sit amet, consectetur picing elit massive big blasta.”</p>
-                              </div>
-                              <div class="down-content">
-                                <img src="assets/images/client-image.jpg" alt="">
-                                <div class="right-content">
-                                  <h4>May C.</h4>
-                                  <span>Founder of Catherina Co.</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div>
-                        <div class="thumb">
-                          <div class="row">
-                            <div class="col-lg-12">
-                              <div class="client-content">
-                                <img src="assets/images/quote.png" alt="">
-                                <p>“Lorem ipsum dolor sit amet, consectetur adpiscing elit, sed do eismod tempor idunte ut labore et dolore magna aliqua darwin kengan
-                                  lorem ipsum dolor sit amet, consectetur picing elit massive big blasta.”</p>
-                              </div>
-                              <div class="down-content">
-                                <img src="assets/images/client-image.jpg" alt="">
-                                <div class="right-content">
-                                  <h4>Random Staff</h4>
-                                  <span>Manager, Digital Company</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div>
-                        <div class="thumb">
-                          <div class="row">
-                            <div class="col-lg-12">
-                              <div class="client-content">
-                                <img src="assets/images/quote.png" alt="">
-                                <p>“Mark, Lorem ipsum dolor sit amet, consectetur adpiscing elit, sed do eismod tempor idunte ut labore et dolore magna aliqua darwin kengan
-                                  lorem ipsum dolor sit amet, consectetur picing elit massive big blasta.”</p>
-                              </div>
-                              <div class="down-content">
-                                <img src="assets/images/client-image.jpg" alt="">
-                                <div class="right-content">
-                                  <h4>Mark Am</h4>
-                                  <span>CTO, Amber Do Company</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                </div>          
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div-->
-
-  <div id="download" class="pricing-tables" style="text-align: center;">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <div class="section-heading">
-            <div class="Nikk-Frame">
-              <div class="sb sb_blue">
-                <div class="nik-highlight">
-                  <h2>Download SP WhatsApp Apk </h2>
-                  <img src="assets/images/heading-line-dec.png" alt="">
-                </div>
-                <div class="box_content">
-                  <center>
-                    <p>Finally you have reached the main section of our website that is Downloading the SPWA Apk latest version for android. Click on below download page button and download the apk file from the next page.</p>
-                  </center>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!--div class="col-lg-4">
-          <div class="pricing-item-regular">
-            <span class="price">$12</span>
-            <h4>Standard Plan App</h4>
-            <div class="icon">
-              <img src="assets/images/pricing-table-01.png" alt="">
-            </div>
-            <ul>
-              <li>Lorem Ipsum Dolores</li>
-              <li>20 TB of Storage</li>
-              <li class="non-function">Life-time Support</li>
-              <li class="non-function">Premium Add-Ons</li>
-              <li class="non-function">Fastest Network</li>
-              <li class="non-function">More Options</li>
-            </ul>
-            <div class="border-button">
-              <a href="#">Purchase This Plan Now</a>
-            </div>
-          </div>
-        </div-->
-        <center>
-          <div class="col-lg-4">
-            <div class="pricing-item-pro">
-              <span class="price">V56.1</span>
-              <h4>SP WhatsApp</h4>
-              <div class="icon">
-                <img src="assets/images/pricing-table-01.png" alt="">
-              </div>
-              <ul>
-                <li>com.spwhatsapp</li>
-                <li>No Need Actovator</li>
-                <li>Fix Number Login Problm 99%</li>
-                <li>Recommanded Use Link Device Method</li>
-              </ul>
-              <div class="border-button">
-                <a href="spwhatsapp.html">Download Now</a>
-              </div>
-            </div>
-          </div>
-        </center>
-      </div>
-    </div>
-  </div><br><br> 
-
-  <div id="faq" class="nik-highlight">
-    <h2>FAQ – SPWhatsApp </h2>
-  </div><br>
-  <div class="spq">
-    <div class="ps">
-      <point>01</point>What is SPWhatsApp? SPWhatsApp is a modified version of WhatsApp developed by SPMods, providing users with enhanced features and functionalities to elevate their messaging experience.
-    </div>
-    <div class="ps"> 
-      <point>02</point>Where can I download SPWhatsApp? You can download SPWhatsApp from the official publishing platform at “https://www.spmods.download/“.
-    </div> 
-    <div class="ps">
-      <point>03</point> What is the size of the SPWhatsApp APK? The size of the SPWhatsApp APK is 68MB.
-    </div> <div class="ps">
-      <point>04</point> Can I disable the Typing Toast feature? Yes, you can disable the Typing Toast feature in the settings by navigating to “SPMods &gt; Settings &gt; Toast Setting &gt; Typing Toast”.
-    </div>
-    <div class="ps">
-      <point>05</point>  How can I translate messages directly within the message box? You can translate messages by clicking on the Translate icon inside the message box. A 1-click selects the language, and a long-click allows you to change the language.
-    </div>
-    <div class="ps">
-      <point>06</point>  Is there an option to disable direct translate? Yes, you can disable direct translate by going to “SPMods &gt; Settings &gt; Conversation &gt; Entry Style &gt; Translate”.
-    </div>
-    <div class="ps">
-      <point>07</point>  Can I preview images and videos without saving them to my phone? Yes, SPWhatsApp allows you to preview images and videos without saving them to your phone.
-    </div>
-    <div class="ps">
-      <point>08</point>  What is the Repost option for Story/Status? The Repost option enables you to share someone else’s Story/Status with your contacts.
-    </div>
-    <div class="ps">
-      <point>09</point>  How can I create backups in SPWhatsApp? SPWhatsApp creates backups in .zip file format for easy storage and retrieval.
-    </div>
-    <div class="ps">
-      <point>10</point>  Can I download the profile picture of any user? Yes, SPWhatsApp allows you to download the profile picture of any user.
-    </div>
-    <div class="ps">
-      <point>11</point>  What options are available when tapping on Chat Bubble? Tapping on Chat Bubble allows you to Modify Chat, Translate, Change Translator Language, Extract URLs, view Message Details, and more. You can enable/disable this feature in settings.
-    </div>
-    <div class="ps">
-      <point>12</point>  Are there media resolution options in SPWhatsApp? Yes, SPWhatsApp offers Media Resolution settings for photos, videos, and status quality.
-    </div>
-    <div class="ps">
-      <point>13</point>  Can I create and vote in polls within groups? Yes, SPWhatsApp enables you to create polls and participate in group voting.
-    </div>
-    <div class="ps">
-      <point>14</point>  Is there a feature to forward media with captions? Yes, SPWhatsApp allows you to forward media with captions to your contacts.
-    </div>
-    <div class="ps">
-      <point>15</point>  How can I enable the Message Scheduler and Autoresponder features? The Message Scheduler and Autoresponder features can be accessed via the respective UI design in the settings.
-    </div>
-  </div>
-
-  <footer id="newsletter">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <div class="section-heading">
-            <h4>Join our channal to receive the news &amp; latest trends</h4>
-          </div>
-        </div>
-        
-      </div>
-      <div class="row">
-        <div class="col-lg-3">
-          <div class="footer-widget">
-            <h4>Contact Us</h4>
-            <p><a href="#">Telegram</a></p>
-            <p><a href="#">WhatsApp</a></p>
-            <p><a href="spmodsofficial@gmail.com">Email</a></p>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="footer-widget">
-            <h4>About Us</h4>
-            <ul>
-              <li><a href="#">Home</a></li>
-              <li><a href="#features">Features</a></li>
-              <li><a href="#about">About</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="footer-widget">
-            <h4>Useful Links</h4>
-            <ul>
-              <li><a href="#">Free Apps</a></li>
-              <li><a href="#">App Engine</a></li>
-              <li><a href="#">App News</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="footer-widget">
-            <h4>About Our Company</h4>
-            <p>Providing users with enhanced features and functionalities to elevate their messaging experience.</p>
-          </div>
-        </div>
-        <div class="col-lg-12">
-          <div class="copyright-text">
-            <p>Copyright © 2025 SPMods. All Rights Reserved. 
-          <br>Design: <a href="https://www.spmods.download/" target="_blank" title="css templates">Sandun Piumal</a></p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-
-  <!-- Scripts -->
-  <script src="vendor/jquery/jquery.min.js"></script>
-  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/js/owl-carousel.js"></script>
-  <script src="assets/js/animation.js"></script>
-  <script src="assets/js/imagesloaded.js"></script>
-  <script src="assets/js/popup.js"></script>
-  <script src="assets/js/custom.js"></script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
