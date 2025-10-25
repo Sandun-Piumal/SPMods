@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SP WhatsApp V56.1 - Premium Features</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-          <script src="https://fpyf8.com/88/tag.min.js" data-zone="161357" async data-cfasync="false"></script>
     <style>
         * {
             margin: 0;
@@ -788,24 +787,61 @@
     </footer>
 
     <script>
-        // Animated counter for downloads
+        // Real-time visit counter using CountAPI (Free service)
         const downloadCounter = document.getElementById('downloadCount');
-        let count = 0;
-        const target = 15847;
-        const duration = 2000;
-        const increment = target / (duration / 16);
-
-        function updateCounter() {
-            count += increment;
-            if (count < target) {
-                downloadCounter.textContent = Math.floor(count).toLocaleString();
-                requestAnimationFrame(updateCounter);
-            } else {
-                downloadCounter.textContent = target.toLocaleString();
+        const namespace = 'spwhatsapp'; // Your unique namespace
+        const key = 'downloads'; // Counter key
+        
+        // Fetch and update visitor count from CountAPI
+        async function getVisitorCount() {
+            try {
+                // Hit the API to increment and get count
+                const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+                const data = await response.json();
+                
+                if (data.value) {
+                    animateCounter(data.value);
+                } else {
+                    useFallbackCounter();
+                }
+            } catch (error) {
+                console.log('API unavailable, using fallback counter');
+                useFallbackCounter();
             }
         }
+        
+        // Animate counter to target number
+        function animateCounter(target) {
+            let count = target - 100; // Start animation from slightly lower
+            const duration = 2000;
+            const increment = 100 / (duration / 16);
 
-        setTimeout(updateCounter, 500);
+            function updateCounter() {
+                count += increment;
+                if (count < target) {
+                    downloadCounter.textContent = Math.floor(count).toLocaleString();
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    downloadCounter.textContent = target.toLocaleString();
+                }
+            }
+            updateCounter();
+        }
+        
+        // Fallback counter using localStorage
+        function useFallbackCounter() {
+            let storedCount = localStorage.getItem('spWhatsAppVisits');
+            if (!storedCount) {
+                storedCount = 15000;
+            } else {
+                storedCount = parseInt(storedCount) + 1;
+            }
+            localStorage.setItem('spWhatsAppVisits', storedCount);
+            animateCounter(storedCount);
+        }
+        
+        // Load counter on page load
+        setTimeout(getVisitorCount, 500);
 
         // Animated counter for stats
         const statNumbers = document.querySelectorAll('.stat-number[data-target]');
