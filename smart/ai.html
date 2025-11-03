@@ -198,6 +198,11 @@
             text-decoration: underline;
         }
 
+        .forgot-password {
+            text-align: center;
+            margin-top: 10px;
+        }
+
         .error-message {
             background: rgba(239, 68, 68, 0.1);
             color: var(--error);
@@ -474,7 +479,7 @@
             background: rgba(0, 0, 0, 0.05);
         }
 
-        /* Logout Button - NEW */
+        /* Logout Button */
         .logout-btn {
             display: flex;
             align-items: center;
@@ -1020,6 +1025,12 @@
             </div>
             <button type="submit" class="auth-button" id="loginButton">Login</button>
             <div class="error-message" id="loginError"></div>
+            
+            <!-- Forgot Password Link -->
+            <div class="forgot-password">
+                <span class="auth-link" id="forgotPassword">Forgot Password?</span>
+            </div>
+            
             <div class="auth-switch">
                 <span id="noAccount">Don't have an account?</span>
                 <span class="auth-link" id="showSignup">Sign Up</span>
@@ -1050,6 +1061,21 @@
             <div class="auth-switch">
                 <span id="haveAccount">Already have an account?</span>
                 <span class="auth-link" id="showLogin">Login</span>
+            </div>
+        </form>
+
+        <!-- Forgot Password Form -->
+        <form class="auth-form" id="forgotPasswordForm" style="display: none;">
+            <div class="form-group">
+                <label class="form-label" id="forgotEmailLabel">Email</label>
+                <input type="email" class="form-input" id="forgotEmail" placeholder="Your email address" required>
+            </div>
+            <button type="submit" class="auth-button" id="resetPasswordButton">Reset Password</button>
+            <div class="error-message" id="forgotError"></div>
+            <div class="success-message" id="forgotSuccess"></div>
+            <div class="auth-switch">
+                <span>Remember your password?</span>
+                <span class="auth-link" id="backToLogin">Back to Login</span>
             </div>
         </form>
 
@@ -1101,7 +1127,7 @@
                         </button>
                     </div>
                     
-                    <!-- Logout Button - DIRECT -->
+                    <!-- Logout Button -->
                     <button class="logout-btn" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i>
                         <span id="logoutText">පිටවීම</span>
@@ -1169,7 +1195,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // Language content - FIXED
+        // Language content
         const languageContent = {
             sinhala: {
                 // Auth Page
@@ -1185,6 +1211,10 @@
                 haveAccount: "Already have an account?",
                 showSignup: "Sign Up",
                 showLogin: "Login",
+                forgotPassword: "Forgot Password?",
+                resetPasswordButton: "Reset Password",
+                backToLogin: "Back to Login",
+                rememberPassword: "Remember your password?",
                 
                 // Chat Page
                 logoTitle: "Smart AI",
@@ -1215,6 +1245,10 @@
                 haveAccount: "Already have an account?",
                 showSignup: "Sign Up",
                 showLogin: "Login",
+                forgotPassword: "Forgot Password?",
+                resetPasswordButton: "Reset Password",
+                backToLogin: "Back to Login",
+                rememberPassword: "Remember your password?",
                 
                 // Chat Page
                 logoTitle: "Smart AI",
@@ -1233,17 +1267,42 @@
             }
         };
 
+        // AI Responses - FIXED: Different responses for different questions
+        const aiResponses = {
+            sinhala: {
+                greeting: "ආයුබෝවන්! මම Smart AI. ඔබට උපකාර කිරීමට මම සුදානම්. ඔබට කුමන ආකාරයේ උපකාරයක් අවශ්‍යද?",
+                help: "මම ඔබට උපකාර කිරීමට සතුටු වෙමි! ඔබට ප්‍රශ්න ඇසීමට, තොරතුරු ඉල්ලීමට, හෝ කිසියම් ගැටලුවක් සම්බන්ධව උපකාර ඉල්ලීමට හැකිය.",
+                time: `වර්තමාන වේලාව: ${new Date().toLocaleTimeString('si-LK')}`,
+                date: `අද දිනය: ${new Date().toLocaleDateString('si-LK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
+                weather: "මට කණගාටුයි, මම දැනට කාලගුණික තොරතුරු ලබා දිය නොහැක. කෙසේ වෙතත්, ඔබගේ ප්‍රදේශයේ කාලගුණය සඳහා කාලගුණික වෙබ් අඩවියක් පරීක්ෂා කරන්න.",
+                default: "ඔබගේ ප්‍රශ්නය ගැන ස්තුතියි! මම එය පිළිබඳව සලකා බලමින් සිටිමි. ඔබට වැඩිදුර තොරතුරු අවශ්‍ය නම්, කරුණාකර විස්තර සහිතව නැවත අසන්න."
+            },
+            english: {
+                greeting: "Hello! I'm Smart AI. I'm ready to help you. What kind of assistance do you need?",
+                help: "I'm happy to help you! You can ask questions, request information, or seek assistance with any problem.",
+                time: `Current time: ${new Date().toLocaleTimeString('en-US')}`,
+                date: `Today's date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
+                weather: "I'm sorry, I cannot provide weather information at the moment. However, you can check a weather website for your area's forecast.",
+                default: "Thank you for your question! I'm considering it. If you need more information, please ask again with more details."
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
             // DOM Elements
             const authContainer = document.getElementById('authContainer');
             const chatApp = document.getElementById('chatApp');
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
             const showSignup = document.getElementById('showSignup');
             const showLogin = document.getElementById('showLogin');
+            const forgotPassword = document.getElementById('forgotPassword');
+            const backToLogin = document.getElementById('backToLogin');
             const loginError = document.getElementById('loginError');
             const signupError = document.getElementById('signupError');
             const signupSuccess = document.getElementById('signupSuccess');
+            const forgotError = document.getElementById('forgotError');
+            const forgotSuccess = document.getElementById('forgotSuccess');
             const logoutBtn = document.getElementById('logoutBtn');
             
             const chatMessages = document.getElementById('chatMessages');
@@ -1272,6 +1331,7 @@
             function showAuthContainer() {
                 authContainer.style.display = 'block';
                 chatApp.style.display = 'none';
+                showLoginForm();
             }
 
             // Show chat app
@@ -1279,6 +1339,42 @@
                 authContainer.style.display = 'none';
                 chatApp.style.display = 'flex';
                 messageInput.focus();
+            }
+
+            // Show login form
+            function showLoginForm() {
+                loginForm.style.display = 'flex';
+                signupForm.style.display = 'none';
+                forgotPasswordForm.style.display = 'none';
+                loginError.style.display = 'none';
+                signupError.style.display = 'none';
+                signupSuccess.style.display = 'none';
+                forgotError.style.display = 'none';
+                forgotSuccess.style.display = 'none';
+            }
+
+            // Show signup form
+            function showSignupForm() {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'flex';
+                forgotPasswordForm.style.display = 'none';
+                loginError.style.display = 'none';
+                signupError.style.display = 'none';
+                signupSuccess.style.display = 'none';
+                forgotError.style.display = 'none';
+                forgotSuccess.style.display = 'none';
+            }
+
+            // Show forgot password form
+            function showForgotPasswordForm() {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'none';
+                forgotPasswordForm.style.display = 'flex';
+                loginError.style.display = 'none';
+                signupError.style.display = 'none';
+                signupSuccess.style.display = 'none';
+                forgotError.style.display = 'none';
+                forgotSuccess.style.display = 'none';
             }
 
             // Login form
@@ -1333,19 +1429,31 @@
                     });
             });
 
-            // Form switching
-            showSignup.addEventListener('click', () => {
-                loginForm.style.display = 'none';
-                signupForm.style.display = 'flex';
-                loginError.style.display = 'none';
+            // Forgot password form
+            forgotPasswordForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('forgotEmail').value;
+                
+                forgotError.style.display = 'none';
+                forgotSuccess.style.display = 'none';
+                
+                auth.sendPasswordResetEmail(email)
+                    .then(() => {
+                        forgotSuccess.textContent = 'Password reset email sent! Check your inbox.';
+                        forgotSuccess.style.display = 'block';
+                        forgotPasswordForm.reset();
+                    })
+                    .catch((error) => {
+                        forgotError.textContent = 'Failed to send reset email. Please check your email address.';
+                        forgotError.style.display = 'block';
+                    });
             });
 
-            showLogin.addEventListener('click', () => {
-                signupForm.style.display = 'none';
-                loginForm.style.display = 'flex';
-                signupError.style.display = 'none';
-                signupSuccess.style.display = 'none';
-            });
+            // Form switching
+            showSignup.addEventListener('click', showSignupForm);
+            showLogin.addEventListener('click', showLoginForm);
+            forgotPassword.addEventListener('click', showForgotPasswordForm);
+            backToLogin.addEventListener('click', showLoginForm);
 
             // Logout button
             logoutBtn.addEventListener('click', () => {
@@ -1363,7 +1471,7 @@
                 themeLabel.textContent = theme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
             }
 
-            // Language switching - FIXED
+            // Language switching
             function switchLanguage(lang) {
                 currentLanguage = lang;
                 const content = languageContent[lang];
@@ -1383,6 +1491,10 @@
                 document.getElementById('haveAccount').textContent = content.haveAccount;
                 document.getElementById('showSignup').textContent = content.showSignup;
                 document.getElementById('showLogin').textContent = content.showLogin;
+                document.getElementById('forgotPassword').textContent = content.forgotPassword;
+                document.getElementById('resetPasswordButton').textContent = content.resetPasswordButton;
+                document.getElementById('backToLogin').textContent = content.backToLogin;
+                document.querySelector('#forgotPasswordForm .auth-switch span').textContent = content.rememberPassword;
                 
                 document.getElementById('logoTitle').textContent = content.logoTitle;
                 document.getElementById('headerSubtitle').textContent = content.headerSubtitle;
@@ -1469,6 +1581,29 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
+            // FIXED: AI response function with different responses
+            function getAIResponse(userMessage) {
+                const message = userMessage.toLowerCase().trim();
+                const responses = aiResponses[currentLanguage];
+                
+                // Check for specific patterns and return appropriate responses
+                if (message.includes('hello') || message.includes('hi') || message.includes('hey') || 
+                    message.includes('ආයුබෝවන්') || message.includes('හායි') || message.includes('කොහොමද')) {
+                    return responses.greeting;
+                } else if (message.includes('help') || message.includes('උදව්') || message.includes('උපකාර')) {
+                    return responses.help;
+                } else if (message.includes('time') || message.includes('වේලාව') || message.includes('කොපමණ වෙලාවද')) {
+                    return responses.time;
+                } else if (message.includes('date') || message.includes('දිනය') || message.includes('අද දිනය')) {
+                    return responses.date;
+                } else if (message.includes('weather') || message.includes('කාලගුණය') || message.includes('වර්ෂාපතනය')) {
+                    return responses.weather;
+                } else {
+                    // For other messages, return a more contextual response
+                    return `${responses.default}\n\n"${userMessage}" - ඔබගේ ප්‍රශ්නය ගැන මම සිතමි.`;
+                }
+            }
+
             function sendMessage() {
                 const message = messageInput.value.trim();
                 if (message === '') return;
@@ -1480,15 +1615,13 @@
                 sendButton.disabled = true;
                 typingIndicator.style.display = 'block';
                 
-                // Simulate AI response
+                // Get appropriate AI response
                 setTimeout(() => {
                     typingIndicator.style.display = 'none';
-                    const response = currentLanguage === 'sinhala' 
-                        ? 'මෙය Smart AI ගේ පිළිතුරකි. ඔබගේ ප්‍රශ්නයට ස්තුතියි! මම ඔබට උපකාර කිරීමට සුදානම්.'
-                        : 'This is a response from Smart AI. Thank you for your question! I am ready to help you with any queries.';
+                    const response = getAIResponse(message);
                     addMessage(response, false);
                     sendButton.disabled = false;
-                }, 2000);
+                }, 1500 + Math.random() * 1000); // Random delay for more natural feel
             }
 
             sendButton.addEventListener('click', sendMessage);
@@ -1502,4 +1635,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
