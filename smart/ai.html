@@ -474,107 +474,27 @@
             background: rgba(0, 0, 0, 0.05);
         }
 
-        /* User Profile - FIXED */
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 16px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-        }
-
-        [data-theme="light"] .user-profile {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .user-profile:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-2px);
-        }
-
-        [data-theme="light"] .user-profile:hover {
-            background: rgba(0, 0, 0, 0.08);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--gradient-2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            box-shadow: var(--shadow-light);
-        }
-
-        .user-info h3 {
-            font-size: 15px;
-            margin-bottom: 3px;
-            font-weight: 600;
-        }
-
-        .user-info p {
-            font-size: 12px;
-            color: var(--primary);
-            font-weight: 500;
-        }
-
-        /* Logout Menu - FIXED */
-        .logout-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: var(--dark);
-            border-radius: 12px;
-            padding: 10px;
-            margin-top: 10px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: none;
-            z-index: 1000;
-            min-width: 150px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logout-menu.show {
-            display: block !important;
-        }
-
+        /* Logout Button - NEW */
         .logout-btn {
-            width: 100%;
-            padding: 12px 15px;
-            border: none;
-            background: transparent;
-            color: var(--text);
-            text-align: left;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            cursor: pointer;
+            transition: all 0.3s ease;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .logout-btn i {
-            width: 16px;
-            text-align: center;
+            background: rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
         }
 
         /* Chat Area */
@@ -947,14 +867,6 @@
                 gap: 10px;
             }
             
-            .user-info h3 {
-                font-size: 14px;
-            }
-            
-            .user-info p {
-                font-size: 11px;
-            }
-            
             .chat-messages {
                 padding: 15px 20px;
             }
@@ -1042,18 +954,13 @@
                 font-size: 20px;
             }
             
-            .user-profile {
-                padding: 6px 12px;
-            }
-            
-            .user-avatar {
-                width: 35px;
-                height: 35px;
-                font-size: 16px;
-            }
-            
             .lang-btn {
                 padding: 6px 10px;
+                font-size: 12px;
+            }
+            
+            .logout-btn {
+                padding: 8px 12px;
                 font-size: 12px;
             }
             
@@ -1097,24 +1004,24 @@
             <div class="auth-logo">
                 <i class="fas fa-robot"></i>
             </div>
-            <h1 class="auth-title">Smart AI</h1>
-            <p class="auth-subtitle">Powered by Gemini AI</p>
+            <h1 class="auth-title" id="authTitle">Smart AI</h1>
+            <p class="auth-subtitle" id="authSubtitle">Powered by Gemini AI</p>
         </div>
         
         <!-- Login Form -->
         <form class="auth-form" id="loginForm">
             <div class="form-group">
-                <label class="form-label">Email</label>
+                <label class="form-label" id="emailLabel">Email</label>
                 <input type="email" class="form-input" id="loginEmail" placeholder="Your email" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Password</label>
+                <label class="form-label" id="passwordLabel">Password</label>
                 <input type="password" class="form-input" id="loginPassword" placeholder="Your password" required>
             </div>
-            <button type="submit" class="auth-button">Login</button>
+            <button type="submit" class="auth-button" id="loginButton">Login</button>
             <div class="error-message" id="loginError"></div>
             <div class="auth-switch">
-                <span>Don't have an account?</span>
+                <span id="noAccount">Don't have an account?</span>
                 <span class="auth-link" id="showSignup">Sign Up</span>
             </div>
         </form>
@@ -1122,26 +1029,26 @@
         <!-- Signup Form -->
         <form class="auth-form" id="signupForm" style="display: none;">
             <div class="form-group">
-                <label class="form-label">Name</label>
+                <label class="form-label" id="nameLabel">Name</label>
                 <input type="text" class="form-input" id="signupName" placeholder="Your name" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Email</label>
+                <label class="form-label" id="signupEmailLabel">Email</label>
                 <input type="email" class="form-input" id="signupEmail" placeholder="Your email" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Password</label>
+                <label class="form-label" id="signupPasswordLabel">Password</label>
                 <input type="password" class="form-input" id="signupPassword" placeholder="At least 6 characters" minlength="6" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Confirm Password</label>
+                <label class="form-label" id="confirmPasswordLabel">Confirm Password</label>
                 <input type="password" class="form-input" id="confirmPassword" placeholder="Re-enter your password" required>
             </div>
-            <button type="submit" class="auth-button">Sign Up</button>
+            <button type="submit" class="auth-button" id="signupButton">Sign Up</button>
             <div class="error-message" id="signupError"></div>
             <div class="success-message" id="signupSuccess"></div>
             <div class="auth-switch">
-                <span>Already have an account?</span>
+                <span id="haveAccount">Already have an account?</span>
                 <span class="auth-link" id="showLogin">Login</span>
             </div>
         </form>
@@ -1150,8 +1057,8 @@
         <div class="footer">
             <div class="footer-content">
                 <div class="footer-copyright">
-                    <p>Copyright © 2025 SPMods. All Rights Reserved.</p>
-                    <p class="design-credit">Design: Sandun Piurnal</p>
+                    <p id="copyrightText">Copyright © 2025 SPMods. All Rights Reserved.</p>
+                    <p class="design-credit" id="designCredit">Design: Sandun Piurnal</p>
                 </div>
             </div>
         </div>
@@ -1166,14 +1073,14 @@
                         <i class="fas fa-robot"></i>
                     </div>
                     <div class="logo-text">
-                        <h1>Smart AI</h1>
-                        <p>Powered by Gemini AI</p>
+                        <h1 id="logoTitle">Smart AI</h1>
+                        <p id="headerSubtitle">Powered by Gemini AI</p>
                     </div>
                 </div>
                 
                 <div class="header-controls">
                     <div class="theme-toggle-container">
-                        <span class="theme-label">අඳුරු</span>
+                        <span class="theme-label" id="themeLabel">අඳුරු</span>
                         <div class="theme-toggle">
                             <input type="checkbox" id="themeToggle">
                             <label class="theme-slider" for="themeToggle">
@@ -1194,22 +1101,11 @@
                         </button>
                     </div>
                     
-                    <!-- User Profile -->
-                    <div class="user-profile" id="userProfile">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-info">
-                            <h3 id="username">පරිශීලක</h3>
-                            <p>Gemini AI</p>
-                        </div>
-                        <div class="logout-menu" id="logoutMenu">
-                            <button class="logout-btn" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i> 
-                                <span>පිටවීම</span>
-                            </button>
-                        </div>
-                    </div>
+                    <!-- Logout Button - DIRECT -->
+                    <button class="logout-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span id="logoutText">පිටවීම</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1220,15 +1116,15 @@
                     <div class="welcome-icon">
                         <i class="fas fa-rocket"></i>
                     </div>
-                    <h2>නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨</h2>
-                    <p>
+                    <h2 id="welcomeTitle">නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨</h2>
+                    <p id="welcomeText">
                         Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br> ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter ඔබන්න 🚀
                     </p>
                 </div>
             </div>
             
             <div class="typing-indicator" id="typingIndicator">
-                <i class="fas fa-robot"></i> <span>Smart AI ප්‍රතිචාර සකසමින්</span>
+                <i class="fas fa-robot"></i> <span id="typingText">Smart AI ප්‍රතිචාර සකසමින්</span>
                 <div class="typing-dots">
                     <span></span>
                     <span></span>
@@ -1250,8 +1146,8 @@
         <div class="footer chat-footer">
             <div class="footer-content">
                 <div class="footer-copyright">
-                    <p>Copyright © 2025 SPMods. All Rights Reserved.</p>
-                    <p class="design-credit">Design: Sandun Piurnal</p>
+                    <p id="footerCopyright">Copyright © 2025 SPMods. All Rights Reserved.</p>
+                    <p class="design-credit" id="footerDesign">Design: Sandun Piurnal</p>
                 </div>
             </div>
         </div>
@@ -1273,6 +1169,70 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
+        // Language content - FIXED
+        const languageContent = {
+            sinhala: {
+                // Auth Page
+                authTitle: "Smart AI",
+                authSubtitle: "Powered by Gemini AI",
+                emailLabel: "Email",
+                passwordLabel: "Password",
+                nameLabel: "Name",
+                confirmPasswordLabel: "Confirm Password",
+                loginButton: "Login",
+                signupButton: "Sign Up",
+                noAccount: "Don't have an account?",
+                haveAccount: "Already have an account?",
+                showSignup: "Sign Up",
+                showLogin: "Login",
+                
+                // Chat Page
+                logoTitle: "Smart AI",
+                headerSubtitle: "Powered by Gemini AI",
+                logoutText: "පිටවීම",
+                themeLabelDark: "අඳුරු",
+                themeLabelLight: "ආලෝක",
+                welcomeTitle: "නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨",
+                welcomeText: "Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br> ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter ඔබන්න 🚀",
+                typingText: "Smart AI ප්‍රතිචාර සකසමින්",
+                inputPlaceholder: "ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න...",
+                
+                // Footer
+                copyright: "Copyright © 2025 SPMods. All Rights Reserved.",
+                designCredit: "Design: Sandun Piurnal"
+            },
+            english: {
+                // Auth Page
+                authTitle: "Smart AI",
+                authSubtitle: "Powered by Gemini AI",
+                emailLabel: "Email",
+                passwordLabel: "Password",
+                nameLabel: "Name",
+                confirmPasswordLabel: "Confirm Password",
+                loginButton: "Login",
+                signupButton: "Sign Up",
+                noAccount: "Don't have an account?",
+                haveAccount: "Already have an account?",
+                showSignup: "Sign Up",
+                showLogin: "Login",
+                
+                // Chat Page
+                logoTitle: "Smart AI",
+                headerSubtitle: "Powered by Gemini AI",
+                logoutText: "Logout",
+                themeLabelDark: "Dark",
+                themeLabelLight: "Light",
+                welcomeTitle: "New Model Successfully Updated! ✨",
+                welcomeText: "Ready to work with Gemini AI Model!<br>Type your question below and press Enter 🚀",
+                typingText: "Smart AI is preparing response",
+                inputPlaceholder: "Type your question here...",
+                
+                // Footer
+                copyright: "Copyright © 2025 SPMods. All Rights Reserved.",
+                designCredit: "Design: Sandun Piurnal"
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
             // DOM Elements
             const authContainer = document.getElementById('authContainer');
@@ -1284,8 +1244,6 @@
             const loginError = document.getElementById('loginError');
             const signupError = document.getElementById('signupError');
             const signupSuccess = document.getElementById('signupSuccess');
-            const userProfile = document.getElementById('userProfile');
-            const logoutMenu = document.getElementById('logoutMenu');
             const logoutBtn = document.getElementById('logoutBtn');
             
             const chatMessages = document.getElementById('chatMessages');
@@ -1293,22 +1251,19 @@
             const sendButton = document.getElementById('sendButton');
             const typingIndicator = document.getElementById('typingIndicator');
             const themeToggle = document.getElementById('themeToggle');
-            const themeLabel = document.querySelector('.theme-label');
+            const themeLabel = document.getElementById('themeLabel');
             const sinhalaBtn = document.getElementById('sinhalaBtn');
             const englishBtn = document.getElementById('englishBtn');
 
             // Current state
             let currentLanguage = 'sinhala';
             let currentTheme = 'dark';
-            let currentUser = null;
 
             // Check authentication state
             auth.onAuthStateChanged((user) => {
                 if (user) {
-                    currentUser = user;
                     showChatApp();
                 } else {
-                    currentUser = null;
                     showAuthContainer();
                 }
             });
@@ -1323,13 +1278,6 @@
             function showChatApp() {
                 authContainer.style.display = 'none';
                 chatApp.style.display = 'flex';
-                
-                // Update username
-                const usernameElement = document.getElementById('username');
-                if (currentUser && currentUser.displayName) {
-                    usernameElement.textContent = currentUser.displayName;
-                }
-                
                 messageInput.focus();
             }
 
@@ -1389,27 +1337,19 @@
             showSignup.addEventListener('click', () => {
                 loginForm.style.display = 'none';
                 signupForm.style.display = 'flex';
+                loginError.style.display = 'none';
             });
 
             showLogin.addEventListener('click', () => {
                 signupForm.style.display = 'none';
                 loginForm.style.display = 'flex';
+                signupError.style.display = 'none';
+                signupSuccess.style.display = 'none';
             });
 
-            // User profile and logout - FIXED
-            userProfile.addEventListener('click', (e) => {
-                e.stopPropagation();
-                logoutMenu.classList.toggle('show');
-            });
-
+            // Logout button
             logoutBtn.addEventListener('click', () => {
                 auth.signOut();
-                logoutMenu.classList.remove('show');
-            });
-
-            // Close logout menu when clicking outside
-            document.addEventListener('click', () => {
-                logoutMenu.classList.remove('show');
             });
 
             // Theme switching
@@ -1417,27 +1357,56 @@
                 currentTheme = theme;
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('smart-ai-theme', theme);
-                themeLabel.textContent = theme === 'dark' ? 'අඳුරු' : 'ආලෝක';
+                
+                // Update theme label
+                const content = languageContent[currentLanguage];
+                themeLabel.textContent = theme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
             }
 
-            // Language switching
+            // Language switching - FIXED
             function switchLanguage(lang) {
                 currentLanguage = lang;
+                const content = languageContent[lang];
                 
+                // Update all text content
+                document.getElementById('authTitle').textContent = content.authTitle;
+                document.getElementById('authSubtitle').textContent = content.authSubtitle;
+                document.getElementById('emailLabel').textContent = content.emailLabel;
+                document.getElementById('passwordLabel').textContent = content.passwordLabel;
+                document.getElementById('nameLabel').textContent = content.nameLabel;
+                document.getElementById('signupEmailLabel').textContent = content.emailLabel;
+                document.getElementById('signupPasswordLabel').textContent = content.passwordLabel;
+                document.getElementById('confirmPasswordLabel').textContent = content.confirmPasswordLabel;
+                document.getElementById('loginButton').textContent = content.loginButton;
+                document.getElementById('signupButton').textContent = content.signupButton;
+                document.getElementById('noAccount').textContent = content.noAccount;
+                document.getElementById('haveAccount').textContent = content.haveAccount;
+                document.getElementById('showSignup').textContent = content.showSignup;
+                document.getElementById('showLogin').textContent = content.showLogin;
+                
+                document.getElementById('logoTitle').textContent = content.logoTitle;
+                document.getElementById('headerSubtitle').textContent = content.headerSubtitle;
+                document.getElementById('logoutText').textContent = content.logoutText;
+                document.getElementById('welcomeTitle').textContent = content.welcomeTitle;
+                document.getElementById('welcomeText').innerHTML = content.welcomeText;
+                document.getElementById('typingText').textContent = content.typingText;
+                document.getElementById('messageInput').placeholder = content.inputPlaceholder;
+                
+                document.getElementById('copyrightText').textContent = content.copyright;
+                document.getElementById('designCredit').textContent = content.designCredit;
+                document.getElementById('footerCopyright').textContent = content.copyright;
+                document.getElementById('footerDesign').textContent = content.designCredit;
+                
+                // Update theme label with current theme
+                themeLabel.textContent = currentTheme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
+                
+                // Update active button
                 if (lang === 'sinhala') {
                     sinhalaBtn.classList.add('active');
                     englishBtn.classList.remove('active');
-                    // Update Sinhala text
-                    themeLabel.textContent = currentTheme === 'dark' ? 'අඳුරු' : 'ආලෝක';
-                    document.getElementById('username').textContent = currentUser ? (currentUser.displayName || 'පරිශීලක') : 'පරිශීලක';
-                    messageInput.placeholder = 'ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න...';
                 } else {
                     englishBtn.classList.add('active');
                     sinhalaBtn.classList.remove('active');
-                    // Update English text
-                    themeLabel.textContent = currentTheme === 'dark' ? 'Dark' : 'Light';
-                    document.getElementById('username').textContent = currentUser ? (currentUser.displayName || 'User') : 'User';
-                    messageInput.placeholder = 'Type your question here...';
                 }
                 
                 localStorage.setItem('smart-ai-language', lang);
@@ -1515,8 +1484,8 @@
                 setTimeout(() => {
                     typingIndicator.style.display = 'none';
                     const response = currentLanguage === 'sinhala' 
-                        ? 'මෙය Smart AI ගේ පිළිතුරකි. ඔබගේ ප්‍රශ්නයට ස්තුතියි!'
-                        : 'This is a response from Smart AI. Thank you for your question!';
+                        ? 'මෙය Smart AI ගේ පිළිතුරකි. ඔබගේ ප්‍රශ්නයට ස්තුතියි! මම ඔබට උපකාර කිරීමට සුදානම්.'
+                        : 'This is a response from Smart AI. Thank you for your question! I am ready to help you with any queries.';
                     addMessage(response, false);
                     sendButton.disabled = false;
                 }, 2000);
@@ -1533,4 +1502,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
