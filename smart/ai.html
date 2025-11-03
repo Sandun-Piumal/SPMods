@@ -1549,7 +1549,16 @@
     
     
     // Fixed Gemini API Call function
-            async function getAIResponse(userMessage) {
+            
+
+                    async function getAIResponse(userMessage) {
+                // Check if API key is set
+                if (GOOGLE_AI_API_KEY === 'YOUR_API_KEY_HERE') {
+                    return currentLanguage === 'sinhala' 
+                        ? 'කරුණාකර ඔබගේ Google AI API key එක config.js ගොනුවේ සකසන්න. GitHub උපදෙස් පිටුව බලන්න.'
+                        : 'Please configure your Google AI API key in config.js. Check the GitHub instructions page.';
+                }
+                
                 const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`;
                 
                 try {
@@ -1590,8 +1599,7 @@
                         ? `මට කණගාටුයි! පිළිතුරු දීමේදී දෝෂයක් ඇති විය. (දෝෂය: ${error.message})`
                         : `Sorry! There was an error responding. (Error: ${error.message})`;
                 }
-            }
-
+                        }
 
 
     async function sendMessage() {
