@@ -1,0 +1,130 @@
+/* Previous CSS content remains the same */
+
+/* Footer Styles */
+.footer {
+    margin-top: 30px;
+    padding: 20px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+}
+
+[data-theme="light"] .footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.chat-footer {
+    margin-top: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--dark);
+    padding: 15px 0;
+}
+
+[data-theme="light"] .chat-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: var(--dark);
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    text-align: center;
+}
+
+.footer-links {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.footer-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .footer-link {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--text-light);
+}
+
+.footer-link:hover {
+    color: var(--primary);
+    background: rgba(139, 92, 246, 0.1);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-light);
+}
+
+.footer-link i {
+    font-size: 16px;
+    width: 16px;
+    text-align: center;
+}
+
+.footer-copyright {
+    color: var(--text-light);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.footer-copyright p {
+    margin: 2px 0;
+}
+
+.design-credit {
+    font-size: 11px;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+    .footer-links {
+        gap: 15px;
+    }
+    
+    .footer-link {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    
+    .footer-copyright {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .footer-link {
+        width: 160px;
+        justify-content: center;
+    }
+    
+    .footer {
+        padding: 15px 0;
+    }
+    
+    .chat-footer {
+        padding: 12px 0;
+    }
+}
+
+/* Rest of the previous CSS remains unchanged */
