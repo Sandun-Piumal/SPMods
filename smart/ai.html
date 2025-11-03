@@ -1001,6 +1001,8 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <!-- Google Generative AI -->
+    <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai/dist/gemini-api.js"></script>
 </head>
 <body>
     <!-- Authentication Container -->
@@ -1195,6 +1197,9 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
+        // Gemini AI Configuration
+        const GEMINI_API_KEY = "AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs";
+
         // Language content
         const languageContent = {
             sinhala: {
@@ -1267,23 +1272,19 @@
             }
         };
 
-        // AI Responses - FIXED: Different responses for different questions
-        const aiResponses = {
+        // Fallback responses
+        const fallbackResponses = {
             sinhala: {
                 greeting: "ආයුබෝවන්! මම Smart AI. ඔබට උපකාර කිරීමට මම සුදානම්. ඔබට කුමන ආකාරයේ උපකාරයක් අවශ්‍යද?",
                 help: "මම ඔබට උපකාර කිරීමට සතුටු වෙමි! ඔබට ප්‍රශ්න ඇසීමට, තොරතුරු ඉල්ලීමට, හෝ කිසියම් ගැටලුවක් සම්බන්ධව උපකාර ඉල්ලීමට හැකිය.",
-                time: `වර්තමාන වේලාව: ${new Date().toLocaleTimeString('si-LK')}`,
-                date: `අද දිනය: ${new Date().toLocaleDateString('si-LK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
-                weather: "මට කණගාටුයි, මම දැනට කාලගුණික තොරතුරු ලබා දිය නොහැක. කෙසේ වෙතත්, ඔබගේ ප්‍රදේශයේ කාලගුණය සඳහා කාලගුණික වෙබ් අඩවියක් පරීක්ෂා කරන්න.",
-                default: "ඔබගේ ප්‍රශ්නය ගැන ස්තුතියි! මම එය පිළිබඳව සලකා බලමින් සිටිමි. ඔබට වැඩිදුර තොරතුරු අවශ්‍ය නම්, කරුණාකර විස්තර සහිතව නැවත අසන්න."
+                error: "කණගාටුයි, දෝෂයක් ඇති විය. කරුණාකර පසුව නැවත උත්සාහ කරන්න.",
+                thinking: "මම ඔබගේ ප්‍රශ්නය ගැන සිතමින් සිටිමි..."
             },
             english: {
                 greeting: "Hello! I'm Smart AI. I'm ready to help you. What kind of assistance do you need?",
                 help: "I'm happy to help you! You can ask questions, request information, or seek assistance with any problem.",
-                time: `Current time: ${new Date().toLocaleTimeString('en-US')}`,
-                date: `Today's date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
-                weather: "I'm sorry, I cannot provide weather information at the moment. However, you can check a weather website for your area's forecast.",
-                default: "Thank you for your question! I'm considering it. If you need more information, please ask again with more details."
+                error: "Sorry, an error occurred. Please try again later.",
+                thinking: "I'm thinking about your question..."
             }
         };
 
@@ -1567,7 +1568,7 @@
                 
                 const messageContent = document.createElement('div');
                 messageContent.classList.add('message-content');
-                messageContent.textContent = message;
+                messageContent.innerHTML = message.replace(/\n/g, '<br>');
                 
                 const messageTime = document.createElement('div');
                 messageTime.classList.add('message-time');
@@ -1581,30 +1582,45 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
-            // FIXED: AI response function with different responses
-            function getAIResponse(userMessage) {
-                const message = userMessage.toLowerCase().trim();
-                const responses = aiResponses[currentLanguage];
-                
-                // Check for specific patterns and return appropriate responses
-                if (message.includes('hello') || message.includes('hi') || message.includes('hey') || 
-                    message.includes('ආයුබෝවන්') || message.includes('හායි') || message.includes('කොහොමද')) {
-                    return responses.greeting;
-                } else if (message.includes('help') || message.includes('උදව්') || message.includes('උපකාර')) {
-                    return responses.help;
-                } else if (message.includes('time') || message.includes('වේලාව') || message.includes('කොපමණ වෙලාවද')) {
-                    return responses.time;
-                } else if (message.includes('date') || message.includes('දිනය') || message.includes('අද දිනය')) {
-                    return responses.date;
-                } else if (message.includes('weather') || message.includes('කාලගුණය') || message.includes('වර්ෂාපතනය')) {
-                    return responses.weather;
-                } else {
-                    // For other messages, return a more contextual response
-                    return `${responses.default}\n\n"${userMessage}" - ඔබගේ ප්‍රශ්නය ගැන මම සිතමි.`;
+            // Real Gemini AI Integration
+            async function getAIResponse(userMessage) {
+                try {
+                    // Check if Google Generative AI is available
+                    if (typeof GoogleGenerativeAI === 'undefined') {
+                        throw new Error('Gemini AI library not loaded');
+                    }
+
+                    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+                    
+                    // Create language-specific prompt
+                    const languagePrompt = currentLanguage === 'sinhala' ? 
+                        "කරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න. පිළිතුර සරල හා පැහැදිලි විය යුතුය." : 
+                        "Please respond in English only. Keep the response clear and concise.";
+                    
+                    const prompt = `${userMessage}\n\n${languagePrompt}`;
+                    
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    return response.text();
+                } catch (error) {
+                    console.error("Gemini API Error:", error);
+                    
+                    // Fallback to simple responses
+                    const responses = fallbackResponses[currentLanguage];
+                    const message = userMessage.toLowerCase().trim();
+                    
+                    if (/(hello|hi|hey|ආයුබෝවන්|හායි|කොහොමද)/.test(message)) {
+                        return responses.greeting;
+                    } else if (/(help|උදව්|උපකාර|සහාය)/.test(message)) {
+                        return responses.help;
+                    } else {
+                        return responses.thinking;
+                    }
                 }
             }
 
-            function sendMessage() {
+            async function sendMessage() {
                 const message = messageInput.value.trim();
                 if (message === '') return;
                 
@@ -1615,13 +1631,17 @@
                 sendButton.disabled = true;
                 typingIndicator.style.display = 'block';
                 
-                // Get appropriate AI response
-                setTimeout(() => {
+                try {
+                    const response = await getAIResponse(message);
                     typingIndicator.style.display = 'none';
-                    const response = getAIResponse(message);
                     addMessage(response, false);
+                } catch (error) {
+                    typingIndicator.style.display = 'none';
+                    const responses = fallbackResponses[currentLanguage];
+                    addMessage(responses.error, false);
+                } finally {
                     sendButton.disabled = false;
-                }, 1500 + Math.random() * 1000); // Random delay for more natural feel
+                }
             }
 
             sendButton.addEventListener('click', sendMessage);
@@ -1630,6 +1650,19 @@
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     sendMessage();
+                }
+            });
+
+            // Enter key for form submission
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const activeForm = document.querySelector('.auth-form[style="display: flex;"]');
+                    if (activeForm) {
+                        const submitButton = activeForm.querySelector('.auth-button');
+                        if (submitButton) {
+                            submitButton.click();
+                        }
+                    }
                 }
             });
         });
