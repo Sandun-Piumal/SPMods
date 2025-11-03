@@ -1575,15 +1575,15 @@ input:checked + .theme-slider:before {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Gemini AI Integration with Fetch API
+    // 100% Pure Gemini AI Integration
     async function getAIResponse(userMessage) {
         try {
             const GEMINI_API_KEY = "AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs";
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
             
             const languagePrompt = currentLanguage === 'sinhala' ? 
-                "කරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න. පිළිතුර සරල හා පැහැදිලි විය යුතුය." : 
-                "Please respond in English only. Keep the response clear and concise.";
+                "කරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න. පිළිතුර සරල හා පැහැදිලි විය යුතුය. මානව ආකාරයේ ස්වභාවික සංවාද භාෂාව භාවිතා කරන්න." : 
+                "Please respond in English only. Keep the response clear, concise and use natural conversational language.";
             
             const prompt = `${userMessage}\n\n${languagePrompt}`;
             
@@ -1592,8 +1592,16 @@ input:checked + .theme-slider:before {
                     parts: [{
                         text: prompt
                     }]
-                }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 1024,
+                }
             };
+            
+            console.log("Sending request to Gemini API...");
             
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -1604,14 +1612,20 @@ input:checked + .theme-slider:before {
             });
             
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Gemini API Error:", response.status, errorText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
+            console.log("Gemini API Response:", data);
             
             if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                return data.candidates[0].content.parts[0].text;
+                const aiResponse = data.candidates[0].content.parts[0].text;
+                console.log("AI Response:", aiResponse);
+                return aiResponse;
             } else {
+                console.error("Invalid response format:", data);
                 throw new Error('Invalid response format from Gemini API');
             }
         } catch (error) {
@@ -1620,10 +1634,14 @@ input:checked + .theme-slider:before {
             const responses = fallbackResponses[currentLanguage];
             const message = userMessage.toLowerCase().trim();
             
-            if (/(hello|hi|hey|ආයුබෝවන්|හායි|කොහොමද)/.test(message)) {
+            if (/(hello|hi|hey|ආයුබෝවන්|හායි|කොහොමද|ayubowan|hayi|kohomada)/.test(message)) {
                 return responses.greeting;
-            } else if (/(help|උදව්|උපකාර|සහාය)/.test(message)) {
+            } else if (/(help|උදව්|උපකාර|සහාය|help|udaw|upakara|sahaya)/.test(message)) {
                 return responses.help;
+            } else if (/(thanks|thank you|ස්තුතියි|stuthiyi|istuthiyi)/.test(message)) {
+                return currentLanguage === 'sinhala' ? 
+                    "ඔබට ස්තුතියි! තවත් ප්‍රශ්න ඇත්නම් මට කියන්න." : 
+                    "You're welcome! Let me know if you have any other questions.";
             } else {
                 return responses.thinking;
             }
@@ -1640,6 +1658,7 @@ input:checked + .theme-slider:before {
         
         sendButton.disabled = true;
         typingIndicator.style.display = 'block';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
         
         try {
             const response = await getAIResponse(message);
@@ -1651,6 +1670,7 @@ input:checked + .theme-slider:before {
             addMessage(responses.error, false);
         } finally {
             sendButton.disabled = false;
+            messageInput.focus();
         }
     }
 
@@ -1675,6 +1695,10 @@ input:checked + .theme-slider:before {
             }
         }
     });
+
+    // Initialize chat input height
+    messageInput.style.height = 'auto';
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
     </script>
 </body>
 </html>
