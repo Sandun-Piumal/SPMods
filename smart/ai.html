@@ -474,7 +474,7 @@ input:checked + .theme-slider:before {
     background: rgba(0, 0, 0, 0.05);
 }
 
-/* User Profile */
+/* User Profile - Updated */
 .user-profile {
     display: flex;
     align-items: center;
@@ -516,11 +516,13 @@ input:checked + .theme-slider:before {
 .user-info h3 {
     font-size: 15px;
     margin-bottom: 3px;
+    font-weight: 600;
 }
 
 .user-info p {
     font-size: 12px;
-    color: var(--text-light);
+    color: var(--primary);
+    font-weight: 500;
 }
 
 .logout-menu {
@@ -536,6 +538,12 @@ input:checked + .theme-slider:before {
     display: none;
     z-index: 100;
     min-width: 150px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .logout-menu button {
@@ -548,32 +556,20 @@ input:checked + .theme-slider:before {
     cursor: pointer;
     border-radius: 8px;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .logout-menu button:hover {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--success);
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.status-indicator i {
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+.logout-menu button i {
+    width: 16px;
+    text-align: center;
 }
 
 /* Chat Area - Fixed Layout */
@@ -876,7 +872,7 @@ input:checked + .theme-slider:before {
     line-height: 1.6;
 }
 
-/* Footer Styles */
+/* Footer Styles - Updated (Removed Social Links) */
 .footer {
     margin-top: 30px;
     padding: 20px 0;
@@ -905,49 +901,6 @@ input:checked + .theme-slider:before {
     flex-direction: column;
     align-items: center;
     gap: 15px;
-    text-align: center;
-}
-
-.footer-links {
-    display: flex;
-    gap: 25px;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.footer-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-light);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    padding: 8px 16px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="light"] .footer-link {
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: var(--text-light);
-}
-
-.footer-link:hover {
-    color: var(--primary);
-    background: rgba(139, 92, 246, 0.1);
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-light);
-}
-
-.footer-link i {
-    font-size: 16px;
-    width: 16px;
     text-align: center;
 }
 
@@ -998,11 +951,6 @@ input:checked + .theme-slider:before {
         font-size: 11px;
     }
     
-    .status-indicator {
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-    
     .chat-messages {
         padding: 15px 20px;
     }
@@ -1031,15 +979,6 @@ input:checked + .theme-slider:before {
     .welcome-message p {
         font-size: 16px;
     }
-    
-    .footer-links {
-        gap: 20px;
-    }
-    
-    .footer-link {
-        padding: 6px 12px;
-        font-size: 13px;
-    }
 }
 
 @media (max-width: 768px) {
@@ -1066,16 +1005,8 @@ input:checked + .theme-slider:before {
         flex-wrap: wrap;
     }
     
-    .user-info {
-        display: none;
-    }
-    
     .theme-toggle-container {
         order: -1;
-    }
-    
-    .footer-links {
-        gap: 15px;
     }
     
     .footer {
@@ -1159,16 +1090,6 @@ input:checked + .theme-slider:before {
         display: none;
     }
     
-    .footer-links {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .footer-link {
-        width: 160px;
-        justify-content: center;
-    }
-    
     .footer-copyright {
         font-size: 11px;
     }
@@ -1177,74 +1098,7 @@ input:checked + .theme-slider:before {
         font-size: 10px;
     }
 }
-
-/* Additional Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Selection Styles */
-::selection {
-    background: rgba(139, 92, 246, 0.3);
-    color: var(--text);
-}
-
-::-moz-selection {
-    background: rgba(139, 92, 246, 0.3);
-    color: var(--text);
-}
-
-/* Focus Styles for Accessibility */
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
-
-/* Loading Animation */
-.loading-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: var(--primary);
-    animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Smooth Transitions for Theme Changes */
-* {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-/* Print Styles */
-@media print {
-    .auth-container,
-    .chat-app {
-        box-shadow: none;
-        background: white !important;
-        color: black !important;
-    }
-    
-    .header-controls,
-    .chat-input-container,
-    .footer {
-        display: none;
-    }
-}
-</style>
+    </style>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1309,20 +1163,6 @@ textarea:focus-visible {
         <!-- Footer for Auth Page -->
         <div class="footer">
             <div class="footer-content">
-                <div class="footer-links">
-                    <a href="#" class="footer-link">
-                        <i class="fab fa-telegram"></i>
-                        <span>Telegram</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>WhatsApp</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-envelope"></i>
-                        <span>Email</span>
-                    </a>
-                </div>
                 <div class="footer-copyright">
                     <p>Copyright © 2025 SPMods. All Rights Reserved.</p>
                     <p class="design-credit">Design: Sandun Piurnal</p>
@@ -1368,18 +1208,14 @@ textarea:focus-visible {
                         </button>
                     </div>
                     
-                    <div class="status-indicator">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="status-text">Online</span>
-                    </div>
-                    
+                    <!-- User Profile with Logout -->
                     <div class="user-profile" id="userProfile">
                         <div class="user-avatar">
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="user-info">
                             <h3 id="username">පරිශීලක</h3>
-                            <p id="user-status">Online</p>
+                            <p id="user-status">Gemini AI</p>
                         </div>
                         <div class="logout-menu" id="logoutMenu">
                             <button id="logoutBtn">
@@ -1427,20 +1263,6 @@ textarea:focus-visible {
         <!-- Footer for Chat App -->
         <div class="footer chat-footer">
             <div class="footer-content">
-                <div class="footer-links">
-                    <a href="#" class="footer-link">
-                        <i class="fab fa-telegram"></i>
-                        <span>Telegram</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>WhatsApp</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-envelope"></i>
-                        <span>Email</span>
-                    </a>
-                </div>
                 <div class="footer-copyright">
                     <p>Copyright © 2025 SPMods. All Rights Reserved.</p>
                     <p class="design-credit">Design: Sandun Piurnal</p>
