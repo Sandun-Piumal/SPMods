@@ -263,7 +263,7 @@ body {
     padding: 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -559,6 +559,7 @@ body {
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
+    order: 0;
 }
 
 [data-theme="light"] .theme-toggle-container {
@@ -655,6 +656,7 @@ input:checked + .theme-slider:before {
     padding: 4px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
+    order: 1;
 }
 
 [data-theme="light"] .language-switcher {
@@ -701,6 +703,7 @@ input:checked + .theme-slider:before {
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     cursor: pointer;
+    order: 2;
 }
 
 [data-theme="light"] .user-profile {
@@ -738,28 +741,6 @@ input:checked + .theme-slider:before {
     color: var(--text-light);
 }
 
-.status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--success);
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.status-indicator i {
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
 /* Logout Button */
 .logout-btn {
     display: flex;
@@ -775,12 +756,18 @@ input:checked + .theme-slider:before {
     font-size: 14px;
     font-weight: 600;
     border: 1px solid rgba(239, 68, 68, 0.3);
+    order: 3;
 }
 
 .logout-btn:hover {
     background: rgba(239, 68, 68, 0.2);
     transform: translateY(-2px);
     box-shadow: var(--shadow-light);
+}
+
+/* Status Indicator (Removed) */
+.status-indicator {
+    display: none !important;
 }
 
 /* Messages Container */
@@ -1248,11 +1235,6 @@ input:checked + .theme-slider:before {
         font-size: 11px;
     }
     
-    .status-indicator {
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-    
     .chat-messages {
         padding: 15px 20px;
     }
@@ -1317,6 +1299,11 @@ input:checked + .theme-slider:before {
     
     .theme-toggle-container {
         order: -1;
+    }
+
+    .logout-btn {
+        order: 4;
+        margin-top: 10px;
     }
 
     .chat-sidebar {
@@ -1415,5 +1402,61 @@ input:checked + .theme-slider:before {
 
     .sidebar-actions {
         flex-direction: row;
+    }
+
+    .logout-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
+
+/* Additional animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+    background: rgba(139, 92, 246, 0.3);
+    color: var(--text);
+}
+
+/* Print styles */
+@media print {
+    .auth-container,
+    .header-controls,
+    .chat-input-container,
+    .footer {
+        display: none !important;
+    }
+    
+    .chat-app {
+        box-shadow: none;
+        height: auto;
+    }
+    
+    .chat-messages {
+        overflow: visible;
     }
 }
