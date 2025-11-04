@@ -36,14 +36,13 @@ const languageContent = {
         headerSubtitle: "Powered by Gemini AI",
         username: "User",
         userStatus: "Online",
-        statusText: "Online",
-        logoutText: "Logout",
+        logoutText: "පිටවීම",
         welcomeTitle: "New Model Successfully Updated! ✨",
         welcomeText: "Ready to work with Gemini AI Model!<br>Type your question below and press Enter 🚀",
         typingText: "Smart AI is preparing response",
         inputPlaceholder: "Type your question here...",
-        themeLabelDark: "Dark",
-        themeLabelLight: "Light",
+        themeLabelDark: "අඳුරු",
+        themeLabelLight: "ආලෝක",
         clearChatText: "Clear Chat",
         exportChatText: "Export Chat",
         suggestionsText: "Suggestions",
@@ -81,7 +80,6 @@ const languageContent = {
         headerSubtitle: "Powered by Gemini AI",
         username: "User",
         userStatus: "Online",
-        statusText: "Online",
         logoutText: "Logout",
         welcomeTitle: "New Model Successfully Updated! ✨",
         welcomeText: "Ready to work with Gemini AI Model!<br>Type your question below and press Enter 🚀",
@@ -168,7 +166,6 @@ function getUserId() {
 }
 
 function getStorageKey() {
-    // Create unique storage key for each user
     return `neura-user-${getUserId()}-sessions`;
 }
 
@@ -184,7 +181,7 @@ function createNewSession() {
         messages: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        userId: getUserId() // Add user ID to session
+        userId: getUserId()
     };
     
     chatSessions.unshift(session);
@@ -332,10 +329,9 @@ auth.onAuthStateChanged((user) => {
     if (user) {
         showChatApp();
         updateUserProfile(user);
-        loadChatSessions(); // Load sessions for this specific user
+        loadChatSessions();
     } else {
         showAuthContainer();
-        // Clear current sessions when logging out
         chatSessions = [];
         currentSessionId = null;
         chatHistory = [];
@@ -559,7 +555,6 @@ function switchLanguage(lang) {
     document.getElementById('headerSubtitle').textContent = content.headerSubtitle;
     document.getElementById('username').textContent = content.username;
     document.getElementById('userStatus').textContent = content.userStatus;
-    document.getElementById('statusText').textContent = content.statusText;
     document.getElementById('logoutText').textContent = content.logoutText;
     document.getElementById('welcomeTitle').textContent = content.welcomeTitle;
     document.getElementById('welcomeText').innerHTML = content.welcomeText;
