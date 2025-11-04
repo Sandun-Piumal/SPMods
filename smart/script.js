@@ -38,7 +38,7 @@ const languageContent = {
         userStatus: "Online",
         logoutText: "Logout",
         welcomeTitle: "නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨",
-        welcomeText: "Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br>Tඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter කරන්න. 🚀",
+        welcomeText: "Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br>ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter කරන්න. 🚀",
         typingText: "Smart AI is preparing response",
         inputPlaceholder: "Type your question here...",
         themeLabelDark: "Dark",
