@@ -155,48 +155,97 @@
             </div>
         </div>
         
-        <div class="chat-area">
-            <div class="chat-messages" id="chatMessages">
-                <div class="welcome-message">
-                    <div class="welcome-icon">
-                        <i class="fas fa-rocket"></i>
-                    </div>
-                    <h2 id="welcomeTitle">නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨</h2>
-                    <p id="welcomeText">
-                        Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br> ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter ඔබන්න 🚀
-                    </p>
-                    <div class="feature-buttons">
-                        <button class="feature-btn" id="clearChatBtn">
-                            <i class="fas fa-trash"></i>
-                            <span id="clearChatText">සංවාදය හිස් කරන්න</span>
-                        </button>
-                        <button class="feature-btn" id="exportChatBtn">
-                            <i class="fas fa-download"></i>
-                            <span id="exportChatText">සංවාදය බාගන්න</span>
-                        </button>
-                        <button class="feature-btn" id="suggestionsBtn">
-                            <i class="fas fa-lightbulb"></i>
-                            <span id="suggestionsText">යෝජනා</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="typing-indicator" id="typingIndicator">
-                <i class="fas fa-robot"></i> <span id="typingText">Smart AI ප්‍රතිචාර සකසමින්</span>
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-            
-            <div class="chat-input-container">
-                <div class="chat-input-wrapper">
-                    <textarea class="chat-input" id="messageInput" placeholder="ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න..." rows="1"></textarea>
-                    <button class="send-button" id="sendButton">
-                        <i class="fas fa-paper-plane"></i>
+        <div class="main-content">
+            <!-- Chat History Sidebar -->
+            <div class="chat-sidebar" id="chatSidebar">
+                <div class="sidebar-header">
+                    <h3 id="historyTitle">සංවාද ඉතිහාසය</h3>
+                    <button class="sidebar-close" id="sidebarClose">
+                        <i class="fas fa-times"></i>
                     </button>
+                </div>
+                <div class="sidebar-search">
+                    <input type="text" id="historySearch" placeholder="සංවාද ඉතිහාසයේ සොයන්න...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="chat-sessions" id="chatSessions">
+                    <!-- Chat sessions will be loaded here -->
+                </div>
+                <div class="sidebar-actions">
+                    <button class="sidebar-btn" id="newChatBtn">
+                        <i class="fas fa-plus"></i>
+                        <span>නව සංවාදය</span>
+                    </button>
+                    <button class="sidebar-btn" id="importChatBtn">
+                        <i class="fas fa-upload"></i>
+                        <span>ආයාත කරන්න</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="chat-area">
+                <div class="chat-header">
+                    <button class="history-toggle" id="historyToggle">
+                        <i class="fas fa-history"></i>
+                        <span id="historyToggleText">ඉතිහාසය</span>
+                    </button>
+                    <div class="current-session">
+                        <h3 id="currentSessionTitle">වත්මන් සංවාදය</h3>
+                        <span class="session-date" id="sessionDate"></span>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="chat-action-btn" id="saveSessionBtn" title="සංවාදය සුරකින්න">
+                            <i class="fas fa-save"></i>
+                        </button>
+                        <button class="chat-action-btn" id="renameSessionBtn" title="සංවාදය නම් කරන්න">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h2 id="welcomeTitle">නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨</h2>
+                        <p id="welcomeText">
+                            Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br> ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter ඔබන්න 🚀
+                        </p>
+                        <div class="feature-buttons">
+                            <button class="feature-btn" id="clearChatBtn">
+                                <i class="fas fa-trash"></i>
+                                <span id="clearChatText">සංවාදය හිස් කරන්න</span>
+                            </button>
+                            <button class="feature-btn" id="exportChatBtn">
+                                <i class="fas fa-download"></i>
+                                <span id="exportChatText">සංවාදය බාගන්න</span>
+                            </button>
+                            <button class="feature-btn" id="suggestionsBtn">
+                                <i class="fas fa-lightbulb"></i>
+                                <span id="suggestionsText">යෝජනා</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="typing-indicator" id="typingIndicator">
+                    <i class="fas fa-robot"></i> <span id="typingText">Smart AI ප්‍රතිචාර සකසමින්</span>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea class="chat-input" id="messageInput" placeholder="ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න..." rows="1"></textarea>
+                        <button class="send-button" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -220,6 +269,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
