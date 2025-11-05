@@ -1,29 +1,20 @@
-// Supabase Configuration - REPLACE WITH YOUR CREDENTIALS
-const SUPABASE_URL = 'https://bsjszimsmbtpvbtrpyou.supabase.co'; // 🔄 Replace with your Supabase URL
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzanN6aW1zbWJ0cHZidHJweW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNjAyNTcsImV4cCI6MjA3NzkzNjI1N30.fooJQG3VnyNar2NxEKXHFXnTW0KDkUVtQ4U3ohg1VZI'; // 🔄 Replace with your Supabase anon key
+// Supabase configuration
+const SUPABASE_URL = 'https://bsjszimsmbtpvbtrpyou.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzanN6aW1zbWJ0cHZidHJweW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNjAyNTcsImV4cCI6MjA3NzkzNjI1N30.fooJQG3VnyNar2NxEKXHFXnTW0KDkUVtQ4U3ohg1VZI';
 
 // Initialize Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Groq API Configuration - REPLACE WITH YOUR API KEY
-const GROQ_API_KEY = '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'; // 🔄 Get from https://console.groq.com
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-
-// Available Models
-const GROQ_MODELS = {
-    "llama3-8b-8192": "Llama 3 8B - Fast & Smart",
-    "llama3-70b-8192": "Llama 3 70B - Very Smart", 
-    "mixtral-8x7b-32768": "Mixtral 8x7B - Excellent for Languages"
-};
-
-// Language content - ENGLISH DEFAULT
+// Language content
 const languageContent = {
     sinhala: {
         authTitle: "Smart AI",
-        authSubtitle: "Powered by Groq Cloud",
+        authSubtitle: "Powered by Gemini AI",
         emailLabel: "Email",
         passwordLabel: "Password",
         nameLabel: "Name",
+        phoneLabel: "Phone Number",
+        birthdayLabel: "Birthday",
         confirmPasswordLabel: "Confirm Password",
         loginButton: "Login",
         signupButton: "Sign Up",
@@ -35,12 +26,12 @@ const languageContent = {
         resetPasswordButton: "Reset Password",
         backToLogin: "Back to Login",
         logoTitle: "Smart AI",
-        headerSubtitle: "Powered by Groq Cloud",
+        headerSubtitle: "Powered by Gemini AI",
         username: "User",
         userStatus: "Online",
         logoutText: "Logout",
-        welcomeTitle: "AI සහායකයා සූදානම්! ✨",
-        welcomeText: "Groq AI මාදිලි සමඟ ක්‍රියාත්මක!<br>පහතින් ඔබේ ප්‍රශ්න ටයිප් කරන්න 🚀",
+        welcomeTitle: "නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨",
+        welcomeText: "Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br>ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කරන්න 🚀",
         typingText: "Smart AI ප්‍රතිචාර සකසමින්",
         inputPlaceholder: "ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න...",
         themeLabelDark: "අඳුරු",
@@ -60,10 +51,12 @@ const languageContent = {
     },
     english: {
         authTitle: "Smart AI",
-        authSubtitle: "Powered by Groq Cloud",
+        authSubtitle: "Powered by Gemini AI",
         emailLabel: "Email",
         passwordLabel: "Password",
         nameLabel: "Name",
+        phoneLabel: "Phone Number",
+        birthdayLabel: "Birthday",
         confirmPasswordLabel: "Confirm Password",
         loginButton: "Login",
         signupButton: "Sign Up",
@@ -71,13 +64,16 @@ const languageContent = {
         haveAccount: "Already have an account?",
         showSignup: "Sign Up",
         showLogin: "Login",
+        forgotPassword: "Forgot Password?",
+        resetPasswordButton: "Reset Password",
+        backToLogin: "Back to Login",
         logoTitle: "Smart AI",
-        headerSubtitle: "Powered by Groq Cloud",
+        headerSubtitle: "Powered by Gemini AI",
         username: "User",
         userStatus: "Online",
         logoutText: "Logout",
-        welcomeTitle: "AI Assistant Ready! ✨",
-        welcomeText: "Powered by Groq's fastest AI models!<br>Start typing your questions below 🚀",
+        welcomeTitle: "New Model Successfully Updated! ✨",
+        welcomeText: "Ready to work with Gemini AI Model!<br>Type your question below 🚀",
         typingText: "Smart AI is preparing response",
         inputPlaceholder: "Type your question here...",
         themeLabelDark: "Dark",
@@ -97,15 +93,17 @@ const languageContent = {
     }
 };
 
-// Current state - ENGLISH DEFAULT
-let currentLanguage = 'english';
+// Current state
+let currentLanguage = 'sinhala';
 let currentTheme = 'dark';
 let chatHistory = [];
 let chatSessions = [];
 let currentSessionId = null;
 let isProcessing = false;
-let currentModel = "llama3-8b-8192";
 let currentUser = null;
+
+// Gemini API Key - USING FREE TIER
+const GOOGLE_AI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
 // DOM Elements Cache
 const elements = {
@@ -133,20 +131,12 @@ const elements = {
     chatSidebar: document.getElementById('chatSidebar'),
     chatSessionsContainer: document.getElementById('chatSessions'),
     historySearch: document.getElementById('historySearch'),
-    newChatBtn: document.getElementById('newChatBtn'),
-    modelBtn: document.getElementById('modelBtn'),
-    modelDropdown: document.getElementById('modelDropdown'),
-    currentModelText: document.getElementById('currentModelText'),
-    skipLogin: document.getElementById('skipLogin'),
-    username: document.getElementById('username'),
-    showSignup: document.getElementById('showSignup'),
-    showLogin: document.getElementById('showLogin'),
-    forgotPassword: document.getElementById('forgotPassword'),
-    backToLogin: document.getElementById('backToLogin')
+    newChatBtn: document.getElementById('newChatBtn')
 };
 
 // Performance optimized functions
 const utils = {
+    // Debounce function for performance
     debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -159,19 +149,39 @@ const utils = {
         };
     },
 
+    // Throttle function for performance
+    throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                func.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    },
+
+    // Safe DOM element getter
     getElement(id) {
         return document.getElementById(id);
     },
 
+    // Safe text content setter
     setText(id, text) {
         const element = this.getElement(id);
         if (element) element.textContent = text;
+    },
+
+    // Safe innerHTML setter
+    setHTML(id, html) {
+        const element = this.getElement(id);
+        if (element) element.innerHTML = html;
     }
 };
 
 // User-specific data handling
 function getUserId() {
-    return currentUser ? currentUser.id : 'guest-' + Math.random().toString(36).substr(2, 9);
+    return currentUser ? currentUser.id : 'anonymous';
 }
 
 function getStorageKey() {
@@ -182,7 +192,7 @@ function generateSessionId() {
     return 'session_' + Date.now();
 }
 
-async function createNewSession() {
+function createNewSession() {
     if (isProcessing) return;
     isProcessing = true;
 
@@ -191,49 +201,34 @@ async function createNewSession() {
         id: sessionId,
         title: currentLanguage === 'sinhala' ? 'නව සංවාදය' : 'New Chat',
         messages: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        user_id: getUserId()
+        createdAt: Date.now(),
+        updatedAt: Date.now()
     };
     
     chatSessions.unshift(session);
     currentSessionId = sessionId;
     chatHistory = [];
     
-    await saveChatSessions();
+    saveChatSessions();
     renderChatSessions();
     clearChatMessages();
     updateSessionDisplay();
     
-    showNotification('New chat started');
+    showNotification(
+        currentLanguage === 'sinhala' ? 'නව සංවාදය ආරම්භ කරන ලදී' : 'New chat started'
+    );
     
     setTimeout(() => { isProcessing = false; }, 100);
 }
 
-async function loadChatSessions() {
+function loadChatSessions() {
     const storageKey = getStorageKey();
     try {
-        // Try to load from Supabase if user is logged in
-        if (currentUser) {
-            const { data, error } = await supabase
-                .from('chat_sessions')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .order('updated_at', { ascending: false });
-            
-            if (!error && data) {
-                chatSessions = data;
-            }
-        }
-        
-        // Fallback to localStorage
-        if (chatSessions.length === 0) {
-            const savedSessions = localStorage.getItem(storageKey);
-            chatSessions = savedSessions ? JSON.parse(savedSessions) : [];
-        }
+        const savedSessions = localStorage.getItem(storageKey);
+        chatSessions = savedSessions ? JSON.parse(savedSessions) : [];
         
         if (chatSessions.length === 0) {
-            await createNewSession();
+            createNewSession();
         } else {
             currentSessionId = chatSessions[0].id;
             chatHistory = chatSessions[0].messages || [];
@@ -245,39 +240,17 @@ async function loadChatSessions() {
     } catch (e) {
         console.error("Error loading sessions:", e);
         chatSessions = [];
-        await createNewSession();
+        createNewSession();
     }
 }
 
-async function saveChatSessions() {
+function saveChatSessions() {
     const storageKey = getStorageKey();
     try {
         // Limit sessions to prevent memory issues
         if (chatSessions.length > 50) {
             chatSessions = chatSessions.slice(0, 50);
         }
-        
-        // Save to Supabase if user is logged in
-        if (currentUser) {
-            for (const session of chatSessions) {
-                const { error } = await supabase
-                    .from('chat_sessions')
-                    .upsert({
-                        id: session.id,
-                        title: session.title,
-                        messages: session.messages,
-                        created_at: session.createdAt,
-                        updated_at: session.updatedAt,
-                        user_id: currentUser.id
-                    });
-                
-                if (error) {
-                    console.error('Error saving session to Supabase:', error);
-                }
-            }
-        }
-        
-        // Always save to localStorage as backup
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
     } catch (e) {
         console.error("Error saving sessions:", e);
@@ -290,7 +263,7 @@ function renderChatSessions() {
     const searchTerm = elements.historySearch ? elements.historySearch.value.toLowerCase() : '';
     const filteredSessions = chatSessions.filter(session => 
         session.title.toLowerCase().includes(searchTerm)
-    ).slice(0, 20);
+    ).slice(0, 20); // Limit displayed sessions
     
     elements.chatSessionsContainer.innerHTML = '';
     
@@ -352,39 +325,53 @@ function updateSessionDisplay() {
     }
 }
 
-// Check authentication state
+// Authentication state management
 async function checkAuthState() {
     try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-            console.error('Auth error:', error);
+            console.error('Session error:', error);
             showAuthContainer();
             return;
         }
         
         if (session?.user) {
             currentUser = session.user;
-            await showChatApp();
-            await loadChatSessions();
-            updateUserProfile();
+            await updateUserProfile(currentUser);
+            showChatApp();
+            loadChatSessions();
         } else {
             showAuthContainer();
+            chatSessions = [];
+            currentSessionId = null;
+            chatHistory = [];
         }
     } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('Auth state check error:', error);
         showAuthContainer();
     }
 }
 
-function updateUserProfile() {
-    if (elements.username) {
-        if (currentUser) {
-            const name = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'User';
-            elements.username.textContent = name;
-        } else {
-            elements.username.textContent = 'Guest User';
+async function updateUserProfile(user) {
+    try {
+        // Get user profile data from database
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+            
+        if (error && error.code !== 'PGRST116') {
+            console.error('Profile fetch error:', error);
         }
+        
+        const username = profile?.name || user.email?.split('@')[0] || 'User';
+        utils.setText('username', username);
+    } catch (error) {
+        console.error('Profile update error:', error);
+        const username = user.email?.split('@')[0] || 'User';
+        utils.setText('username', username);
     }
 }
 
@@ -395,11 +382,10 @@ function showAuthContainer() {
     showLoginForm();
 }
 
-async function showChatApp() {
+function showChatApp() {
     if (elements.authContainer) elements.authContainer.style.display = 'none';
     if (elements.chatApp) elements.chatApp.style.display = 'flex';
     if (elements.messageInput) elements.messageInput.focus();
-    await loadChatSessions();
 }
 
 function showLoginForm() {
@@ -442,94 +428,240 @@ function showNotification(message, type = 'success') {
     }, 2000);
 }
 
-// Groq AI API Function
-async function getAIResponse(userMessage) {
-    try {
-        const systemMessage = currentLanguage === 'sinhala' ? 
-            "ඔබ Smart AI නම් උපකාරක AI වේ. සියලුම ප්‍රශ්නවලට සිංහල භාෂාවෙන් පිළිතුරු දෙන්න. පිළිතුරු සවිස්තරාත්මක, උපයෝගී සහ මිත්‍රශීලී විය යුතුය." : 
-            "You are Smart AI, a helpful AI assistant. Respond to all questions in English. Responses should be detailed, helpful and friendly.";
-        
-        console.log(`🤖 Using model: ${currentModel}`);
-        
-        const response = await fetch(GROQ_API_URL, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                messages: [
-                    {
-                        role: "system",
-                        content: systemMessage
-                    },
-                    {
-                        role: "user", 
-                        content: userMessage
-                    }
-                ],
-                model: currentModel,
-                temperature: 0.7,
-                max_tokens: 1024,
-                stream: false
-            })
+// Authentication handlers
+function setupAuthHandlers() {
+    // Login
+    if (elements.loginForm) {
+        elements.loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isProcessing) return;
+            
+            const email = utils.getElement('loginEmail').value;
+            const password = utils.getElement('loginPassword').value;
+            const button = utils.getElement('loginButton');
+            const loader = utils.getElement('loginLoader');
+            
+            if (elements.loginError) elements.loginError.style.display = 'none';
+            
+            isProcessing = true;
+            if (button) button.disabled = true;
+            if (loader) loader.style.display = 'block';
+            utils.setText('loginButtonText', 'Logging in...');
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                elements.loginForm.reset();
+                showNotification(
+                    currentLanguage === 'sinhala' ? 'සාර්ථකව පිවිසියා!' : 'Successfully logged in!'
+                );
+            } catch (error) {
+                if (elements.loginError) {
+                    elements.loginError.textContent = currentLanguage === 'sinhala' 
+                        ? 'පිවිසුම අසාර්ථකයි. තොරතුරු පරීක්ෂා කරන්න.' 
+                        : 'Login failed. Check your credentials.';
+                    elements.loginError.style.display = 'block';
+                }
+            } finally {
+                isProcessing = false;
+                if (button) button.disabled = false;
+                if (loader) loader.style.display = 'none';
+                utils.setText('loginButtonText', languageContent[currentLanguage].loginButton);
+            }
         });
+    }
 
-        if (!response.ok) {
-            throw new Error(`Groq API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data.choices[0].message.content;
-        
-    } catch (error) {
-        console.error("API Error:", error);
-        return getFallbackResponse(userMessage);
+    // Signup
+    if (elements.signupForm) {
+        elements.signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isProcessing) return;
+            
+            const name = utils.getElement('signupName').value;
+            const email = utils.getElement('signupEmail').value;
+            const phone = utils.getElement('signupPhone').value;
+            const birthday = utils.getElement('signupBirthday').value;
+            const password = utils.getElement('signupPassword').value;
+            const confirmPassword = utils.getElement('confirmPassword').value;
+            const button = utils.getElement('signupButton');
+            const loader = utils.getElement('signupLoader');
+            
+            hideAllMessages();
+            
+            if (password !== confirmPassword) {
+                if (elements.signupError) {
+                    elements.signupError.textContent = currentLanguage === 'sinhala' 
+                        ? 'මුරපද ගැලපෙන්නේ නැත' 
+                        : 'Passwords do not match';
+                    elements.signupError.style.display = 'block';
+                }
+                return;
+            }
+            
+            isProcessing = true;
+            if (button) button.disabled = true;
+            if (loader) loader.style.display = 'block';
+            utils.setText('signupButtonText', 'Creating account...');
+            
+            try {
+                // Create user account
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            name: name,
+                            phone: phone,
+                            birthday: birthday
+                        }
+                    }
+                });
+                
+                if (authError) throw authError;
+                
+                // Create user profile in database
+                if (authData.user) {
+                    const { error: profileError } = await supabase
+                        .from('profiles')
+                        .insert([
+                            {
+                                id: authData.user.id,
+                                name: name,
+                                email: email,
+                                phone: phone,
+                                birthday: birthday,
+                                created_at: new Date().toISOString()
+                            }
+                        ]);
+                        
+                    if (profileError) {
+                        console.error('Profile creation error:', profileError);
+                    }
+                }
+                
+                if (elements.signupSuccess) {
+                    elements.signupSuccess.textContent = currentLanguage === 'sinhala' 
+                        ? 'ලියාපදිංචිය සාර්ථකයි! තහවුරු කිරීමේ ඊමේල් එකක් යවන ලදී.' 
+                        : 'Registration successful! A confirmation email has been sent.';
+                    elements.signupSuccess.style.display = 'block';
+                }
+                elements.signupForm.reset();
+                showNotification(
+                    currentLanguage === 'sinhala' ? 'ලියාපදිංචිය සාර්ථකයි!' : 'Registration successful!'
+                );
+            } catch (error) {
+                if (elements.signupError) {
+                    elements.signupError.textContent = currentLanguage === 'sinhala' 
+                        ? 'ලියාපදිංචිය අසාර්ථකයි. නැවත උත්සාහ කරන්න.' 
+                        : 'Registration failed. Please try again.';
+                    elements.signupError.style.display = 'block';
+                }
+            } finally {
+                isProcessing = false;
+                if (button) button.disabled = false;
+                if (loader) loader.style.display = 'none';
+                utils.setText('signupButtonText', languageContent[currentLanguage].signupButton);
+            }
+        });
+    }
+
+    // Forgot password
+    if (elements.forgotPasswordForm) {
+        elements.forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isProcessing) return;
+            
+            const email = utils.getElement('forgotEmail').value;
+            const button = utils.getElement('resetPasswordButton');
+            const loader = utils.getElement('resetLoader');
+            
+            hideAllMessages();
+            
+            isProcessing = true;
+            if (button) button.disabled = true;
+            if (loader) loader.style.display = 'block';
+            utils.setText('resetButtonText', 'Sending...');
+            
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                });
+                
+                if (error) throw error;
+                
+                if (elements.forgotSuccess) {
+                    elements.forgotSuccess.textContent = currentLanguage === 'sinhala' 
+                        ? 'මුරපද යළි සැකසුම් ඊමේල් එකක් යවන ලදී!' 
+                        : 'Password reset email sent!';
+                    elements.forgotSuccess.style.display = 'block';
+                }
+                elements.forgotPasswordForm.reset();
+            } catch (error) {
+                if (elements.forgotError) {
+                    elements.forgotError.textContent = currentLanguage === 'sinhala' 
+                        ? 'යළි සැකසුම් ඊමේල් යැවීම අසාර්ථකයි.' 
+                        : 'Failed to send reset email.';
+                    elements.forgotError.style.display = 'block';
+                }
+            } finally {
+                isProcessing = false;
+                if (button) button.disabled = false;
+                if (loader) loader.style.display = 'none';
+                utils.setText('resetButtonText', languageContent[currentLanguage].resetPasswordButton);
+            }
+        });
     }
 }
 
-// Fallback responses
-function getFallbackResponse(userMessage) {
-    const responses = {
-        sinhala: {
-            "hello": "හලෝ! මම Smart AI උපකාරකයා. ඔබට කෙසේ හෝ උදව් කළ හැකිද?",
-            "hi": "ආයුබෝවන්! මම ඔබගේ AI සහායකයා. ඔබට කුමක් දැනගන්න අවශ්‍යද?",
-            "name": "මගේ නම Smart AI. මම ඔබගේ පුද්ගලික AI සහායකයා.",
-            "help": "මම ඔබට උදව් කිරීමට සූදානම්. ඔබට ප්‍රශ්න ඇසිය හැකිය, කේතය ගැන උපදෙස් ඉල්ලා සිටිය හැකිය, හෝ සාමාන්‍ය දැනුම පිළිබඳව විමසිය හැකිය.",
-            "default": "කණගාටුයි, මම දැනට ප්‍රතිචාර දක්වන්න අපොහොසත් විය. කරුණාකර ටික වේලාවකින් නැවත උත්සාහ කරන්න."
-        },
-        english: {
-            "hello": "Hello! I'm Smart AI assistant. How can I help you today?",
-            "hi": "Hi there! I'm your AI assistant. What would you like to know?",
-            "name": "My name is Smart AI. I'm your personal AI assistant.",
-            "help": "I'm here to help you. You can ask me questions, get coding advice, or learn about general knowledge topics.",
-            "default": "I apologize, but I'm unable to respond at the moment. Please try again in a few moments."
-        }
-    };
+// Theme and Language
+function switchTheme(theme) {
+    currentTheme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('smartai-theme', theme);
     
-    const langResponses = responses[currentLanguage];
-    const lowerMessage = userMessage.toLowerCase();
-    
-    for (const [key, response] of Object.entries(langResponses)) {
-        if (lowerMessage.includes(key)) {
-            return response;
-        }
+    const content = languageContent[currentLanguage];
+    if (elements.themeLabel) {
+        elements.themeLabel.textContent = theme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
     }
-    
-    return langResponses.default;
 }
 
-// Model management
-function changeModel(modelId) {
-    if (GROQ_MODELS[modelId]) {
-        currentModel = modelId;
-        if (elements.currentModelText) {
-            elements.currentModelText.textContent = GROQ_MODELS[modelId].split(' - ')[0];
+function switchLanguage(lang) {
+    currentLanguage = lang;
+    const content = languageContent[lang];
+    
+    // Update all text content efficiently
+    Object.keys(content).forEach(key => {
+        if (key === 'welcomeText') {
+            utils.setHTML(key, content[key]);
+        } else {
+            utils.setText(key, content[key]);
         }
-        showNotification(`Model changed to: ${GROQ_MODELS[modelId].split(' - ')[0]}`);
-        return true;
+    });
+    
+    // Update input placeholder
+    if (elements.messageInput) {
+        elements.messageInput.placeholder = content.inputPlaceholder;
     }
-    return false;
+    
+    // Update buttons
+    if (elements.newChatBtn) {
+        elements.newChatBtn.innerHTML = `<i class="fas fa-plus"></i><span>${content.newChatText}</span>`;
+    }
+    
+    // Update language buttons
+    const sinhalaBtn = utils.getElement('sinhalaBtn');
+    const englishBtn = utils.getElement('englishBtn');
+    if (sinhalaBtn && englishBtn) {
+        sinhalaBtn.classList.toggle('active', lang === 'sinhala');
+        englishBtn.classList.toggle('active', lang === 'english');
+    }
+    
+    localStorage.setItem('smartai-language', lang);
 }
 
 // Chat functionality
@@ -570,7 +702,9 @@ function addMessage(message, isUser) {
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(message).then(() => {
-                showNotification('Response copied');
+                showNotification(
+                    currentLanguage === 'sinhala' ? 'පිළිතුරු පිටපත් කරන ලදී' : 'Response copied'
+                );
             });
         });
     }
@@ -581,14 +715,14 @@ function addMessage(message, isUser) {
     chatHistory.push({
         content: message,
         isUser: isUser,
-        timestamp: new Date().toISOString()
+        timestamp: Date.now()
     });
     
     // Update session
     const currentSession = chatSessions.find(s => s.id === currentSessionId);
     if (currentSession) {
         currentSession.messages = chatHistory;
-        currentSession.updatedAt = new Date().toISOString();
+        currentSession.updatedAt = Date.now();
         
         // Update title from first message
         if (isUser && currentSession.messages.filter(m => m.isUser).length === 1) {
@@ -671,6 +805,50 @@ function clearChatMessages() {
     `;
 }
 
+// Gemini API - OPTIMIZED
+async function getAIResponse(userMessage) {
+    try {
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`;
+        
+        const languagePrompt = currentLanguage === 'sinhala' ? 
+            "කරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න. පිළිතුර සරල හා පැහැදිලි විය යුතුය." : 
+            "Please respond in English only. Keep the response clear and concise.";
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `${userMessage}\n\n${languagePrompt}`
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 800,
+                }
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || 
+            (currentLanguage === 'sinhala' ? 
+                "කණගාටුයි, පිළිතුරු ලබා ගැනීමට නොහැකි විය." : 
+                "Sorry, couldn't get a response.");
+    } catch (error) {
+        console.error("API Error:", error);
+        return currentLanguage === 'sinhala' ? 
+            "කණගාටුයි, දෝෂයක් ඇති විය. පසුව උත්සාහ කරන්න." : 
+            "Sorry, an error occurred. Please try again.";
+    }
+}
+
 async function sendMessage() {
     if (!elements.messageInput || isProcessing) return;
     
@@ -683,7 +861,7 @@ async function sendMessage() {
     
     isProcessing = true;
     if (elements.sendButton) elements.sendButton.disabled = true;
-    if (elements.typingIndicator) elements.typingIndicator.style.display = 'flex';
+    if (elements.typingIndicator) elements.typingIndicator.style.display = 'block';
     
     try {
         const response = await getAIResponse(message);
@@ -702,276 +880,6 @@ async function sendMessage() {
     }
 }
 
-// Supabase Authentication
-async function handleLogin(email, password) {
-    try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
-
-        if (error) throw error;
-        
-        return { success: true, user: data.user };
-    } catch (error) {
-        console.error('Login error:', error);
-        throw error;
-    }
-}
-
-async function handleSignup(name, email, password) {
-    try {
-        const { data, error } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-                data: {
-                    name: name
-                }
-            }
-        });
-
-        if (error) throw error;
-        
-        return { success: true, user: data.user };
-    } catch (error) {
-        console.error('Signup error:', error);
-        throw error;
-    }
-}
-
-async function handlePasswordReset(email) {
-    try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin,
-        });
-
-        if (error) throw error;
-        
-        return { success: true };
-    } catch (error) {
-        console.error('Password reset error:', error);
-        throw error;
-    }
-}
-
-async function handleLogout() {
-    try {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-        
-        currentUser = null;
-        return { success: true };
-    } catch (error) {
-        console.error('Logout error:', error);
-        throw error;
-    }
-}
-
-// Authentication handlers
-function setupAuthHandlers() {
-    // Login
-    if (elements.loginForm) {
-        elements.loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isProcessing) return;
-            
-            const email = utils.getElement('loginEmail').value;
-            const password = utils.getElement('loginPassword').value;
-            const button = utils.getElement('loginButton');
-            const loader = utils.getElement('loginLoader');
-            
-            if (elements.loginError) elements.loginError.style.display = 'none';
-            
-            isProcessing = true;
-            if (button) button.disabled = true;
-            if (loader) loader.style.display = 'block';
-            utils.setText('loginButtonText', 'Logging in...');
-            
-            try {
-                const result = await handleLogin(email, password);
-                currentUser = result.user;
-                elements.loginForm.reset();
-                showNotification('Successfully logged in!');
-                await showChatApp();
-                updateUserProfile();
-            } catch (error) {
-                if (elements.loginError) {
-                    elements.loginError.textContent = error.message || 'Login failed. Please check your credentials.';
-                    elements.loginError.style.display = 'block';
-                }
-            } finally {
-                isProcessing = false;
-                if (button) button.disabled = false;
-                if (loader) loader.style.display = 'none';
-                utils.setText('loginButtonText', 'Login');
-            }
-        });
-    }
-
-    // Signup
-    if (elements.signupForm) {
-        elements.signupForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isProcessing) return;
-            
-            const name = utils.getElement('signupName').value;
-            const email = utils.getElement('signupEmail').value;
-            const password = utils.getElement('signupPassword').value;
-            const confirmPassword = utils.getElement('confirmPassword').value;
-            const button = utils.getElement('signupButton');
-            const loader = utils.getElement('signupLoader');
-            
-            hideAllMessages();
-            
-            if (password !== confirmPassword) {
-                if (elements.signupError) {
-                    elements.signupError.textContent = 'Passwords do not match';
-                    elements.signupError.style.display = 'block';
-                }
-                return;
-            }
-            
-            isProcessing = true;
-            if (button) button.disabled = true;
-            if (loader) loader.style.display = 'block';
-            utils.setText('signupButtonText', 'Creating account...');
-            
-            try {
-                const result = await handleSignup(name, email, password);
-                currentUser = result.user;
-                if (elements.signupSuccess) {
-                    elements.signupSuccess.textContent = 'Registration successful! Please check your email for verification.';
-                    elements.signupSuccess.style.display = 'block';
-                }
-                elements.signupForm.reset();
-                setTimeout(async () => {
-                    await showChatApp();
-                    updateUserProfile();
-                }, 2000);
-            } catch (error) {
-                if (elements.signupError) {
-                    elements.signupError.textContent = error.message || 'Registration failed. Please try again.';
-                    elements.signupError.style.display = 'block';
-                }
-            } finally {
-                isProcessing = false;
-                if (button) button.disabled = false;
-                if (loader) loader.style.display = 'none';
-                utils.setText('signupButtonText', 'Sign Up');
-            }
-        });
-    }
-
-    // Forgot password
-    if (elements.forgotPasswordForm) {
-        elements.forgotPasswordForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isProcessing) return;
-            
-            const email = utils.getElement('forgotEmail').value;
-            const button = utils.getElement('resetPasswordButton');
-            const loader = utils.getElement('resetLoader');
-            
-            hideAllMessages();
-            
-            isProcessing = true;
-            if (button) button.disabled = true;
-            if (loader) loader.style.display = 'block';
-            utils.setText('resetButtonText', 'Sending...');
-            
-            try {
-                await handlePasswordReset(email);
-                
-                if (elements.forgotSuccess) {
-                    elements.forgotSuccess.textContent = 'Password reset email sent! Check your inbox.';
-                    elements.forgotSuccess.style.display = 'block';
-                }
-                elements.forgotPasswordForm.reset();
-            } catch (error) {
-                if (elements.forgotError) {
-                    elements.forgotError.textContent = error.message || 'Failed to send reset email.';
-                    elements.forgotError.style.display = 'block';
-                }
-            } finally {
-                isProcessing = false;
-                if (button) button.disabled = false;
-                if (loader) loader.style.display = 'none';
-                utils.setText('resetButtonText', 'Reset Password');
-            }
-        });
-    }
-
-    // Skip login
-    if (elements.skipLogin) {
-        elements.skipLogin.addEventListener('click', () => {
-            currentUser = null;
-            updateUserProfile();
-            showChatApp();
-            showNotification('Welcome! Continue as guest user.');
-        });
-    }
-
-    // Logout
-    const logoutBtn = utils.getElement('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await handleLogout();
-                showAuthContainer();
-                showNotification('Successfully logged out!');
-            } catch (error) {
-                console.error('Logout error:', error);
-                showNotification('Logout failed', 'error');
-            }
-        });
-    }
-}
-
-// Theme and Language
-function switchTheme(theme) {
-    currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('smartai-theme', theme);
-    
-    const content = languageContent[currentLanguage];
-    if (elements.themeLabel) {
-        elements.themeLabel.textContent = theme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
-    }
-}
-
-function switchLanguage(lang) {
-    currentLanguage = lang;
-    const content = languageContent[lang];
-    
-    // Update all text content efficiently
-    Object.keys(content).forEach(key => {
-        const element = utils.getElement(key);
-        if (element) {
-            if (key === 'welcomeText') {
-                element.innerHTML = content[key];
-            } else {
-                element.textContent = content[key];
-            }
-        }
-    });
-    
-    // Update input placeholder
-    if (elements.messageInput) {
-        elements.messageInput.placeholder = content.inputPlaceholder;
-    }
-    
-    // Update language buttons
-    const sinhalaBtn = utils.getElement('sinhalaBtn');
-    const englishBtn = utils.getElement('englishBtn');
-    if (sinhalaBtn && englishBtn) {
-        sinhalaBtn.classList.toggle('active', lang === 'sinhala');
-        englishBtn.classList.toggle('active', lang === 'english');
-    }
-    
-    localStorage.setItem('smartai-language', lang);
-}
-
 // Event listeners setup
 function setupEventListeners() {
     // Theme toggle
@@ -988,31 +896,29 @@ function setupEventListeners() {
     if (englishBtn) englishBtn.addEventListener('click', () => switchLanguage('english'));
 
     // Form switchers
-    if (elements.showSignup) elements.showSignup.addEventListener('click', showSignupForm);
-    if (elements.showLogin) elements.showLogin.addEventListener('click', showLoginForm);
-    if (elements.forgotPassword) elements.forgotPassword.addEventListener('click', showForgotPasswordForm);
-    if (elements.backToLogin) elements.backToLogin.addEventListener('click', showLoginForm);
+    const showSignup = utils.getElement('showSignup');
+    const showLogin = utils.getElement('showLogin');
+    const forgotPassword = utils.getElement('forgotPassword');
+    const backToLogin = utils.getElement('backToLogin');
+    
+    if (showSignup) showSignup.addEventListener('click', showSignupForm);
+    if (showLogin) showLogin.addEventListener('click', showLoginForm);
+    if (forgotPassword) forgotPassword.addEventListener('click', showForgotPasswordForm);
+    if (backToLogin) backToLogin.addEventListener('click', showLoginForm);
 
-    // Model selector
-    if (elements.modelBtn && elements.modelDropdown) {
-        elements.modelBtn.addEventListener('click', () => {
-            elements.modelDropdown.classList.toggle('show');
-        });
-
-        // Model options
-        const modelOptions = elements.modelDropdown.querySelectorAll('.model-option');
-        modelOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                const modelId = option.getAttribute('data-model');
-                changeModel(modelId);
-                elements.modelDropdown.classList.remove('show');
-            });
-        });
-
-        // Close model dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!elements.modelBtn.contains(e.target) && !elements.modelDropdown.contains(e.target)) {
-                elements.modelDropdown.classList.remove('show');
+    // Logout
+    const logoutBtn = utils.getElement('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                
+                showNotification(
+                    currentLanguage === 'sinhala' ? 'සාර්ථකව පිටවිය!' : 'Successfully logged out!'
+                );
+            } catch (error) {
+                console.error('Logout error:', error);
             }
         });
     }
@@ -1069,68 +975,15 @@ function setupEventListeners() {
                 const currentSession = chatSessions.find(s => s.id === currentSessionId);
                 if (currentSession) {
                     currentSession.messages = [];
-                    currentSession.updatedAt = new Date().toISOString();
+                    currentSession.updatedAt = Date.now();
                     saveChatSessions();
                     renderChatSessions();
                 }
                 clearChatMessages();
-                showNotification('Chat cleared');
+                showNotification(
+                    currentLanguage === 'sinhala' ? 'සංවාදය හිස් කරන ලදී' : 'Chat cleared'
+                );
             }
-        });
-    }
-
-    // Export chat
-    if (elements.exportChatBtn) {
-        elements.exportChatBtn.addEventListener('click', function() {
-            if (chatHistory.length === 0) {
-                showNotification('No chat history to export', 'warning');
-                return;
-            }
-            
-            const currentSession = chatSessions.find(s => s.id === currentSessionId);
-            const exportData = {
-                title: currentSession ? currentSession.title : 'Exported Chat',
-                messages: chatHistory,
-                exportedAt: new Date().toISOString(),
-                language: currentLanguage
-            };
-            
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `smart-ai-chat-${new Date().toISOString().slice(0, 10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showNotification('Chat exported successfully');
-        });
-    }
-
-    // Suggestions
-    if (elements.suggestionsBtn) {
-        elements.suggestionsBtn.addEventListener('click', function() {
-            const suggestions = currentLanguage === 'sinhala' ? [
-                "AI ගැන මට තව දැනගන්න ඕන",
-                "කොහොමද කේතයක් ලියන්නේ?",
-                "මට උදව් කරන්න වර්තමාන තාක්ෂණ ප්‍රවණතා ගැන",
-                "මට ඉගෙන ගැනීමට හොඳම ක්‍රමය කුමක්ද?"
-            ] : [
-                "Tell me more about AI",
-                "How do I write code?",
-                "Help me with current technology trends",
-                "What's the best way to learn?"
-            ];
-            
-            const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-            elements.messageInput.value = randomSuggestion;
-            elements.messageInput.focus();
-            elements.messageInput.style.height = 'auto';
-            elements.messageInput.style.height = Math.min(elements.messageInput.scrollHeight, 120) + 'px';
-            
-            showNotification('Suggestion added to input');
         });
     }
 
@@ -1147,12 +1000,12 @@ function setupEventListeners() {
 }
 
 // Initialize app
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
     console.log("🚀 Smart AI App Initialized - Supabase Version");
     
     // Load preferences
     const savedTheme = localStorage.getItem('smartai-theme') || 'dark';
-    const savedLanguage = localStorage.getItem('smartai-language') || 'english';
+    const savedLanguage = localStorage.getItem('smartai-language') || 'sinhala';
     
     switchTheme(savedTheme);
     switchLanguage(savedLanguage);
@@ -1166,26 +1019,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     setupEventListeners();
     
     // Check authentication state
-    await checkAuthState();
+    checkAuthState();
+    
+    // Listen for auth state changes
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN') {
+            currentUser = session.user;
+            await updateUserProfile(currentUser);
+            showChatApp();
+            loadChatSessions();
+        } else if (event === 'SIGNED_OUT') {
+            currentUser = null;
+            showAuthContainer();
+        }
+    });
     
     // Initialize chat input height
     if (elements.messageInput) {
         elements.messageInput.style.height = 'auto';
     }
     
-    console.log("✅ All systems ready - Supabase powered!");
-});
-
-// Listen for auth state changes
-supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth state changed:', event, session);
-    
-    if (event === 'SIGNED_IN' && session) {
-        currentUser = session.user;
-        await showChatApp();
-        updateUserProfile();
-    } else if (event === 'SIGNED_OUT') {
-        currentUser = null;
-        showAuthContainer();
-    }
+    console.log("✅ All systems ready - Supabase integration complete!");
 });
