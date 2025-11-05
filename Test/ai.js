@@ -144,6 +144,7 @@ const exportChatBtn = document.getElementById('exportChatBtn');
 const suggestionsBtn = document.getElementById('suggestionsBtn');
 const notification = document.getElementById('notification');
 const notificationText = document.getElementById('notificationText');
+const languageSwitcher = document.getElementById('languageSwitcher');
 
 // New Chat History Elements
 const chatSidebar = document.getElementById('chatSidebar');
@@ -578,9 +579,9 @@ function switchLanguage(lang) {
     themeLabel.textContent = currentTheme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
     
     // Update language switcher animation and classes - FIXED
-    const languageSwitcher = document.querySelector('.language-switcher');
     const sinhalaBtn = document.getElementById('sinhalaBtn');
     const englishBtn = document.getElementById('englishBtn');
+    const languageSwitcher = document.getElementById('languageSwitcher');
     
     // Remove active class from both buttons first
     sinhalaBtn.classList.remove('active');
