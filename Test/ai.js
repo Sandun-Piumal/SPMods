@@ -1,3 +1,10 @@
+// Supabase Configuration - REPLACE WITH YOUR CREDENTIALS
+const SUPABASE_URL = 'https://bsjszimsmbtpvbtrpyou.supabase.co'; // 🔄 Replace with your Supabase URL
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzanN6aW1zbWJ0cHZidHJweW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNjAyNTcsImV4cCI6MjA3NzkzNjI1N30.fooJQG3VnyNar2NxEKXHFXnTW0KDkUVtQ4U3ohg1VZI'; // 🔄 Replace with your Supabase anon key
+
+// Initialize Supabase
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Groq API Configuration - REPLACE WITH YOUR API KEY
 const GROQ_API_KEY = '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'; // 🔄 Get from https://console.groq.com
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -24,6 +31,9 @@ const languageContent = {
         haveAccount: "Already have an account?",
         showSignup: "Sign Up",
         showLogin: "Login",
+        forgotPassword: "Forgot Password?",
+        resetPasswordButton: "Reset Password",
+        backToLogin: "Back to Login",
         logoTitle: "Smart AI",
         headerSubtitle: "Powered by Groq Cloud",
         username: "User",
@@ -95,7 +105,7 @@ let chatSessions = [];
 let currentSessionId = null;
 let isProcessing = false;
 let currentModel = "llama3-8b-8192";
-let isLoggedIn = false;
+let currentUser = null;
 
 // DOM Elements Cache
 const elements = {
@@ -103,9 +113,12 @@ const elements = {
     chatApp: document.getElementById('chatApp'),
     loginForm: document.getElementById('loginForm'),
     signupForm: document.getElementById('signupForm'),
+    forgotPasswordForm: document.getElementById('forgotPasswordForm'),
     loginError: document.getElementById('loginError'),
     signupError: document.getElementById('signupError'),
     signupSuccess: document.getElementById('signupSuccess'),
+    forgotError: document.getElementById('forgotError'),
+    forgotSuccess: document.getElementById('forgotSuccess'),
     chatMessages: document.getElementById('chatMessages'),
     messageInput: document.getElementById('messageInput'),
     sendButton: document.getElementById('sendButton'),
@@ -125,7 +138,11 @@ const elements = {
     modelDropdown: document.getElementById('modelDropdown'),
     currentModelText: document.getElementById('currentModelText'),
     skipLogin: document.getElementById('skipLogin'),
-    username: document.getElementById('username')
+    username: document.getElementById('username'),
+    showSignup: document.getElementById('showSignup'),
+    showLogin: document.getElementById('showLogin'),
+    forgotPassword: document.getElementById('forgotPassword'),
+    backToLogin: document.getElementById('backToLogin')
 };
 
 // Performance optimized functions
@@ -154,7 +171,7 @@ const utils = {
 
 // User-specific data handling
 function getUserId() {
-    return isLoggedIn ? 'user-' + Math.random().toString(36).substr(2, 9) : 'guest';
+    return currentUser ? currentUser.id : 'guest-' + Math.random().toString(36).substr(2, 9);
 }
 
 function getStorageKey() {
@@ -165,7 +182,7 @@ function generateSessionId() {
     return 'session_' + Date.now();
 }
 
-function createNewSession() {
+async function createNewSession() {
     if (isProcessing) return;
     isProcessing = true;
 
@@ -174,15 +191,16 @@ function createNewSession() {
         id: sessionId,
         title: currentLanguage === 'sinhala' ? 'නව සංවාදය' : 'New Chat',
         messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        user_id: getUserId()
     };
     
     chatSessions.unshift(session);
     currentSessionId = sessionId;
     chatHistory = [];
     
-    saveChatSessions();
+    await saveChatSessions();
     renderChatSessions();
     clearChatMessages();
     updateSessionDisplay();
@@ -192,14 +210,30 @@ function createNewSession() {
     setTimeout(() => { isProcessing = false; }, 100);
 }
 
-function loadChatSessions() {
+async function loadChatSessions() {
     const storageKey = getStorageKey();
     try {
-        const savedSessions = localStorage.getItem(storageKey);
-        chatSessions = savedSessions ? JSON.parse(savedSessions) : [];
+        // Try to load from Supabase if user is logged in
+        if (currentUser) {
+            const { data, error } = await supabase
+                .from('chat_sessions')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('updated_at', { ascending: false });
+            
+            if (!error && data) {
+                chatSessions = data;
+            }
+        }
+        
+        // Fallback to localStorage
+        if (chatSessions.length === 0) {
+            const savedSessions = localStorage.getItem(storageKey);
+            chatSessions = savedSessions ? JSON.parse(savedSessions) : [];
+        }
         
         if (chatSessions.length === 0) {
-            createNewSession();
+            await createNewSession();
         } else {
             currentSessionId = chatSessions[0].id;
             chatHistory = chatSessions[0].messages || [];
@@ -211,16 +245,39 @@ function loadChatSessions() {
     } catch (e) {
         console.error("Error loading sessions:", e);
         chatSessions = [];
-        createNewSession();
+        await createNewSession();
     }
 }
 
-function saveChatSessions() {
+async function saveChatSessions() {
     const storageKey = getStorageKey();
     try {
+        // Limit sessions to prevent memory issues
         if (chatSessions.length > 50) {
             chatSessions = chatSessions.slice(0, 50);
         }
+        
+        // Save to Supabase if user is logged in
+        if (currentUser) {
+            for (const session of chatSessions) {
+                const { error } = await supabase
+                    .from('chat_sessions')
+                    .upsert({
+                        id: session.id,
+                        title: session.title,
+                        messages: session.messages,
+                        created_at: session.createdAt,
+                        updated_at: session.updatedAt,
+                        user_id: currentUser.id
+                    });
+                
+                if (error) {
+                    console.error('Error saving session to Supabase:', error);
+                }
+            }
+        }
+        
+        // Always save to localStorage as backup
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
     } catch (e) {
         console.error("Error saving sessions:", e);
@@ -295,6 +352,42 @@ function updateSessionDisplay() {
     }
 }
 
+// Check authentication state
+async function checkAuthState() {
+    try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+            console.error('Auth error:', error);
+            showAuthContainer();
+            return;
+        }
+        
+        if (session?.user) {
+            currentUser = session.user;
+            await showChatApp();
+            await loadChatSessions();
+            updateUserProfile();
+        } else {
+            showAuthContainer();
+        }
+    } catch (error) {
+        console.error('Auth check error:', error);
+        showAuthContainer();
+    }
+}
+
+function updateUserProfile() {
+    if (elements.username) {
+        if (currentUser) {
+            const name = currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'User';
+            elements.username.textContent = name;
+        } else {
+            elements.username.textContent = 'Guest User';
+        }
+    }
+}
+
 // UI Management
 function showAuthContainer() {
     if (elements.authContainer) elements.authContainer.style.display = 'block';
@@ -302,26 +395,36 @@ function showAuthContainer() {
     showLoginForm();
 }
 
-function showChatApp() {
+async function showChatApp() {
     if (elements.authContainer) elements.authContainer.style.display = 'none';
     if (elements.chatApp) elements.chatApp.style.display = 'flex';
     if (elements.messageInput) elements.messageInput.focus();
+    await loadChatSessions();
 }
 
 function showLoginForm() {
     if (elements.loginForm) elements.loginForm.style.display = 'flex';
     if (elements.signupForm) elements.signupForm.style.display = 'none';
+    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'none';
     hideAllMessages();
 }
 
 function showSignupForm() {
     if (elements.loginForm) elements.loginForm.style.display = 'none';
     if (elements.signupForm) elements.signupForm.style.display = 'flex';
+    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'none';
+    hideAllMessages();
+}
+
+function showForgotPasswordForm() {
+    if (elements.loginForm) elements.loginForm.style.display = 'none';
+    if (elements.signupForm) elements.signupForm.style.display = 'none';
+    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'flex';
     hideAllMessages();
 }
 
 function hideAllMessages() {
-    const messages = [elements.loginError, elements.signupError, elements.signupSuccess];
+    const messages = [elements.loginError, elements.signupError, elements.signupSuccess, elements.forgotError, elements.forgotSuccess];
     messages.forEach(msg => {
         if (msg) msg.style.display = 'none';
     });
@@ -478,14 +581,14 @@ function addMessage(message, isUser) {
     chatHistory.push({
         content: message,
         isUser: isUser,
-        timestamp: Date.now()
+        timestamp: new Date().toISOString()
     });
     
     // Update session
     const currentSession = chatSessions.find(s => s.id === currentSessionId);
     if (currentSession) {
         currentSession.messages = chatHistory;
-        currentSession.updatedAt = Date.now();
+        currentSession.updatedAt = new Date().toISOString();
         
         // Update title from first message
         if (isUser && currentSession.messages.filter(m => m.isUser).length === 1) {
@@ -599,41 +702,70 @@ async function sendMessage() {
     }
 }
 
-// Simple authentication simulation
-function simulateLogin(email, password) {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (email && password.length >= 6) {
-                resolve({
-                    success: true,
-                    user: {
-                        displayName: email.split('@')[0],
-                        email: email
-                    }
-                });
-            } else {
-                reject(new Error('Invalid credentials'));
-            }
-        }, 1000);
-    });
+// Supabase Authentication
+async function handleLogin(email, password) {
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) throw error;
+        
+        return { success: true, user: data.user };
+    } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+    }
 }
 
-function simulateSignup(name, email, password) {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (name && email && password.length >= 6) {
-                resolve({
-                    success: true,
-                    user: {
-                        displayName: name,
-                        email: email
-                    }
-                });
-            } else {
-                reject(new Error('Registration failed'));
+async function handleSignup(name, email, password) {
+    try {
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    name: name
+                }
             }
-        }, 1000);
-    });
+        });
+
+        if (error) throw error;
+        
+        return { success: true, user: data.user };
+    } catch (error) {
+        console.error('Signup error:', error);
+        throw error;
+    }
+}
+
+async function handlePasswordReset(email) {
+    try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin,
+        });
+
+        if (error) throw error;
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Password reset error:', error);
+        throw error;
+    }
+}
+
+async function handleLogout() {
+    try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        
+        currentUser = null;
+        return { success: true };
+    } catch (error) {
+        console.error('Logout error:', error);
+        throw error;
+    }
 }
 
 // Authentication handlers
@@ -657,18 +789,15 @@ function setupAuthHandlers() {
             utils.setText('loginButtonText', 'Logging in...');
             
             try {
-                const result = await simulateLogin(email, password);
-                isLoggedIn = true;
-                if (elements.username) {
-                    elements.username.textContent = result.user.displayName;
-                }
+                const result = await handleLogin(email, password);
+                currentUser = result.user;
                 elements.loginForm.reset();
                 showNotification('Successfully logged in!');
-                showChatApp();
-                loadChatSessions();
+                await showChatApp();
+                updateUserProfile();
             } catch (error) {
                 if (elements.loginError) {
-                    elements.loginError.textContent = 'Login failed. Please check your credentials.';
+                    elements.loginError.textContent = error.message || 'Login failed. Please check your credentials.';
                     elements.loginError.style.display = 'block';
                 }
             } finally {
@@ -709,23 +838,20 @@ function setupAuthHandlers() {
             utils.setText('signupButtonText', 'Creating account...');
             
             try {
-                const result = await simulateSignup(name, email, password);
-                isLoggedIn = true;
-                if (elements.username) {
-                    elements.username.textContent = result.user.displayName;
-                }
+                const result = await handleSignup(name, email, password);
+                currentUser = result.user;
                 if (elements.signupSuccess) {
-                    elements.signupSuccess.textContent = 'Registration successful!';
+                    elements.signupSuccess.textContent = 'Registration successful! Please check your email for verification.';
                     elements.signupSuccess.style.display = 'block';
                 }
                 elements.signupForm.reset();
-                setTimeout(() => {
-                    showChatApp();
-                    loadChatSessions();
-                }, 1000);
+                setTimeout(async () => {
+                    await showChatApp();
+                    updateUserProfile();
+                }, 2000);
             } catch (error) {
                 if (elements.signupError) {
-                    elements.signupError.textContent = 'Registration failed. Please try again.';
+                    elements.signupError.textContent = error.message || 'Registration failed. Please try again.';
                     elements.signupError.style.display = 'block';
                 }
             } finally {
@@ -737,16 +863,67 @@ function setupAuthHandlers() {
         });
     }
 
+    // Forgot password
+    if (elements.forgotPasswordForm) {
+        elements.forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isProcessing) return;
+            
+            const email = utils.getElement('forgotEmail').value;
+            const button = utils.getElement('resetPasswordButton');
+            const loader = utils.getElement('resetLoader');
+            
+            hideAllMessages();
+            
+            isProcessing = true;
+            if (button) button.disabled = true;
+            if (loader) loader.style.display = 'block';
+            utils.setText('resetButtonText', 'Sending...');
+            
+            try {
+                await handlePasswordReset(email);
+                
+                if (elements.forgotSuccess) {
+                    elements.forgotSuccess.textContent = 'Password reset email sent! Check your inbox.';
+                    elements.forgotSuccess.style.display = 'block';
+                }
+                elements.forgotPasswordForm.reset();
+            } catch (error) {
+                if (elements.forgotError) {
+                    elements.forgotError.textContent = error.message || 'Failed to send reset email.';
+                    elements.forgotError.style.display = 'block';
+                }
+            } finally {
+                isProcessing = false;
+                if (button) button.disabled = false;
+                if (loader) loader.style.display = 'none';
+                utils.setText('resetButtonText', 'Reset Password');
+            }
+        });
+    }
+
     // Skip login
     if (elements.skipLogin) {
         elements.skipLogin.addEventListener('click', () => {
-            isLoggedIn = false;
-            if (elements.username) {
-                elements.username.textContent = 'Guest User';
-            }
+            currentUser = null;
+            updateUserProfile();
             showChatApp();
-            loadChatSessions();
             showNotification('Welcome! Continue as guest user.');
+        });
+    }
+
+    // Logout
+    const logoutBtn = utils.getElement('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await handleLogout();
+                showAuthContainer();
+                showNotification('Successfully logged out!');
+            } catch (error) {
+                console.error('Logout error:', error);
+                showNotification('Logout failed', 'error');
+            }
         });
     }
 }
@@ -811,21 +988,10 @@ function setupEventListeners() {
     if (englishBtn) englishBtn.addEventListener('click', () => switchLanguage('english'));
 
     // Form switchers
-    const showSignup = utils.getElement('showSignup');
-    const showLogin = utils.getElement('showLogin');
-    
-    if (showSignup) showSignup.addEventListener('click', showSignupForm);
-    if (showLogin) showLogin.addEventListener('click', showLoginForm);
-
-    // Logout
-    const logoutBtn = utils.getElement('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            isLoggedIn = false;
-            showAuthContainer();
-            showNotification('Successfully logged out!');
-        });
-    }
+    if (elements.showSignup) elements.showSignup.addEventListener('click', showSignupForm);
+    if (elements.showLogin) elements.showLogin.addEventListener('click', showLoginForm);
+    if (elements.forgotPassword) elements.forgotPassword.addEventListener('click', showForgotPasswordForm);
+    if (elements.backToLogin) elements.backToLogin.addEventListener('click', showLoginForm);
 
     // Model selector
     if (elements.modelBtn && elements.modelDropdown) {
@@ -903,7 +1069,7 @@ function setupEventListeners() {
                 const currentSession = chatSessions.find(s => s.id === currentSessionId);
                 if (currentSession) {
                     currentSession.messages = [];
-                    currentSession.updatedAt = Date.now();
+                    currentSession.updatedAt = new Date().toISOString();
                     saveChatSessions();
                     renderChatSessions();
                 }
@@ -981,8 +1147,8 @@ function setupEventListeners() {
 }
 
 // Initialize app
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Smart AI App Initialized - No Firebase Version");
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log("🚀 Smart AI App Initialized - Supabase Version");
     
     // Load preferences
     const savedTheme = localStorage.getItem('smartai-theme') || 'dark';
@@ -999,13 +1165,27 @@ document.addEventListener('DOMContentLoaded', function() {
     setupAuthHandlers();
     setupEventListeners();
     
-    // Initialize UI
-    showAuthContainer();
+    // Check authentication state
+    await checkAuthState();
     
     // Initialize chat input height
     if (elements.messageInput) {
         elements.messageInput.style.height = 'auto';
     }
     
-    console.log("✅ All systems ready - No lag guaranteed!");
+    console.log("✅ All systems ready - Supabase powered!");
+});
+
+// Listen for auth state changes
+supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('Auth state changed:', event, session);
+    
+    if (event === 'SIGNED_IN' && session) {
+        currentUser = session.user;
+        await showChatApp();
+        updateUserProfile();
+    } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        showAuthContainer();
+    }
 });
