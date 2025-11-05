@@ -738,8 +738,8 @@ function clearChatMessages() {
 async function getAIResponse(userMessage) {
     try {
         // This also works
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GOOGLE_AI_API_KEY}`;
-        
+// Check if this works for you
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`;
         const languagePrompt = currentLanguage === 'sinhala' ? 
             "කරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න. පිළිතුර සරල හා පැහැදිලි විය යුතුය." : 
             "Please respond in English only. Keep the response clear and concise.";
