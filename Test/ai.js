@@ -1,5 +1,5 @@
 // Groq API Configuration - REPLACE WITH YOUR API KEY
-const GROQ_API_KEY = 'gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; // 🔄 Get from https://console.groq.com
+const GROQ_API_KEY = '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'; // 🔄 Get from https://console.groq.com
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Available Models
