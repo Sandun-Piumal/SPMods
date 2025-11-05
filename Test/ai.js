@@ -39,22 +39,22 @@ const languageContent = {
         logoutText: "Logout",
         welcomeTitle: "නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨",
         welcomeText: "Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br>ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter කරන්න. 🚀",
-        typingText: "Smart AI is preparing response",
-        inputPlaceholder: "Type your question here...",
-        themeLabelDark: "Dark",
-        themeLabelLight: "Light",
-        clearChatText: "Clear Chat",
-        exportChatText: "Export Chat",
-        suggestionsText: "Suggestions",
+        typingText: "Smart AI ප්‍රතිචාර සකසමින්",
+        inputPlaceholder: "ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න...",
+        themeLabelDark: "අඳුරු",
+        themeLabelLight: "සැහැල්ලු",
+        clearChatText: "සංවාදය හිස් කරන්න",
+        exportChatText: "සංවාදය බාගන්න",
+        suggestionsText: "යෝජනා",
         copyright: "Copyright © 2025 SPMods. All Rights Reserved.",
         designCredit: "Developed: Sandun Piumal",
-        userLabel: "You",
+        userLabel: "ඔබ",
         aiLabel: "Smart AI",
-        historyTitle: "Chat History",
-        historyToggleText: "History",
-        currentSessionTitle: "Current Session",
-        newChatText: "New Chat",
-        importChatText: "Import",
+        historyTitle: "සංවාද ඉතිහාසය",
+        historyToggleText: "ඉතිහාසය",
+        currentSessionTitle: "වත්මන් සංවාදය",
+        newChatText: "නව සංවාදය",
+        importChatText: "ආයාත කරන්න",
         systemPrompt: `ඔබ Smart AI නම් උපකාරක AI වේ. සියලුම ප්‍රශ්නවලට සිංහල භාෂාවෙන් පිළිතුරු දෙන්න. 
         පිළිතුරු සවිස්තරාත්මක, උපයෝගී සහ මිත්‍රශීලී විය යුතුය. 
         කේතය, තාක්ෂණය, විද්‍යාව, ඉතිහාසය සහ සාමාන්‍ය දැනුම පිළිබඳ ප්‍රශ්න සඳහා විස්තරාත්මක පිළිතුරු දෙන්න.`
@@ -527,7 +527,7 @@ function switchTheme(theme) {
     themeLabel.textContent = theme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
 }
 
-// Language switching
+// Language switching - COMPLETELY FIXED
 function switchLanguage(lang) {
     currentLanguage = lang;
     const content = languageContent[lang];
@@ -577,28 +577,45 @@ function switchLanguage(lang) {
     
     themeLabel.textContent = currentTheme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
     
-    // Update language switcher animation
+    // Update language switcher animation and classes - FIXED
     const languageSwitcher = document.querySelector('.language-switcher');
+    const sinhalaBtn = document.getElementById('sinhalaBtn');
+    const englishBtn = document.getElementById('englishBtn');
+    
+    // Remove active class from both buttons first
+    sinhalaBtn.classList.remove('active');
+    englishBtn.classList.remove('active');
+    
     if (lang === 'sinhala') {
         sinhalaBtn.classList.add('active');
-        englishBtn.classList.remove('active');
         languageSwitcher.classList.remove('english-active');
     } else {
         englishBtn.classList.add('active');
-        sinhalaBtn.classList.remove('active');
         languageSwitcher.classList.add('english-active');
     }
     
+    // Update current session title if needed
+    updateSessionDisplay();
+    
+    // Save language preference
     localStorage.setItem('neura-language', lang);
+    
+    // Show notification
+    showNotification(
+        lang === 'sinhala' ? 'භාෂාව සිංහලට මාරු කරන ලදී' : 'Language switched to English',
+        'success'
+    );
 }
 
 // Load saved preferences
 const savedTheme = localStorage.getItem('neura-theme') || 'dark';
 const savedLanguage = localStorage.getItem('neura-language') || 'english';
 
+// Initialize theme and language
 switchTheme(savedTheme);
 switchLanguage(savedLanguage);
 
+// Set theme toggle state
 if (savedTheme === 'light') {
     themeToggle.checked = true;
 }
@@ -1021,4 +1038,11 @@ document.addEventListener('click', function(e) {
         chatSidebar.classList.contains('active')) {
         chatSidebar.classList.remove('active');
     }
+});
+
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Smart AI Chat App Initialized');
+    console.log('Current Language:', currentLanguage);
+    console.log('Current Theme:', currentTheme);
 });
