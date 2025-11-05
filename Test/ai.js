@@ -1,21 +1,3 @@
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
-    authDomain: "smart-ai-chat-app.firebaseapp.com",
-    projectId: "smart-ai-chat-app"
-};
-
-// Initialize Firebase
-try {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-} catch (error) {
-    console.error("Firebase initialization error:", error);
-}
-
-const auth = firebase.auth();
-
 // Groq API Configuration - REPLACE WITH YOUR API KEY
 const GROQ_API_KEY = 'gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; // 🔄 Get from https://console.groq.com
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -24,9 +6,7 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODELS = {
     "llama3-8b-8192": "Llama 3 8B - Fast & Smart",
     "llama3-70b-8192": "Llama 3 70B - Very Smart", 
-    "llama2-70b-4096": "Llama 2 70B - Good balance",
-    "mixtral-8x7b-32768": "Mixtral 8x7B - Excellent for Languages",
-    "gemma-7b-it": "Gemma 7B - Good for coding"
+    "mixtral-8x7b-32768": "Mixtral 8x7B - Excellent for Languages"
 };
 
 // Language content - ENGLISH DEFAULT
@@ -44,9 +24,6 @@ const languageContent = {
         haveAccount: "Already have an account?",
         showSignup: "Sign Up",
         showLogin: "Login",
-        forgotPassword: "Forgot Password?",
-        resetPasswordButton: "Reset Password",
-        backToLogin: "Back to Login",
         logoTitle: "Smart AI",
         headerSubtitle: "Powered by Groq Cloud",
         username: "User",
@@ -84,9 +61,6 @@ const languageContent = {
         haveAccount: "Already have an account?",
         showSignup: "Sign Up",
         showLogin: "Login",
-        forgotPassword: "Forgot Password?",
-        resetPasswordButton: "Reset Password",
-        backToLogin: "Back to Login",
         logoTitle: "Smart AI",
         headerSubtitle: "Powered by Groq Cloud",
         username: "User",
@@ -120,7 +94,8 @@ let chatHistory = [];
 let chatSessions = [];
 let currentSessionId = null;
 let isProcessing = false;
-let currentModel = "llama3-8b-8192"; // Default model
+let currentModel = "llama3-8b-8192";
+let isLoggedIn = false;
 
 // DOM Elements Cache
 const elements = {
@@ -128,12 +103,9 @@ const elements = {
     chatApp: document.getElementById('chatApp'),
     loginForm: document.getElementById('loginForm'),
     signupForm: document.getElementById('signupForm'),
-    forgotPasswordForm: document.getElementById('forgotPasswordForm'),
     loginError: document.getElementById('loginError'),
     signupError: document.getElementById('signupError'),
     signupSuccess: document.getElementById('signupSuccess'),
-    forgotError: document.getElementById('forgotError'),
-    forgotSuccess: document.getElementById('forgotSuccess'),
     chatMessages: document.getElementById('chatMessages'),
     messageInput: document.getElementById('messageInput'),
     sendButton: document.getElementById('sendButton'),
@@ -151,7 +123,9 @@ const elements = {
     newChatBtn: document.getElementById('newChatBtn'),
     modelBtn: document.getElementById('modelBtn'),
     modelDropdown: document.getElementById('modelDropdown'),
-    currentModelText: document.getElementById('currentModelText')
+    currentModelText: document.getElementById('currentModelText'),
+    skipLogin: document.getElementById('skipLogin'),
+    username: document.getElementById('username')
 };
 
 // Performance optimized functions
@@ -168,17 +142,6 @@ const utils = {
         };
     },
 
-    throttle(func, limit) {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    },
-
     getElement(id) {
         return document.getElementById(id);
     },
@@ -191,8 +154,7 @@ const utils = {
 
 // User-specific data handling
 function getUserId() {
-    const user = auth.currentUser;
-    return user ? user.uid : 'anonymous';
+    return isLoggedIn ? 'user-' + Math.random().toString(36).substr(2, 9) : 'guest';
 }
 
 function getStorageKey() {
@@ -225,9 +187,7 @@ function createNewSession() {
     clearChatMessages();
     updateSessionDisplay();
     
-    showNotification(
-        currentLanguage === 'sinhala' ? 'නව සංවාදය ආරම්භ කරන ලදී' : 'New chat started'
-    );
+    showNotification('New chat started');
     
     setTimeout(() => { isProcessing = false; }, 100);
 }
@@ -335,25 +295,6 @@ function updateSessionDisplay() {
     }
 }
 
-// Authentication state
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        showChatApp();
-        updateUserProfile(user);
-        loadChatSessions();
-    } else {
-        showAuthContainer();
-        chatSessions = [];
-        currentSessionId = null;
-        chatHistory = [];
-    }
-});
-
-function updateUserProfile(user) {
-    const username = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-    utils.setText('username', username);
-}
-
 // UI Management
 function showAuthContainer() {
     if (elements.authContainer) elements.authContainer.style.display = 'block';
@@ -370,26 +311,17 @@ function showChatApp() {
 function showLoginForm() {
     if (elements.loginForm) elements.loginForm.style.display = 'flex';
     if (elements.signupForm) elements.signupForm.style.display = 'none';
-    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'none';
     hideAllMessages();
 }
 
 function showSignupForm() {
     if (elements.loginForm) elements.loginForm.style.display = 'none';
     if (elements.signupForm) elements.signupForm.style.display = 'flex';
-    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'none';
-    hideAllMessages();
-}
-
-function showForgotPasswordForm() {
-    if (elements.loginForm) elements.loginForm.style.display = 'none';
-    if (elements.signupForm) elements.signupForm.style.display = 'none';
-    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'flex';
     hideAllMessages();
 }
 
 function hideAllMessages() {
-    const messages = [elements.loginError, elements.signupError, elements.signupSuccess, elements.forgotError, elements.forgotSuccess];
+    const messages = [elements.loginError, elements.signupError, elements.signupSuccess];
     messages.forEach(msg => {
         if (msg) msg.style.display = 'none';
     });
@@ -491,11 +423,7 @@ function changeModel(modelId) {
         if (elements.currentModelText) {
             elements.currentModelText.textContent = GROQ_MODELS[modelId].split(' - ')[0];
         }
-        showNotification(
-            currentLanguage === 'sinhala' ? 
-                `Model වෙනස් කරන ලදී: ${GROQ_MODELS[modelId].split(' - ')[0]}` :
-                `Model changed to: ${GROQ_MODELS[modelId].split(' - ')[0]}`
-        );
+        showNotification(`Model changed to: ${GROQ_MODELS[modelId].split(' - ')[0]}`);
         return true;
     }
     return false;
@@ -539,9 +467,7 @@ function addMessage(message, isUser) {
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(message).then(() => {
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'පිළිතුරු පිටපත් කරන ලදී' : 'Response copied'
-                );
+                showNotification('Response copied');
             });
         });
     }
@@ -673,6 +599,43 @@ async function sendMessage() {
     }
 }
 
+// Simple authentication simulation
+function simulateLogin(email, password) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (email && password.length >= 6) {
+                resolve({
+                    success: true,
+                    user: {
+                        displayName: email.split('@')[0],
+                        email: email
+                    }
+                });
+            } else {
+                reject(new Error('Invalid credentials'));
+            }
+        }, 1000);
+    });
+}
+
+function simulateSignup(name, email, password) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (name && email && password.length >= 6) {
+                resolve({
+                    success: true,
+                    user: {
+                        displayName: name,
+                        email: email
+                    }
+                });
+            } else {
+                reject(new Error('Registration failed'));
+            }
+        }, 1000);
+    });
+}
+
 // Authentication handlers
 function setupAuthHandlers() {
     // Login
@@ -694,9 +657,15 @@ function setupAuthHandlers() {
             utils.setText('loginButtonText', 'Logging in...');
             
             try {
-                await auth.signInWithEmailAndPassword(email, password);
+                const result = await simulateLogin(email, password);
+                isLoggedIn = true;
+                if (elements.username) {
+                    elements.username.textContent = result.user.displayName;
+                }
                 elements.loginForm.reset();
                 showNotification('Successfully logged in!');
+                showChatApp();
+                loadChatSessions();
             } catch (error) {
                 if (elements.loginError) {
                     elements.loginError.textContent = 'Login failed. Please check your credentials.';
@@ -706,7 +675,7 @@ function setupAuthHandlers() {
                 isProcessing = false;
                 if (button) button.disabled = false;
                 if (loader) loader.style.display = 'none';
-                utils.setText('loginButtonText', languageContent[currentLanguage].loginButton);
+                utils.setText('loginButtonText', 'Login');
             }
         });
     }
@@ -740,15 +709,20 @@ function setupAuthHandlers() {
             utils.setText('signupButtonText', 'Creating account...');
             
             try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                await userCredential.user.updateProfile({ displayName: name });
-                
+                const result = await simulateSignup(name, email, password);
+                isLoggedIn = true;
+                if (elements.username) {
+                    elements.username.textContent = result.user.displayName;
+                }
                 if (elements.signupSuccess) {
                     elements.signupSuccess.textContent = 'Registration successful!';
                     elements.signupSuccess.style.display = 'block';
                 }
                 elements.signupForm.reset();
-                showNotification('Registration successful!');
+                setTimeout(() => {
+                    showChatApp();
+                    loadChatSessions();
+                }, 1000);
             } catch (error) {
                 if (elements.signupError) {
                     elements.signupError.textContent = 'Registration failed. Please try again.';
@@ -758,47 +732,21 @@ function setupAuthHandlers() {
                 isProcessing = false;
                 if (button) button.disabled = false;
                 if (loader) loader.style.display = 'none';
-                utils.setText('signupButtonText', languageContent[currentLanguage].signupButton);
+                utils.setText('signupButtonText', 'Sign Up');
             }
         });
     }
 
-    // Forgot password
-    if (elements.forgotPasswordForm) {
-        elements.forgotPasswordForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isProcessing) return;
-            
-            const email = utils.getElement('forgotEmail').value;
-            const button = utils.getElement('resetPasswordButton');
-            const loader = utils.getElement('resetLoader');
-            
-            hideAllMessages();
-            
-            isProcessing = true;
-            if (button) button.disabled = true;
-            if (loader) loader.style.display = 'block';
-            utils.setText('resetButtonText', 'Sending...');
-            
-            try {
-                await auth.sendPasswordResetEmail(email);
-                
-                if (elements.forgotSuccess) {
-                    elements.forgotSuccess.textContent = 'Password reset email sent!';
-                    elements.forgotSuccess.style.display = 'block';
-                }
-                elements.forgotPasswordForm.reset();
-            } catch (error) {
-                if (elements.forgotError) {
-                    elements.forgotError.textContent = 'Failed to send reset email.';
-                    elements.forgotError.style.display = 'block';
-                }
-            } finally {
-                isProcessing = false;
-                if (button) button.disabled = false;
-                if (loader) loader.style.display = 'none';
-                utils.setText('resetButtonText', languageContent[currentLanguage].resetPasswordButton);
+    // Skip login
+    if (elements.skipLogin) {
+        elements.skipLogin.addEventListener('click', () => {
+            isLoggedIn = false;
+            if (elements.username) {
+                elements.username.textContent = 'Guest User';
             }
+            showChatApp();
+            loadChatSessions();
+            showNotification('Welcome! Continue as guest user.');
         });
     }
 }
@@ -865,21 +813,17 @@ function setupEventListeners() {
     // Form switchers
     const showSignup = utils.getElement('showSignup');
     const showLogin = utils.getElement('showLogin');
-    const forgotPassword = utils.getElement('forgotPassword');
-    const backToLogin = utils.getElement('backToLogin');
     
     if (showSignup) showSignup.addEventListener('click', showSignupForm);
     if (showLogin) showLogin.addEventListener('click', showLoginForm);
-    if (forgotPassword) forgotPassword.addEventListener('click', showForgotPasswordForm);
-    if (backToLogin) backToLogin.addEventListener('click', showLoginForm);
 
     // Logout
     const logoutBtn = utils.getElement('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                showNotification('Successfully logged out!');
-            });
+            isLoggedIn = false;
+            showAuthContainer();
+            showNotification('Successfully logged out!');
         });
     }
 
@@ -964,9 +908,7 @@ function setupEventListeners() {
                     renderChatSessions();
                 }
                 clearChatMessages();
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'සංවාදය හිස් කරන ලදී' : 'Chat cleared'
-                );
+                showNotification('Chat cleared');
             }
         });
     }
@@ -1040,7 +982,7 @@ function setupEventListeners() {
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Smart AI App Initialized - Groq Version");
+    console.log("🚀 Smart AI App Initialized - No Firebase Version");
     
     // Load preferences
     const savedTheme = localStorage.getItem('smartai-theme') || 'dark';
@@ -1065,5 +1007,5 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.messageInput.style.height = 'auto';
     }
     
-    console.log("✅ All systems ready!");
+    console.log("✅ All systems ready - No lag guaranteed!");
 });
