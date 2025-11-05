@@ -111,7 +111,7 @@
                 
                 <div class="header-controls">
                     <div class="theme-toggle-container">
-                        <span class="theme-label" id="themeLabel">Light</span>
+                        <span class="theme-label" id="themeLabel">අඳුරු</span>
                         <div class="theme-toggle">
                             <input type="checkbox" id="themeToggle">
                             <label class="theme-slider" for="themeToggle">
@@ -121,12 +121,12 @@
                         </div>
                     </div>
                     
-                    <div class="language-switcher" id="languageSwitcher">
-                        <button class="lang-btn" id="sinhalaBtn">
+                    <div class="language-switcher">
+                        <button class="lang-btn active" id="sinhalaBtn">
                             <i class="fas fa-language"></i>
                             <span>සිංහල</span>
                         </button>
-                        <button class="lang-btn active" id="englishBtn">
+                        <button class="lang-btn" id="englishBtn">
                             <i class="fas fa-globe"></i>
                             <span>English</span>
                         </button>
@@ -143,7 +143,7 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="user-info">
-                            <h3 id="username">User</h3>
+                            <h3 id="username">පරිශීලක</h3>
                             <p id="userStatus">Online</p>
                         </div>
                     </div>
@@ -155,13 +155,13 @@
             <!-- Chat History Sidebar -->
             <div class="chat-sidebar" id="chatSidebar">
                 <div class="sidebar-header">
-                    <h3 id="historyTitle">Chat History</h3>
+                    <h3 id="historyTitle">සංවාද ඉතිහාසය</h3>
                     <button class="sidebar-close" id="sidebarClose">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="sidebar-search">
-                    <input type="text" id="historySearch" placeholder="Search chat history...">
+                    <input type="text" id="historySearch" placeholder="සංවාද ඉතිහාසයේ සොයන්න...">
                     <i class="fas fa-search"></i>
                 </div>
                 <div class="chat-sessions" id="chatSessions">
@@ -174,7 +174,7 @@
                     </button>
                     <button class="sidebar-btn" id="importChatBtn">
                         <i class="fas fa-upload"></i>
-                        <span>Import</span>
+                        <span>ආයාත කරන්න</span>
                     </button>
                 </div>
             </div>
@@ -184,17 +184,17 @@
                 <div class="chat-header">
                     <button class="history-toggle" id="historyToggle">
                         <i class="fas fa-history"></i>
-                        <span id="historyToggleText">History</span>
+                        <span id="historyToggleText">ඉතිහාසය</span>
                     </button>
                     <div class="current-session">
-                        <h3 id="currentSessionTitle">Current Session</h3>
+                        <h3 id="currentSessionTitle">වත්මන් සංවාදය</h3>
                         <span class="session-date" id="sessionDate"></span>
                     </div>
                     <div class="chat-actions">
-                        <button class="chat-action-btn" id="saveSessionBtn" title="Save Chat">
+                        <button class="chat-action-btn" id="saveSessionBtn" title="සංවාදය සුරකින්න">
                             <i class="fas fa-save"></i>
                         </button>
-                        <button class="chat-action-btn" id="renameSessionBtn" title="Rename Chat">
+                        <button class="chat-action-btn" id="renameSessionBtn" title="සංවාදය නම් කරන්න">
                             <i class="fas fa-edit"></i>
                         </button>
                     </div>
@@ -205,29 +205,29 @@
                         <div class="welcome-icon">
                             <i class="fas fa-rocket"></i>
                         </div>
-                        <h2 id="welcomeTitle">New Model Successfully Updated! ✨</h2>
+                        <h2 id="welcomeTitle">නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨</h2>
                         <p id="welcomeText">
-                            Ready to work with Gemini AI Model!<br> Type your question below and press Enter 🚀
+                            Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br> ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter ඔබන්න 🚀
                         </p>
                         <div class="feature-buttons">
                             <button class="feature-btn" id="clearChatBtn">
                                 <i class="fas fa-trash"></i>
-                                <span id="clearChatText">Clear Chat</span>
+                                <span id="clearChatText">සංවාදය හිස් කරන්න</span>
                             </button>
                             <button class="feature-btn" id="exportChatBtn">
                                 <i class="fas fa-download"></i>
-                                <span id="exportChatText">Export Chat</span>
+                                <span id="exportChatText">සංවාදය බාගන්න</span>
                             </button>
                             <button class="feature-btn" id="suggestionsBtn">
                                 <i class="fas fa-lightbulb"></i>
-                                <span id="suggestionsText">Suggestions</span>
+                                <span id="suggestionsText">යෝජනා</span>
                             </button>
                         </div>
                     </div>
                 </div>
                 
                 <div class="typing-indicator" id="typingIndicator">
-                    <i class="fas fa-robot"></i> <span id="typingText">Smart AI is preparing response</span>
+                    <i class="fas fa-robot"></i> <span id="typingText">Smart AI ප්‍රතිචාර සකසමින්</span>
                     <div class="typing-dots">
                         <span></span>
                         <span></span>
@@ -237,7 +237,7 @@
                 
                 <div class="chat-input-container">
                     <div class="chat-input-wrapper">
-                        <textarea class="chat-input" id="messageInput" placeholder="Type your question here..." rows="1"></textarea>
+                        <textarea class="chat-input" id="messageInput" placeholder="ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න..." rows="1"></textarea>
                         <button class="send-button" id="sendButton">
                             <i class="fas fa-paper-plane"></i>
                         </button>
