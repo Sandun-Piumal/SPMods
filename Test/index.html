@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Smart AI - Modern AI Chat Interface powered by Groq">
+    <meta name="description" content="Smart AI - Modern AI Chat Interface">
     <meta name="keywords" content="AI, Chat, Groq, Llama, English, Assistant">
     <title>Smart AI - Modern Chat Interface</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -94,13 +94,12 @@
             </div>
         </form>
 
-        <div class="footer">
-            <div class="footer-content">
-                <div class="footer-copyright">
-                    <p id="copyrightText">Copyright © 2025 SPMods. All Rights Reserved.</p>
-                    <p class="design-credit" id="designCredit">Developed: Sandun Piumal</p>
-                </div>
-            </div>
+        <!-- Quick Access -->
+        <div class="quick-access">
+            <button class="quick-access-btn" id="skipLogin">
+                <i class="fas fa-bolt"></i>
+                <span>Continue without Login</span>
+            </button>
         </div>
     </div>
     
@@ -151,14 +150,6 @@
                                 </div>
                                 <div class="model-badge free">Free</div>
                             </div>
-                            
-                            <div class="model-option" data-model="gemma-7b-it">
-                                <div class="model-info">
-                                    <strong>Gemma 7B</strong>
-                                    <span>Good for Coding</span>
-                                </div>
-                                <div class="model-badge free">Free</div>
-                            </div>
                         </div>
                     </div>
                     
@@ -194,7 +185,7 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="user-info">
-                            <h3 id="username">User</h3>
+                            <h3 id="username">Guest User</h3>
                             <p id="userStatus">Online</p>
                         </div>
                     </div>
@@ -312,10 +303,8 @@
         <span id="notificationText">Operation completed successfully</span>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="ai.js"></script>
 </body>
 </html>
