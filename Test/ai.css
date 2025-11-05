@@ -666,7 +666,7 @@ input:checked + .theme-slider:before {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Gradient slider - FIXED */
+/* Gradient slider - FIXED POSITION */
 .language-switcher::before {
     content: '';
     position: absolute;
@@ -706,14 +706,10 @@ input:checked + .theme-slider:before {
     z-index: 2;
     flex: 1;
     justify-content: center;
-}
-
-/* Inactive state - FIXED */
-.lang-btn {
     color: var(--text-light);
 }
 
-/* Active state - FIXED with high specificity */
+/* Active state - FIXED with !important */
 .language-switcher .lang-btn.active {
     color: white !important;
 }
