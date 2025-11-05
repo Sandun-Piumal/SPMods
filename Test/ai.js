@@ -5,29 +5,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Initialize Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Language content
+// Language content - ENGLISH ONLY FOR AUTH
 const languageContent = {
     sinhala: {
-        authTitle: "Smart AI",
-        authSubtitle: "Powered by Gemini AI",
-        emailLabel: "Email",
-        passwordLabel: "Password",
-        nameLabel: "Name",
-        phoneLabel: "Phone Number",
-        birthdayLabel: "Birthday",
-        confirmPasswordLabel: "Confirm Password",
-        loginButton: "Login",
-        signupButton: "Sign Up",
-        noAccount: "Don't have an account?",
-        haveAccount: "Already have an account?",
-        showSignup: "Sign Up",
-        showLogin: "Login",
-        forgotPassword: "Forgot Password?",
-        resetPasswordButton: "Reset Password",
-        backToLogin: "Back to Login",
+        // Chat content remains in Sinhala
         logoTitle: "Smart AI",
         headerSubtitle: "Powered by Gemini AI",
-        username: "User",
+        username: "පරිශීලක",
         userStatus: "Online",
         logoutText: "Logout",
         welcomeTitle: "නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨",
@@ -50,6 +34,7 @@ const languageContent = {
         importChatText: "ආයාත කරන්න"
     },
     english: {
+        // Auth content in English
         authTitle: "Smart AI",
         authSubtitle: "Powered by Gemini AI",
         emailLabel: "Email",
@@ -67,6 +52,8 @@ const languageContent = {
         forgotPassword: "Forgot Password?",
         resetPasswordButton: "Reset Password",
         backToLogin: "Back to Login",
+        
+        // Chat content in English
         logoTitle: "Smart AI",
         headerSubtitle: "Powered by Gemini AI",
         username: "User",
@@ -102,7 +89,7 @@ let currentSessionId = null;
 let isProcessing = false;
 let currentUser = null;
 
-// Gemini API Key - USING FREE TIER
+// Gemini API Key
 const GOOGLE_AI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
 // DOM Elements Cache
@@ -428,7 +415,7 @@ function showNotification(message, type = 'success') {
     }, 2000);
 }
 
-// Authentication handlers
+// Authentication handlers - ENGLISH ONLY
 function setupAuthHandlers() {
     // Login
     if (elements.loginForm) {
@@ -457,21 +444,17 @@ function setupAuthHandlers() {
                 if (error) throw error;
                 
                 elements.loginForm.reset();
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'සාර්ථකව පිවිසියා!' : 'Successfully logged in!'
-                );
+                showNotification('Successfully logged in!');
             } catch (error) {
                 if (elements.loginError) {
-                    elements.loginError.textContent = currentLanguage === 'sinhala' 
-                        ? 'පිවිසුම අසාර්ථකයි. තොරතුරු පරීක්ෂා කරන්න.' 
-                        : 'Login failed. Check your credentials.';
+                    elements.loginError.textContent = 'Login failed. Check your credentials.';
                     elements.loginError.style.display = 'block';
                 }
             } finally {
                 isProcessing = false;
                 if (button) button.disabled = false;
                 if (loader) loader.style.display = 'none';
-                utils.setText('loginButtonText', languageContent[currentLanguage].loginButton);
+                utils.setText('loginButtonText', 'Login');
             }
         });
     }
@@ -495,9 +478,7 @@ function setupAuthHandlers() {
             
             if (password !== confirmPassword) {
                 if (elements.signupError) {
-                    elements.signupError.textContent = currentLanguage === 'sinhala' 
-                        ? 'මුරපද ගැලපෙන්නේ නැත' 
-                        : 'Passwords do not match';
+                    elements.signupError.textContent = 'Passwords do not match';
                     elements.signupError.style.display = 'block';
                 }
                 return;
@@ -545,27 +526,21 @@ function setupAuthHandlers() {
                 }
                 
                 if (elements.signupSuccess) {
-                    elements.signupSuccess.textContent = currentLanguage === 'sinhala' 
-                        ? 'ලියාපදිංචිය සාර්ථකයි! තහවුරු කිරීමේ ඊමේල් එකක් යවන ලදී.' 
-                        : 'Registration successful! A confirmation email has been sent.';
+                    elements.signupSuccess.textContent = 'Registration successful! A confirmation email has been sent.';
                     elements.signupSuccess.style.display = 'block';
                 }
                 elements.signupForm.reset();
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'ලියාපදිංචිය සාර්ථකයි!' : 'Registration successful!'
-                );
+                showNotification('Registration successful!');
             } catch (error) {
                 if (elements.signupError) {
-                    elements.signupError.textContent = currentLanguage === 'sinhala' 
-                        ? 'ලියාපදිංචිය අසාර්ථකයි. නැවත උත්සාහ කරන්න.' 
-                        : 'Registration failed. Please try again.';
+                    elements.signupError.textContent = 'Registration failed. Please try again.';
                     elements.signupError.style.display = 'block';
                 }
             } finally {
                 isProcessing = false;
                 if (button) button.disabled = false;
                 if (loader) loader.style.display = 'none';
-                utils.setText('signupButtonText', languageContent[currentLanguage].signupButton);
+                utils.setText('signupButtonText', 'Sign Up');
             }
         });
     }
@@ -595,24 +570,20 @@ function setupAuthHandlers() {
                 if (error) throw error;
                 
                 if (elements.forgotSuccess) {
-                    elements.forgotSuccess.textContent = currentLanguage === 'sinhala' 
-                        ? 'මුරපද යළි සැකසුම් ඊමේල් එකක් යවන ලදී!' 
-                        : 'Password reset email sent!';
+                    elements.forgotSuccess.textContent = 'Password reset email sent!';
                     elements.forgotSuccess.style.display = 'block';
                 }
                 elements.forgotPasswordForm.reset();
             } catch (error) {
                 if (elements.forgotError) {
-                    elements.forgotError.textContent = currentLanguage === 'sinhala' 
-                        ? 'යළි සැකසුම් ඊමේල් යැවීම අසාර්ථකයි.' 
-                        : 'Failed to send reset email.';
+                    elements.forgotError.textContent = 'Failed to send reset email.';
                     elements.forgotError.style.display = 'block';
                 }
             } finally {
                 isProcessing = false;
                 if (button) button.disabled = false;
                 if (loader) loader.style.display = 'none';
-                utils.setText('resetButtonText', languageContent[currentLanguage].resetPasswordButton);
+                utils.setText('resetButtonText', 'Reset Password');
             }
         });
     }
@@ -805,7 +776,7 @@ function clearChatMessages() {
     `;
 }
 
-// Gemini API - OPTIMIZED
+// Gemini API
 async function getAIResponse(userMessage) {
     try {
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`;
@@ -895,14 +866,26 @@ function setupEventListeners() {
     if (sinhalaBtn) sinhalaBtn.addEventListener('click', () => switchLanguage('sinhala'));
     if (englishBtn) englishBtn.addEventListener('click', () => switchLanguage('english'));
 
-    // Form switchers
+    // Form switchers - ENGLISH TEXT
     const showSignup = utils.getElement('showSignup');
     const showLogin = utils.getElement('showLogin');
     const forgotPassword = utils.getElement('forgotPassword');
     const backToLogin = utils.getElement('backToLogin');
     
-    if (showSignup) showSignup.addEventListener('click', showSignupForm);
-    if (showLogin) showLogin.addEventListener('click', showLoginForm);
+    // Set English text for auth elements
+    utils.setText('noAccount', 'Don\'t have an account?');
+    utils.setText('haveAccount', 'Already have an account?');
+    utils.setText('forgotPassword', 'Forgot Password?');
+    utils.setText('backToLogin', 'Back to Login');
+    
+    if (showSignup) {
+        showSignup.textContent = 'Sign Up';
+        showSignup.addEventListener('click', showSignupForm);
+    }
+    if (showLogin) {
+        showLogin.textContent = 'Login';
+        showLogin.addEventListener('click', showLoginForm);
+    }
     if (forgotPassword) forgotPassword.addEventListener('click', showForgotPasswordForm);
     if (backToLogin) backToLogin.addEventListener('click', showLoginForm);
 
@@ -914,9 +897,7 @@ function setupEventListeners() {
                 const { error } = await supabase.auth.signOut();
                 if (error) throw error;
                 
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'සාර්ථකව පිටවිය!' : 'Successfully logged out!'
-                );
+                showNotification('Successfully logged out!');
             } catch (error) {
                 console.error('Logout error:', error);
             }
