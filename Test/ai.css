@@ -648,7 +648,7 @@ input:checked + .theme-slider:before {
     white-space: nowrap;
 }
 
-/* Language Switcher - Fixed Gradient Animation */
+/* Language Switcher - COMPLETELY FIXED */
 .language-switcher {
     display: flex;
     background: rgba(255, 255, 255, 0.05);
@@ -666,6 +666,7 @@ input:checked + .theme-slider:before {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Gradient slider - FIXED */
 .language-switcher::before {
     content: '';
     position: absolute;
@@ -679,8 +680,14 @@ input:checked + .theme-slider:before {
     z-index: 1;
 }
 
+/* English active state - FIXED */
 .language-switcher.english-active::before {
     transform: translateX(100%);
+}
+
+/* Sinhala active state - FIXED */
+.language-switcher:not(.english-active)::before {
+    transform: translateX(0%);
 }
 
 .lang-btn {
@@ -691,7 +698,6 @@ input:checked + .theme-slider:before {
     border: none;
     border-radius: 8px;
     background: transparent;
-    color: var(--text);
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 14px;
@@ -702,16 +708,37 @@ input:checked + .theme-slider:before {
     justify-content: center;
 }
 
-.lang-btn.active {
-    color: white;
+/* Inactive state - FIXED */
+.lang-btn {
+    color: var(--text-light);
 }
 
+/* Active state - FIXED with high specificity */
+.language-switcher .lang-btn.active {
+    color: white !important;
+}
+
+/* Hover state - FIXED */
 .lang-btn:not(.active):hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
 }
 
 [data-theme="light"] .lang-btn:not(.active):hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* Icon colors - FIXED */
+.lang-btn i {
+    transition: color 0.3s ease;
+}
+
+.lang-btn.active i {
+    color: white !important;
+}
+
+.lang-btn:not(.active) i {
+    color: var(--text-light);
 }
 
 /* User Profile */
