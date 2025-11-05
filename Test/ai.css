@@ -648,7 +648,7 @@ input:checked + .theme-slider:before {
     white-space: nowrap;
 }
 
-/* Language Switcher - COMPLETELY FIXED */
+/* Language Switcher */
 .language-switcher {
     display: flex;
     background: rgba(255, 255, 255, 0.05);
@@ -657,37 +657,11 @@ input:checked + .theme-slider:before {
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
     order: 1;
-    position: relative;
-    overflow: hidden;
 }
 
 [data-theme="light"] .language-switcher {
     background: rgba(0, 0, 0, 0.05);
     border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-/* Gradient slider - FIXED POSITION */
-.language-switcher::before {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    width: calc(50% - 4px);
-    height: calc(100% - 8px);
-    background: var(--gradient-1);
-    border-radius: 8px;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1;
-}
-
-/* English active state - FIXED */
-.language-switcher.english-active::before {
-    transform: translateX(100%);
-}
-
-/* Sinhala active state - FIXED */
-.language-switcher:not(.english-active)::before {
-    transform: translateX(0%);
 }
 
 .lang-btn {
@@ -698,43 +672,24 @@ input:checked + .theme-slider:before {
     border: none;
     border-radius: 8px;
     background: transparent;
+    color: var(--text);
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 14px;
     font-weight: 600;
-    position: relative;
-    z-index: 2;
-    flex: 1;
-    justify-content: center;
-    color: var(--text-light);
 }
 
-/* Active state - FIXED with !important */
-.language-switcher .lang-btn.active {
-    color: white !important;
+.lang-btn.active {
+    background: var(--gradient-1);
+    box-shadow: var(--shadow-light);
 }
 
-/* Hover state - FIXED */
-.lang-btn:not(.active):hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text);
+.lang-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme="light"] .lang-btn:not(.active):hover {
-    background: rgba(0, 0, 0, 0.08);
-}
-
-/* Icon colors - FIXED */
-.lang-btn i {
-    transition: color 0.3s ease;
-}
-
-.lang-btn.active i {
-    color: white !important;
-}
-
-.lang-btn:not(.active) i {
-    color: var(--text-light);
+[data-theme="light"] .lang-btn:hover:not(.active) {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 /* User Profile */
@@ -810,6 +765,11 @@ input:checked + .theme-slider:before {
     box-shadow: var(--shadow-light);
 }
 
+/* Status Indicator (Removed) */
+.status-indicator {
+    display: none !important;
+}
+
 /* Messages Container */
 .chat-messages {
     flex: 1;
@@ -870,19 +830,18 @@ input:checked + .theme-slider:before {
     }
 }
 
-/* Normal Chat Bubbles - No Gradient */
 .user-message {
     align-self: flex-end;
-    background: var(--primary);
-    color: white;
+    background: var(--gradient-1);
+    color: var(--text);
     border-bottom-right-radius: 5px;
 }
 
 .ai-message {
     align-self: flex-start;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-bottom-left-radius: 5px;
 }
 
