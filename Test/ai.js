@@ -54,7 +54,6 @@ function updateUserProfile(user) {
     
     document.getElementById('userName').textContent = userName;
     document.getElementById('userEmail').textContent = userEmail;
-    document.getElementById('welcomeTitle').textContent = `Hi ${userName}`;
 }
 
 // UI FUNCTIONS
@@ -231,7 +230,7 @@ async function handleLogout() {
 // SESSION MANAGEMENT
 function getStorageKey() {
     const userId = auth.currentUser?.uid || 'anonymous';
-    return `gemini-sessions-${userId}`;
+    return `smartai-sessions-${userId}`;
 }
 
 function generateSessionId() {
@@ -275,7 +274,6 @@ function saveChatSessions() {
 
 function createNewChat() {
     const sessionId = generateSessionId();
-    const userName = auth.currentUser?.displayName || 'there';
     
     const newSession = {
         id: sessionId,
@@ -291,8 +289,6 @@ function createNewChat() {
     saveChatSessions();
     renderSessions();
     clearMessages();
-    
-    document.getElementById('welcomeTitle').textContent = `Hi ${userName}`;
     
     if (window.innerWidth <= 768) {
         closeSidebar();
@@ -364,29 +360,18 @@ function escapeHtml(text) {
 // CHAT MESSAGES
 function clearMessages() {
     const messagesDiv = document.getElementById('chatMessages');
-    const userName = auth.currentUser?.displayName || 'Sandun';
     
     messagesDiv.innerHTML = `
         <div class="welcome-screen">
-            <div class="welcome-icon">✨</div>
-            <h1 id="welcomeTitle">Hi ${userName}</h1>
-            <h2 id="welcomeSubtitle">Where should we start?</h2>
-            
-            <div class="suggestion-cards">
-                <div class="suggestion-card" onclick="useSuggestion('Create a stunning image for me')">
-                    <div class="card-icon">🎨</div>
-                    <div class="card-text">Create image</div>
-                </div>
-                <div class="suggestion-card" onclick="useSuggestion('Help me write a professional email')">
-                    <div class="card-text">Write anything</div>
-                </div>
-                <div class="suggestion-card" onclick="useSuggestion('Help me develop an innovative idea')">
-                    <div class="card-text">Build an idea</div>
-                </div>
-                <div class="suggestion-card" onclick="useSuggestion('Research a topic in depth for me')">
-                    <div class="card-text">Deep Research</div>
-                </div>
+            <div class="ai-logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <path d="M40 10C23.4 10 10 23.4 10 40C10 56.6 23.4 70 40 70C56.6 70 70 56.6 70 40C70 23.4 56.6 10 40 10Z" fill="#4A90E2"/>
+                    <path d="M32 28C32 24.7 34.7 22 38 22C41.3 22 44 24.7 44 28V42H32V28Z" fill="white"/>
+                    <circle cx="40" cy="54" r="6" fill="white"/>
+                </svg>
             </div>
+            <h1 id="welcomeTitle">Hi, I'm Smart AI.</h1>
+            <p id="welcomeSubtitle">How can I help you today?</p>
         </div>
     `;
 }
@@ -421,8 +406,13 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
     
-    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '✨';
-    const messageLabel = isUser ? 'You' : 'Gemini';
+    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : `<svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+        <path d="M20 5C11.7 5 5 11.7 5 20C5 28.3 11.7 35 20 35C28.3 35 35 28.3 35 20C35 11.7 28.3 5 20 5Z" fill="#4A90E2"/>
+        <path d="M16 14C16 12.3 17.3 11 19 11C20.7 11 22 12.3 22 14V21H16V14Z" fill="white"/>
+        <circle cx="20" cy="27" r="3" fill="white"/>
+    </svg>`;
+    
+    const messageLabel = isUser ? 'You' : 'Smart AI';
     
     let imageHTML = '';
     if (imageData) {
@@ -511,11 +501,6 @@ function copyMessage(button) {
             button.innerHTML = originalHTML;
         }, 2000);
     });
-}
-
-function useSuggestion(text) {
-    document.getElementById('messageInput').value = text;
-    document.getElementById('messageInput').focus();
 }
 
 // IMAGE UPLOAD
@@ -659,7 +644,6 @@ async function sendMessage() {
     addMessage(messageToSend, true, imageToSend);
     
     input.value = '';
-    input.style.height = 'auto';
     removeImage();
     
     const sendBtn = document.getElementById('sendButton');
@@ -689,11 +673,6 @@ function handleKeyPress(event) {
         event.preventDefault();
         sendMessage();
     }
-}
-
-function autoResizeTextarea(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
 }
 
 // INITIALIZE
