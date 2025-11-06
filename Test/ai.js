@@ -304,7 +304,7 @@ async function handleSignup(event) {
     text.textContent = currentLanguage === 'si' ? 'ගිණුම සාදමින්...' : 'Creating account...';
     hideMessages();
     
-    try {
+    
     try {
     // 1. User account එක create කරනවා
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
