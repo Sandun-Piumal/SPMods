@@ -893,7 +893,9 @@ body {
 }
 
 /* MOBILE RESPONSIVE */
+/* MOBILE RESPONSIVE FIXES */
 @media (max-width: 768px) {
+    /* Sidebar Mobile */
     .chat-sidebar {
         position: fixed;
         left: 0;
@@ -910,6 +912,33 @@ body {
         display: flex;
     }
 
+    /* Chat Main - Mobile optimizations */
+    .chat-main {
+        width: 100%;
+    }
+
+    /* Header Mobile */
+    .chat-header {
+        padding: 0 12px;
+        height: 56px;
+    }
+
+    .header-title {
+        font-size: 14px;
+    }
+
+    .menu-btn,
+    .header-action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    /* Welcome Screen Mobile */
+    .welcome-screen {
+        padding: 20px 16px;
+    }
+
     .welcome-screen h1 {
         font-size: 24px;
     }
@@ -921,5 +950,175 @@ body {
     .ai-logo svg {
         width: 60px;
         height: 60px;
+    }
+
+    /* Messages Mobile */
+    .chat-messages {
+        padding: 16px 12px;
+    }
+
+    .message {
+        margin-bottom: 20px;
+    }
+
+    .message-content {
+        margin-left: 0;
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    .message-header {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .message-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .message-actions {
+        margin-left: 0;
+        margin-top: 6px;
+    }
+
+    .action-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    /* Input Container Mobile */
+    .chat-input-container {
+        padding: 12px;
+    }
+
+    .input-wrapper {
+        padding: 10px 12px;
+        border-radius: 20px;
+    }
+
+    #messageInput {
+        font-size: 15px; /* iOS optimization */
+    }
+
+    .input-action-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .send-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Footer Buttons Mobile */
+    .input-footer {
+        margin-top: 8px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .footer-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .footer-btn i {
+        font-size: 12px;
+    }
+
+    /* Image Preview Mobile */
+    .preview-content img {
+        max-width: 120px;
+        max-height: 120px;
+    }
+
+    /* Auth Mobile */
+    .auth-box {
+        padding: 30px 24px;
+        margin: 16px;
+    }
+
+    .auth-header h1 {
+        font-size: 24px;
+    }
+
+    .auth-logo svg {
+        width: 50px;
+        height: 50px;
+    }
+
+    /* Notification Mobile */
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        padding: 12px 14px;
+    }
+
+    .notification span {
+        font-size: 12px;
+    }
+
+    /* Typing Indicator Mobile */
+    .typing-indicator {
+        padding: 12px 16px;
+    }
+}
+
+/* Extra Small Devices */
+@media (max-width: 480px) {
+    .welcome-screen h1 {
+        font-size: 20px;
+    }
+
+    .welcome-screen p {
+        font-size: 13px;
+    }
+
+    .chat-header {
+        padding: 0 10px;
+    }
+
+    .header-action-btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    .input-footer {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .footer-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Landscape Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .welcome-screen {
+        padding: 16px;
+    }
+
+    .ai-logo {
+        margin-bottom: 12px;
+    }
+
+    .ai-logo svg {
+        width: 50px;
+        height: 50px;
+    }
+
+    .welcome-screen h1 {
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+
+    .welcome-screen p {
+        font-size: 13px;
     }
 }
