@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini - Smart AI Chat</title>
+    <title>Smart AI Chat</title>
     
     <!-- Firebase SDKs -->
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -28,7 +28,7 @@
     <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner">
-            <i class="fas fa-circle-notch fa-spin"></i>
+            <div class="spinner-icon"></div>
             <p id="loadingText">Processing...</p>
         </div>
     </div>
@@ -39,9 +39,15 @@
             <!-- LOGIN FORM -->
             <div id="loginForm">
                 <div class="auth-header">
-                    <div class="auth-logo">✨</div>
-                    <h1>Gemini</h1>
-                    <p>Powered by Google AI</p>
+                    <div class="auth-logo">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <path d="M30 5C16.2 5 5 16.2 5 30C5 43.8 16.2 55 30 55C43.8 55 55 43.8 55 30C55 16.2 43.8 5 30 5Z" fill="#4A90E2"/>
+                            <path d="M25 20C25 17.2 27.2 15 30 15C32.8 15 35 17.2 35 20V30H25V20Z" fill="white"/>
+                            <circle cx="30" cy="40" r="5" fill="white"/>
+                        </svg>
+                    </div>
+                    <h1>Smart AI</h1>
+                    <p>Powered by Gemini AI</p>
                 </div>
                 
                 <div id="loginError" class="error-message"></div>
@@ -69,8 +75,14 @@
             <!-- SIGNUP FORM -->
             <div id="signupForm" style="display: none;">
                 <div class="auth-header">
-                    <div class="auth-logo">✨</div>
-                    <h1>Gemini</h1>
+                    <div class="auth-logo">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <path d="M30 5C16.2 5 5 16.2 5 30C5 43.8 16.2 55 30 55C43.8 55 55 43.8 55 30C55 16.2 43.8 5 30 5Z" fill="#4A90E2"/>
+                            <path d="M25 20C25 17.2 27.2 15 30 15C32.8 15 35 17.2 35 20V30H25V20Z" fill="white"/>
+                            <circle cx="30" cy="40" r="5" fill="white"/>
+                        </svg>
+                    </div>
+                    <h1>Smart AI</h1>
                     <p>Create Your Account</p>
                 </div>
                 
@@ -112,12 +124,8 @@
             <!-- SIDEBAR -->
             <div class="chat-sidebar" id="chatSidebar">
                 <div class="sidebar-header">
-                    <div class="logo-section">
-                        <span class="logo-icon">✨</span>
-                        <span class="logo-text">Gemini</span>
-                    </div>
-                    <button class="new-chat-btn" onclick="createNewChat()">
-                        <i class="fas fa-plus"></i>
+                    <button class="close-sidebar-btn" onclick="closeSidebar()">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
                 
@@ -134,10 +142,10 @@
                             <div class="user-name" id="userName">User</div>
                             <div class="user-email" id="userEmail">user@email.com</div>
                         </div>
-                        <button class="logout-btn" onclick="handleLogout()" title="Logout">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
                     </div>
+                    <button class="sidebar-action-btn" onclick="handleLogout()" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
             </div>
 
@@ -147,35 +155,23 @@
                     <button class="menu-btn" onclick="toggleSidebar()">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="header-title">Gemini</div>
-                    <div class="header-actions">
-                        <button class="icon-btn" onclick="clearCurrentChat()" title="Clear Chat">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+                    <div class="header-title">New chat</div>
+                    <button class="header-action-btn" onclick="createNewChat()" title="New Chat">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
 
                 <div id="chatMessages" class="chat-messages">
                     <div class="welcome-screen">
-                        <div class="welcome-icon">✨</div>
-                        <h1 id="welcomeTitle">Hi Sandun</h1>
-                        <h2 id="welcomeSubtitle">Where should we start?</h2>
-                        
-                        <div class="suggestion-cards">
-                            <div class="suggestion-card" onclick="useSuggestion('Create a stunning image for me')">
-                                <div class="card-icon">🎨</div>
-                                <div class="card-text">Create image</div>
-                            </div>
-                            <div class="suggestion-card" onclick="useSuggestion('Help me write a professional email')">
-                                <div class="card-text">Write anything</div>
-                            </div>
-                            <div class="suggestion-card" onclick="useSuggestion('Help me develop an innovative idea')">
-                                <div class="card-text">Build an idea</div>
-                            </div>
-                            <div class="suggestion-card" onclick="useSuggestion('Research a topic in depth for me')">
-                                <div class="card-text">Deep Research</div>
-                            </div>
+                        <div class="ai-logo">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                                <path d="M40 10C23.4 10 10 23.4 10 40C10 56.6 23.4 70 40 70C56.6 70 70 56.6 70 40C70 23.4 56.6 10 40 10Z" fill="#4A90E2"/>
+                                <path d="M32 28C32 24.7 34.7 22 38 22C41.3 22 44 24.7 44 28V42H32V28Z" fill="white"/>
+                                <circle cx="40" cy="54" r="6" fill="white"/>
+                            </svg>
                         </div>
+                        <h1 id="welcomeTitle">Hi, I'm Smart AI.</h1>
+                        <p id="welcomeSubtitle">How can I help you today?</p>
                     </div>
                 </div>
 
@@ -185,7 +181,6 @@
                         <span></span>
                         <span></span>
                     </div>
-                    <span id="typingText">Gemini is typing...</span>
                 </div>
 
                 <div class="chat-input-container">
@@ -201,29 +196,22 @@
                     </div>
 
                     <div class="input-wrapper">
-                        <div class="input-controls">
-                            <button class="control-btn" onclick="document.getElementById('imageInput').click()" title="Upload Image">
-                                <i class="fas fa-plus"></i>
+                        <input type="text" 
+                            id="messageInput" 
+                            placeholder="Message Smart AI"
+                            onkeydown="handleKeyPress(event)"
+                        />
+                        
+                        <div class="input-actions">
+                            <button class="input-action-btn" onclick="document.getElementById('imageInput').click()" title="Upload Image">
+                                <i class="fas fa-image"></i>
                             </button>
                             <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                             
-                            <button class="control-btn" title="More options">
-                                <i class="fas fa-ellipsis-v"></i>
+                            <button class="input-action-btn" title="More options">
+                                <i class="fas fa-ellipsis-h"></i>
                             </button>
-                        </div>
-                        
-                        <textarea 
-                            id="messageInput" 
-                            placeholder="Ask Gemini"
-                            rows="1"
-                            onkeydown="handleKeyPress(event)"
-                            oninput="autoResizeTextarea(this)"
-                        ></textarea>
-                        
-                        <div class="input-actions">
-                            <button class="control-btn" title="Voice input">
-                                <i class="fas fa-microphone"></i>
-                            </button>
+                            
                             <button id="sendButton" class="send-btn" onclick="sendMessage()">
                                 <i class="fas fa-arrow-up"></i>
                             </button>
@@ -231,7 +219,14 @@
                     </div>
 
                     <div class="input-footer">
-                        <span class="flash-info">2.5 Flash</span>
+                        <button class="footer-btn">
+                            <i class="fas fa-brain"></i>
+                            <span>DeepThink</span>
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-globe"></i>
+                            <span>Search</span>
+                        </button>
                     </div>
                 </div>
             </div>
