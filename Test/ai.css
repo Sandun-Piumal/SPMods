@@ -84,13 +84,12 @@ body {
 .auth-container {
     width: 100%;
     max-width: 450px;
-    background: rgba(30, 27, 46, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: var(--border-radius);
+    background: rgba(30, 27, 46, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
     padding: 40px 30px;
     box-shadow: var(--shadow);
     transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="light"] .auth-container {
