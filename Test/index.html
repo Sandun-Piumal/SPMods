@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart AI Chat - Enhanced</title>
+    <title>Gemini - Smart AI Chat</title>
     
     <!-- Firebase SDKs -->
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -39,9 +39,9 @@
             <!-- LOGIN FORM -->
             <div id="loginForm">
                 <div class="auth-header">
-                    <div class="auth-logo">🤖</div>
-                    <h1>Smart AI</h1>
-                    <p>Powered by Gemini AI</p>
+                    <div class="auth-logo">✨</div>
+                    <h1>Gemini</h1>
+                    <p>Powered by Google AI</p>
                 </div>
                 
                 <div id="loginError" class="error-message"></div>
@@ -69,8 +69,8 @@
             <!-- SIGNUP FORM -->
             <div id="signupForm" style="display: none;">
                 <div class="auth-header">
-                    <div class="auth-logo">🤖</div>
-                    <h1>Smart AI</h1>
+                    <div class="auth-logo">✨</div>
+                    <h1>Gemini</h1>
                     <p>Create Your Account</p>
                 </div>
                 
@@ -103,8 +103,6 @@
         </div>
     </div>
 
-        
-
     <!-- CHAT APP -->
     <div id="chatApp">
         <!-- Sidebar Overlay for Mobile -->
@@ -114,9 +112,12 @@
             <!-- SIDEBAR -->
             <div class="chat-sidebar" id="chatSidebar">
                 <div class="sidebar-header">
+                    <div class="logo-section">
+                        <span class="logo-icon">✨</span>
+                        <span class="logo-text">Gemini</span>
+                    </div>
                     <button class="new-chat-btn" onclick="createNewChat()">
                         <i class="fas fa-plus"></i>
-                        <span id="newChatText">New Chat</span>
                     </button>
                 </div>
                 
@@ -133,6 +134,9 @@
                             <div class="user-name" id="userName">User</div>
                             <div class="user-email" id="userEmail">user@email.com</div>
                         </div>
+                        <button class="logout-btn" onclick="handleLogout()" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -140,52 +144,36 @@
             <!-- MAIN CHAT -->
             <div class="chat-main">
                 <div class="chat-header">
-                    <div class="header-left">
-                        <button class="header-btn mobile-menu-btn" onclick="toggleSidebar()">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <div class="header-title">
-                            <h1>🤖 Smart AI</h1>
-                            <span class="header-subtitle">Powered by Gemini AI</span>
-                        </div>
-                    </div>
+                    <button class="menu-btn" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-title">Gemini</div>
                     <div class="header-actions">
-                        <div class="language-switcher">
-                            <button class="lang-btn active" id="englishBtn" onclick="switchLanguage('english')" title="English">
-                                <span class="lang-icon">🇬🇧</span>
-                                <span class="lang-text">EN</span>
-                            </button>
-                            <button class="lang-btn" id="sinhalaBtn" onclick="switchLanguage('sinhala')" title="Sinhala">
-                                <span class="lang-icon">🇱🇰</span>
-                                <span class="lang-text">සිං</span>
-                            </button>
-                        </div>
-                        <button class="header-btn" onclick="clearCurrentChat()" title="Clear Chat">
+                        <button class="icon-btn" onclick="clearCurrentChat()" title="Clear Chat">
                             <i class="fas fa-trash"></i>
-                        </button>
-                        <button class="header-btn" onclick="handleLogout()" title="Logout">
-                            <i class="fas fa-sign-out-alt"></i>
                         </button>
                     </div>
                 </div>
 
                 <div id="chatMessages" class="chat-messages">
-                    <div class="welcome-message">
-                        <div class="welcome-icon">🚀</div>
-                        <h2 id="welcomeTitle">Welcome to Smart AI!</h2>
-                        <p id="welcomeText">Ready to chat with Gemini AI. Ask me anything!</p>
-                        <div class="welcome-features">
-                            <div class="feature-item">
-                                <i class="fas fa-image"></i>
-                                <span>Image OCR</span>
+                    <div class="welcome-screen">
+                        <div class="welcome-icon">✨</div>
+                        <h1 id="welcomeTitle">Hi Sandun</h1>
+                        <h2 id="welcomeSubtitle">Where should we start?</h2>
+                        
+                        <div class="suggestion-cards">
+                            <div class="suggestion-card" onclick="useSuggestion('Create a stunning image for me')">
+                                <div class="card-icon">🎨</div>
+                                <div class="card-text">Create image</div>
                             </div>
-                            <div class="feature-item">
-                                <i class="fas fa-language"></i>
-                                <span>Multi-language</span>
+                            <div class="suggestion-card" onclick="useSuggestion('Help me write a professional email')">
+                                <div class="card-text">Write anything</div>
                             </div>
-                            <div class="feature-item">
-                                <i class="fas fa-history"></i>
-                                <span>Chat History</span>
+                            <div class="suggestion-card" onclick="useSuggestion('Help me develop an innovative idea')">
+                                <div class="card-text">Build an idea</div>
+                            </div>
+                            <div class="suggestion-card" onclick="useSuggestion('Research a topic in depth for me')">
+                                <div class="card-text">Deep Research</div>
                             </div>
                         </div>
                     </div>
@@ -197,7 +185,7 @@
                         <span></span>
                         <span></span>
                     </div>
-                    <span id="typingText">Smart AI is typing...</span>
+                    <span id="typingText">Gemini is typing...</span>
                 </div>
 
                 <div class="chat-input-container">
@@ -212,33 +200,44 @@
                         <div id="ocrText" class="ocr-text"></div>
                     </div>
 
-                    <div class="chat-input-wrapper">
-                        <button class="input-btn" onclick="document.getElementById('imageInput').click()" title="Upload Image">
-                            <i class="fas fa-image"></i>
-                        </button>
-                        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                    <div class="input-wrapper">
+                        <div class="input-controls">
+                            <button class="control-btn" onclick="document.getElementById('imageInput').click()" title="Upload Image">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                            
+                            <button class="control-btn" title="More options">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
                         
                         <textarea 
                             id="messageInput" 
-                            placeholder="Type your message here..."
+                            placeholder="Ask Gemini"
                             rows="1"
                             onkeydown="handleKeyPress(event)"
                             oninput="autoResizeTextarea(this)"
                         ></textarea>
                         
-                        <button id="sendButton" class="send-btn" onclick="sendMessage()">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+                        <div class="input-actions">
+                            <button class="control-btn" title="Voice input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button id="sendButton" class="send-btn" onclick="sendMessage()">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                        </div>
                     </div>
-                
-            
-    
 
-    
+                    <div class="input-footer">
+                        <span class="flash-info">2.5 Flash</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-     </div>
-    </div> 
-    </div>
+
     <!-- Custom JavaScript -->
     <script src="ai.js"></script>
 </body>
