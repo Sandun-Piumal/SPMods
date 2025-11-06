@@ -303,32 +303,22 @@ async function handleSignup(event) {
     text.textContent = currentLanguage === 'si' ? 'ගිණුම සාදමින්...' : 'Creating account...';
     hideMessages();
     
-    
     try {
-    // 1. User account එක create කරනවා
-    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-    
-    // 2. Display name එක update කරනවා
-    await userCredential.user.updateProfile({ 
-        displayName: name 
-    });
-    
-    // 3. User profile reload කරනවා (optional but recommended)
-    await userCredential.user.reload();
-    
-    const successMsg = document.getElementById('signupSuccess');
-    successMsg.textContent = currentLanguage === 'si' 
-        ? 'ලියාපදිංචිය සාර්ථකයි! හරවනු ලැබේ...'
-        : 'Registration successful! Redirecting...';
-    successMsg.style.display = 'block';
-    
-    document.getElementById('signupForm').reset();
-    
-    setTimeout(() => {
-        showLogin();
-    }, 2000);
-} catch (error) {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await userCredential.user.updateProfile({ displayName: name });
         
+        const successMsg = document.getElementById('signupSuccess');
+        successMsg.textContent = currentLanguage === 'si' 
+            ? 'ලියාපදිංචිය සාර්ථකයි! හරවනු ලැබේ...'
+            : 'Registration successful! Redirecting...';
+        successMsg.style.display = 'block';
+        
+        document.getElementById('signupForm').reset();
+        
+        setTimeout(() => {
+            showLogin();
+        }, 2000);
+    } catch (error) {
         const errorMsg = document.getElementById('signupError');
         if (error.code === 'auth/email-already-in-use') {
             errorMsg.textContent = currentLanguage === 'si' 
