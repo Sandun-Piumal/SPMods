@@ -15,6 +15,123 @@ let chatSessions = [];
 let currentSessionId = null;
 let currentImage = null;
 let currentOCRText = '';
+let currentLanguage = 'en'; // Default language
+
+// TRANSLATIONS
+const translations = {
+    en: {
+        appTitle: "Smart AI",
+        appSubtitle: "Powered by Gemini AI",
+        email: "Email",
+        password: "Password",
+        name: "Name",
+        login: "Login",
+        signUp: "Sign Up",
+        noAccount: "Don't have an account?",
+        haveAccount: "Already have an account?",
+        enterEmail: "Enter your email",
+        enterPassword: "Enter your password",
+        enterName: "Enter your name",
+        createPassword: "Create a password (min 6 characters)",
+        createAccount: "Create Your Account",
+        newChat: "New chat",
+        welcomeTitle: "Hi, I'm Smart AI.",
+        welcomeSubtitle: "How can I help you today?",
+        messagePlaceholder: "Message Smart AI",
+        uploadImage: "Upload Image",
+        moreOptions: "More options",
+        deepThink: "DeepThink",
+        search: "Search",
+        logout: "Logout",
+        processing: "Processing...",
+        imageUploaded: "Image uploaded!",
+        textExtracted: "Text extracted!",
+        chatCleared: "Chat cleared!",
+        loginSuccess: "Login successful!",
+        logoutSuccess: "Logged out successfully!",
+        chatDeleted: "Chat deleted!",
+        deleteConfirm: "Delete this chat?",
+        extractingText: "Extracting text...",
+        processingImage: "Processing image..."
+    },
+    si: {
+        appTitle: "Smart AI",
+        appSubtitle: "Gemini AI මගින් බලගන්වා ඇත",
+        email: "විද්‍යුත් ලිපිනය",
+        password: "මුරපදය",
+        name: "නම",
+        login: "ඇතුල් වන්න",
+        signUp: "ලියාපදිංචි වන්න",
+        noAccount: "ගිණුමක් නැද්ද?",
+        haveAccount: "දැනටමත් ගිණුමක් තිබේද?",
+        enterEmail: "ඔබගේ විද්‍යුත් ලිපිනය ඇතුළත් කරන්න",
+        enterPassword: "ඔබගේ මුරපදය ඇතුළත් කරන්න",
+        enterName: "ඔබගේ නම ඇතුළත් කරන්න",
+        createPassword: "මුරපදයක් සාදන්න (අවම අක්ෂර 6ක්)",
+        createAccount: "ඔබගේ ගිණුම සාදන්න",
+        newChat: "නව සංවාදය",
+        welcomeTitle: "හායි, මම Smart AI.",
+        welcomeSubtitle: "අද මට ඔබට උදව් කරන්නේ කෙසේද?",
+        messagePlaceholder: "Smart AI වෙත පණිවිඩයක්",
+        uploadImage: "පින්තූරය උඩුගත කරන්න",
+        moreOptions: "තවත් විකල්ප",
+        deepThink: "ගැඹුරු චින්තනය",
+        search: "සොයන්න",
+        logout: "ඉවත් වන්න",
+        processing: "සැකසෙමින්...",
+        imageUploaded: "පින්තූරය උඩුගත විය!",
+        textExtracted: "පෙළ උපුටා ගන්නා ලදී!",
+        chatCleared: "සංවාදය මකා දමන ලදී!",
+        loginSuccess: "පිවිසුම සාර්ථකයි!",
+        logoutSuccess: "සාර්ථකව ඉවත් විය!",
+        chatDeleted: "සංවාදය මකා දමන ලදී!",
+        deleteConfirm: "මෙම සංවාදය මකන්න ද?",
+        extractingText: "පෙළ උපුටා ගනිමින්...",
+        processingImage: "පින්තූරය සකසමින්..."
+    }
+};
+
+// LANGUAGE FUNCTIONS
+function getTranslation(key) {
+    return translations[currentLanguage][key] || translations.en[key] || key;
+}
+
+function updateLanguage() {
+    // Update all elements with data-i18n attribute
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        element.textContent = getTranslation(key);
+    });
+
+    // Update placeholders
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        element.placeholder = getTranslation(key);
+    });
+
+    // Update titles
+    document.querySelectorAll('[data-i18n-title]').forEach(element => {
+        const key = element.getAttribute('data-i18n-title');
+        element.title = getTranslation(key);
+    });
+
+    // Save language preference
+    localStorage.setItem('smartai-language', currentLanguage);
+}
+
+function toggleLanguage() {
+    currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
+    updateLanguage();
+    showNotification(currentLanguage === 'en' ? 'Language changed to English' : 'භාෂාව සිංහලට වෙනස් විය');
+}
+
+function loadLanguagePreference() {
+    const savedLang = localStorage.getItem('smartai-language');
+    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
+        currentLanguage = savedLang;
+        updateLanguage();
+    }
+}
 
 // INITIALIZE FIREBASE
 function initializeFirebase() {
@@ -40,6 +157,7 @@ function initializeFirebase() {
             }
         });
         
+        loadLanguagePreference();
         console.log("✅ Firebase initialized");
     } catch (error) {
         console.error("Firebase error:", error);
@@ -147,22 +265,24 @@ async function handleLogin(event) {
     isProcessing = true;
     btn.disabled = true;
     loader.style.display = 'block';
-    text.textContent = 'Logging in...';
+    text.textContent = currentLanguage === 'si' ? 'ඇතුල් වෙමින්...' : 'Logging in...';
     hideMessages();
     
     try {
         await auth.signInWithEmailAndPassword(email, password);
-        showNotification('Login successful!');
+        showNotification(getTranslation('loginSuccess'));
         document.getElementById('loginForm').reset();
     } catch (error) {
         const errorMsg = document.getElementById('loginError');
-        errorMsg.textContent = 'Login failed. Please check your credentials.';
+        errorMsg.textContent = currentLanguage === 'si' 
+            ? 'පිවිසුම අසාර්ථකයි. ඔබගේ තොරතුරු පරීක්ෂා කරන්න.'
+            : 'Login failed. Please check your credentials.';
         errorMsg.style.display = 'block';
     } finally {
         isProcessing = false;
         btn.disabled = false;
         loader.style.display = 'none';
-        text.textContent = 'Login';
+        text.textContent = getTranslation('login');
     }
 }
 
@@ -180,7 +300,7 @@ async function handleSignup(event) {
     isProcessing = true;
     btn.disabled = true;
     loader.style.display = 'block';
-    text.textContent = 'Creating account...';
+    text.textContent = currentLanguage === 'si' ? 'ගිණුම සාදමින්...' : 'Creating account...';
     hideMessages();
     
     try {
@@ -188,7 +308,9 @@ async function handleSignup(event) {
         await userCredential.user.updateProfile({ displayName: name });
         
         const successMsg = document.getElementById('signupSuccess');
-        successMsg.textContent = 'Registration successful! Redirecting...';
+        successMsg.textContent = currentLanguage === 'si' 
+            ? 'ලියාපදිංචිය සාර්ථකයි! හරවනු ලැබේ...'
+            : 'Registration successful! Redirecting...';
         successMsg.style.display = 'block';
         
         document.getElementById('signupForm').reset();
@@ -199,18 +321,24 @@ async function handleSignup(event) {
     } catch (error) {
         const errorMsg = document.getElementById('signupError');
         if (error.code === 'auth/email-already-in-use') {
-            errorMsg.textContent = 'This email is already registered.';
+            errorMsg.textContent = currentLanguage === 'si' 
+                ? 'මෙම විද්‍යුත් ලිපිනය දැනටමත් ලියාපදිංචි වී ඇත.'
+                : 'This email is already registered.';
         } else if (error.code === 'auth/weak-password') {
-            errorMsg.textContent = 'Password too weak. Use at least 6 characters.';
+            errorMsg.textContent = currentLanguage === 'si' 
+                ? 'මුරපදය දුර්වලයි. අවම අක්ෂර 6ක් භාවිතා කරන්න.'
+                : 'Password too weak. Use at least 6 characters.';
         } else {
-            errorMsg.textContent = 'Registration failed. Try again.';
+            errorMsg.textContent = currentLanguage === 'si' 
+                ? 'ලියාපදිංචිය අසාර්ථකයි. නැවත උත්සාහ කරන්න.'
+                : 'Registration failed. Try again.';
         }
         errorMsg.style.display = 'block';
     } finally {
         isProcessing = false;
         btn.disabled = false;
         loader.style.display = 'none';
-        text.textContent = 'Sign Up';
+        text.textContent = getTranslation('signUp');
     }
 }
 
@@ -221,9 +349,9 @@ async function handleLogout() {
         currentSessionId = null;
         currentImage = null;
         currentOCRText = '';
-        showNotification('Logged out successfully!');
+        showNotification(getTranslation('logoutSuccess'));
     } catch (error) {
-        showNotification('Logout failed', 'error');
+        showNotification(currentLanguage === 'si' ? 'ඉවත්වීම අසාර්ථකයි' : 'Logout failed', 'error');
     }
 }
 
@@ -277,7 +405,7 @@ function createNewChat() {
     
     const newSession = {
         id: sessionId,
-        title: 'New Chat',
+        title: currentLanguage === 'si' ? 'නව සංවාදය' : 'New Chat',
         messages: [],
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -307,6 +435,31 @@ function switchToSession(sessionId) {
     closeSidebar();
 }
 
+function deleteChat(sessionId, event) {
+    event.stopPropagation();
+    
+    const confirmMsg = getTranslation('deleteConfirm');
+    if (!confirm(confirmMsg)) return;
+    
+    const index = chatSessions.findIndex(s => s.id === sessionId);
+    if (index === -1) return;
+    
+    chatSessions.splice(index, 1);
+    
+    if (currentSessionId === sessionId) {
+        if (chatSessions.length > 0) {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        } else {
+            createNewChat();
+        }
+    }
+    
+    saveChatSessions();
+    renderSessions();
+    showNotification(getTranslation('chatDeleted'));
+}
+
 function getCurrentSession() {
     return chatSessions.find(s => s.id === currentSessionId);
 }
@@ -324,7 +477,7 @@ function renderSessions() {
         
         const lastMessage = session.messages.length > 0 
             ? session.messages[session.messages.length - 1].content 
-            : 'No messages yet';
+            : (currentLanguage === 'si' ? 'තවම පණිවිඩ නැත' : 'No messages yet');
         
         const timeStr = getTimeString(session.updatedAt);
         
@@ -332,6 +485,9 @@ function renderSessions() {
             <div class="history-title">${escapeHtml(session.title)}</div>
             <div class="history-preview">${escapeHtml(lastMessage.substring(0, 40))}${lastMessage.length > 40 ? '...' : ''}</div>
             <div class="history-time">${timeStr}</div>
+            <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="${currentLanguage === 'si' ? 'මකන්න' : 'Delete'}">
+                <i class="fas fa-trash"></i>
+            </button>
         `;
         
         item.onclick = () => switchToSession(session.id);
@@ -345,10 +501,17 @@ function getTimeString(timestamp) {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
     
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    return new Date(timestamp).toLocaleDateString();
+    if (currentLanguage === 'si') {
+        if (days === 0) return 'අද';
+        if (days === 1) return 'ඊයේ';
+        if (days < 7) return `දින ${days}කට පෙර`;
+        return new Date(timestamp).toLocaleDateString('si-LK');
+    } else {
+        if (days === 0) return 'Today';
+        if (days === 1) return 'Yesterday';
+        if (days < 7) return `${days} days ago`;
+        return new Date(timestamp).toLocaleDateString();
+    }
 }
 
 function escapeHtml(text) {
@@ -361,17 +524,25 @@ function escapeHtml(text) {
 function clearMessages() {
     const messagesDiv = document.getElementById('chatMessages');
     
+    const logoSvg = `<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+        <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
+        <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
+        <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
+        <path d="M18 40 Q18 28, 32 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
+        <path d="M62 40 Q62 28, 48 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
+    </svg>`;
+    
     messagesDiv.innerHTML = `
         <div class="welcome-screen">
-            <div class="ai-logo">
-                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                    <path d="M40 10C23.4 10 10 23.4 10 40C10 56.6 23.4 70 40 70C56.6 70 70 56.6 70 40C70 23.4 56.6 10 40 10Z" fill="#4A90E2"/>
-                    <path d="M32 28C32 24.7 34.7 22 38 22C41.3 22 44 24.7 44 28V42H32V28Z" fill="white"/>
-                    <circle cx="40" cy="54" r="6" fill="white"/>
-                </svg>
-            </div>
-            <h1 id="welcomeTitle">Hi, I'm Smart AI.</h1>
-            <p id="welcomeSubtitle">How can I help you today?</p>
+            <div class="ai-logo">${logoSvg}</div>
+            <h1 id="welcomeTitle" data-i18n="welcomeTitle">${getTranslation('welcomeTitle')}</h1>
+            <p id="welcomeSubtitle" data-i18n="welcomeSubtitle">${getTranslation('welcomeSubtitle')}</p>
         </div>
     `;
 }
@@ -406,13 +577,21 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
     
-    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : `<svg width="24" height="24" viewBox="0 0 40 40" fill="none">
-        <path d="M20 5C11.7 5 5 11.7 5 20C5 28.3 11.7 35 20 35C28.3 35 35 28.3 35 20C35 11.7 28.3 5 20 5Z" fill="#4A90E2"/>
-        <path d="M16 14C16 12.3 17.3 11 19 11C20.7 11 22 12.3 22 14V21H16V14Z" fill="white"/>
-        <circle cx="20" cy="27" r="3" fill="white"/>
+    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : `<svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="msgLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+        <circle cx="20" cy="20" r="19" fill="url(#msgLogo)"/>
+        <path d="M13 17 L20 10 L27 17 L24 17 L24 27 L16 27 L16 17 Z" fill="white" opacity="0.9"/>
+        <circle cx="20" cy="30" r="2" fill="white" opacity="0.9"/>
     </svg>`;
     
-    const messageLabel = isUser ? 'You' : 'Smart AI';
+    const messageLabel = isUser 
+        ? (currentLanguage === 'si' ? 'ඔබ' : 'You')
+        : 'Smart AI';
     
     let imageHTML = '';
     if (imageData) {
@@ -431,7 +610,7 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
         ${!isUser ? `
             <div class="message-actions">
                 <button class="action-btn copy-btn" onclick="copyMessage(this)">
-                    <i class="fas fa-copy"></i> Copy
+                    <i class="fas fa-copy"></i> ${currentLanguage === 'si' ? 'පිටපත්' : 'Copy'}
                 </button>
             </div>
         ` : ''}
@@ -468,20 +647,6 @@ function addMessage(content, isUser, imageData = null) {
     }
 }
 
-function clearCurrentChat() {
-    if (!confirm('Clear this chat?')) return;
-    
-    const session = getCurrentSession();
-    if (session) {
-        session.messages = [];
-        session.updatedAt = Date.now();
-        saveChatSessions();
-        renderChatHistory();
-        renderSessions();
-        showNotification('Chat cleared!');
-    }
-}
-
 function scrollToBottom() {
     const messagesDiv = document.getElementById('chatMessages');
     setTimeout(() => {
@@ -495,7 +660,8 @@ function copyMessage(button) {
     
     navigator.clipboard.writeText(textContent).then(() => {
         const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        const copiedText = currentLanguage === 'si' ? 'පිටපත් විය!' : 'Copied!';
+        button.innerHTML = `<i class="fas fa-check"></i> ${copiedText}`;
         
         setTimeout(() => {
             button.innerHTML = originalHTML;
@@ -509,11 +675,11 @@ async function handleImageUpload(event) {
     if (!file) return;
     
     if (!file.type.startsWith('image/')) {
-        showNotification('Please upload an image', 'error');
+        showNotification(currentLanguage === 'si' ? 'කරුණාකර පින්තූරයක් උඩුගත කරන්න' : 'Please upload an image', 'error');
         return;
     }
     
-    showLoading('Processing image...');
+    showLoading(getTranslation('processingImage'));
     
     const reader = new FileReader();
     reader.onload = async function(e) {
@@ -526,7 +692,7 @@ async function handleImageUpload(event) {
         preview.style.display = 'block';
         
         hideLoading();
-        showNotification('Image uploaded!');
+        showNotification(getTranslation('imageUploaded'));
         
         await performOCR(currentImage);
     };
@@ -537,7 +703,7 @@ async function handleImageUpload(event) {
 
 async function performOCR(imageData) {
     try {
-        showLoading('Extracting text...');
+        showLoading(getTranslation('extractingText'));
         
         const result = await Tesseract.recognize(
             imageData,
@@ -546,8 +712,10 @@ async function performOCR(imageData) {
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         const progress = Math.round(m.progress * 100);
-                        document.getElementById('loadingText').textContent = 
-                            `Extracting text... ${progress}%`;
+                        const text = currentLanguage === 'si' 
+                            ? `පෙළ උපුටා ගනිමින්... ${progress}%`
+                            : `Extracting text... ${progress}%`;
+                        document.getElementById('loadingText').textContent = text;
                     }
                 }
             }
@@ -557,16 +725,17 @@ async function performOCR(imageData) {
         
         if (currentOCRText) {
             const ocrTextDiv = document.getElementById('ocrText');
-            ocrTextDiv.textContent = `Text: ${currentOCRText}`;
+            const label = currentLanguage === 'si' ? 'පෙළ:' : 'Text:';
+            ocrTextDiv.textContent = `${label} ${currentOCRText}`;
             ocrTextDiv.style.display = 'block';
-            showNotification('Text extracted!');
+            showNotification(getTranslation('textExtracted'));
         }
         
         hideLoading();
     } catch (error) {
         console.error('OCR error:', error);
         hideLoading();
-        showNotification('OCR failed', 'error');
+        showNotification(currentLanguage === 'si' ? 'OCR අසාර්ථකයි' : 'OCR failed', 'error');
     }
 }
 
@@ -587,10 +756,19 @@ async function getAIResponse(userMessage, imageData = null, ocrText = '') {
         
         if (ocrText) {
             if (userMessage) {
-                messageText = `Question: ${userMessage}\n\nText from image:\n${ocrText}\n\nAnswer based on the image text.`;
+                messageText = currentLanguage === 'si'
+                    ? `ප්‍රශ්නය: ${userMessage}\n\nපින්තූරයේ පෙළ:\n${ocrText}\n\nපින්තූරයේ පෙළ මත පදනම්ව පිළිතුරු දෙන්න.`
+                    : `Question: ${userMessage}\n\nText from image:\n${ocrText}\n\nAnswer based on the image text.`;
             } else {
-                messageText = `Image contains:\n${ocrText}\n\nAnalyze this text.`;
+                messageText = currentLanguage === 'si'
+                    ? `පින්තූරයේ ඇත්තේ:\n${ocrText}\n\nමෙම පෙළ විශ්ලේෂණය කරන්න.`
+                    : `Image contains:\n${ocrText}\n\nAnalyze this text.`;
             }
+        }
+        
+        // Add language instruction
+        if (currentLanguage === 'si') {
+            messageText = `කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න.\n\n${messageText}`;
         }
         
         const response = await fetch(url, {
@@ -625,7 +803,9 @@ async function getAIResponse(userMessage, imageData = null, ocrText = '') {
         return aiResponse;
     } catch (error) {
         console.error('AI error:', error);
-        return 'Sorry, an error occurred. Please try again.';
+        return currentLanguage === 'si' 
+            ? 'සමාවන්න, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
+            : 'Sorry, an error occurred. Please try again.';
     }
 }
 
@@ -637,7 +817,7 @@ async function sendMessage() {
     
     if (!message && !currentImage) return;
     
-    const messageToSend = message || '[Image sent]';
+    const messageToSend = message || (currentLanguage === 'si' ? '[පින්තූරය යවන ලදී]' : '[Image sent]');
     const imageToSend = currentImage;
     const ocrTextToSend = currentOCRText;
     
@@ -659,7 +839,10 @@ async function sendMessage() {
         addMessage(response, false);
     } catch (error) {
         typing.style.display = 'none';
-        addMessage('Sorry, an error occurred.', false);
+        const errorMsg = currentLanguage === 'si' 
+            ? 'සමාවන්න, දෝෂයක් ඇතිවිය.'
+            : 'Sorry, an error occurred.';
+        addMessage(errorMsg, false);
     } finally {
         isProcessing = false;
         sendBtn.disabled = false;
