@@ -1,3 +1,4 @@
+import { getDatabase, ref, set } from "firebase/database";
 // FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
@@ -304,16 +305,26 @@ async function handleSignup(event) {
     hideMessages();
     
     try {
+    try {
     // 1. User account එක create කරනවා
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const user = userCredential.user;
     
     // 2. Display name එක update කරනවා
-    await userCredential.user.updateProfile({ 
+    await user.updateProfile({ 
         displayName: name 
     });
     
-    // 3. User profile reload කරනවා (optional but recommended)
-    await userCredential.user.reload();
+    // 3. 🔥 IMPORTANT: මේ NEW PART එක ADD කරන්න
+    const db = getDatabase();
+    await set(ref(db, 'users/' + user.uid), {
+        name: name,
+        email: email,
+        createdAt: new Date().toISOString()
+    });
+    
+    // 4. User profile reload කරනවා
+    await user.reload();
     
     const successMsg = document.getElementById('signupSuccess');
     successMsg.textContent = currentLanguage === 'si' 
@@ -327,6 +338,8 @@ async function handleSignup(event) {
         showLogin();
     }, 2000);
 } catch (error) {
+    // Error handling
+        
         const errorMsg = document.getElementById('signupError');
         if (error.code === 'auth/email-already-in-use') {
             errorMsg.textContent = currentLanguage === 'si' 
