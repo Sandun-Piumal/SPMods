@@ -13,57 +13,8 @@ let auth = null;
 let isProcessing = false;
 let chatSessions = [];
 let currentSessionId = null;
-let currentLanguage = 'english';
 let currentImage = null;
 let currentOCRText = '';
-
-// LANGUAGE CONTENT
-const lang = {
-    english: {
-        welcomeTitle: 'Welcome to Smart AI!',
-        welcomeText: 'Ready to chat with Gemini AI. Ask me anything!',
-        typing: 'Smart AI is typing...',
-        placeholder: 'Type your message here...',
-        you: 'You',
-        ai: 'Smart AI',
-        copy: 'Copy',
-        copied: 'Copied!',
-        newChat: 'New Chat',
-        clearConfirm: 'Are you sure you want to clear this chat?',
-        cleared: 'Chat cleared successfully!',
-        loggedOut: 'Logged out successfully!',
-        messageCopied: 'Message copied to clipboard!',
-        today: 'Today',
-        yesterday: 'Yesterday',
-        processingImage: 'Processing image...',
-        extractingText: 'Extracting text from image...',
-        ocrComplete: 'Text extracted successfully!',
-        ocrFailed: 'Failed to extract text from image',
-        imageUploaded: 'Image uploaded successfully!'
-    },
-    sinhala: {
-        welcomeTitle: 'Smart AI වෙත සාදරයෙන් පිළිගනිමු!',
-        welcomeText: 'Gemini AI සමඟ සංවාදයට සූදානම්. මට ඕනෑම දෙයක් අහන්න!',
-        typing: 'Smart AI ප්‍රතිචාර සකසමින්...',
-        placeholder: 'ඔබගේ පණිවිඩය මෙහි ටයිප් කරන්න...',
-        you: 'ඔබ',
-        ai: 'Smart AI',
-        copy: 'පිටපත්',
-        copied: 'පිටපත් විය!',
-        newChat: 'නව සංවාදය',
-        clearConfirm: 'ඔබට මෙම සංවාදය මකා දැමීමට අවශ්‍ය බව විශ්වාසද?',
-        cleared: 'සංවාදය සාර්ථකව මකා දමන ලදී!',
-        loggedOut: 'සාර්ථකව පිටව ගියා!',
-        messageCopied: 'පණිවිඩය පිටපත් කරන ලදී!',
-        today: 'අද',
-        yesterday: 'ඊයේ',
-        processingImage: 'රූපය සකසමින්...',
-        extractingText: 'රූපයෙන් පෙළ උපුටා ගනිමින්...',
-        ocrComplete: 'පෙළ සාර්ථකව උපුටා ගන්නා ලදී!',
-        ocrFailed: 'රූපයෙන් පෙළ උපුටා ගැනීම අසාර්ථක විය',
-        imageUploaded: 'රූපය සාර්ථකව උඩුගත කරන ලදී!'
-    }
-};
 
 // INITIALIZE FIREBASE
 function initializeFirebase() {
@@ -79,7 +30,6 @@ function initializeFirebase() {
         
         auth = firebase.auth();
         
-        // Auth state listener
         auth.onAuthStateChanged((user) => {
             if (user) {
                 showChatApp();
@@ -90,9 +40,9 @@ function initializeFirebase() {
             }
         });
         
-        console.log("✅ Firebase initialized successfully");
+        console.log("✅ Firebase initialized");
     } catch (error) {
-        console.error("Firebase initialization error:", error);
+        console.error("Firebase error:", error);
         showNotification("System error occurred", "error");
     }
 }
@@ -104,9 +54,10 @@ function updateUserProfile(user) {
     
     document.getElementById('userName').textContent = userName;
     document.getElementById('userEmail').textContent = userEmail;
+    document.getElementById('welcomeTitle').textContent = `Hi ${userName}`;
 }
 
-// UI DISPLAY FUNCTIONS
+// UI FUNCTIONS
 function showLogin() {
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('signupForm').style.display = 'none';
@@ -238,7 +189,7 @@ async function handleSignup(event) {
         await userCredential.user.updateProfile({ displayName: name });
         
         const successMsg = document.getElementById('signupSuccess');
-        successMsg.textContent = 'Registration successful! Redirecting to login...';
+        successMsg.textContent = 'Registration successful! Redirecting...';
         successMsg.style.display = 'block';
         
         document.getElementById('signupForm').reset();
@@ -249,11 +200,11 @@ async function handleSignup(event) {
     } catch (error) {
         const errorMsg = document.getElementById('signupError');
         if (error.code === 'auth/email-already-in-use') {
-            errorMsg.textContent = 'This email is already registered. Please login.';
+            errorMsg.textContent = 'This email is already registered.';
         } else if (error.code === 'auth/weak-password') {
-            errorMsg.textContent = 'Password is too weak. Use at least 6 characters.';
+            errorMsg.textContent = 'Password too weak. Use at least 6 characters.';
         } else {
-            errorMsg.textContent = 'Registration failed. Please try again.';
+            errorMsg.textContent = 'Registration failed. Try again.';
         }
         errorMsg.style.display = 'block';
     } finally {
@@ -271,16 +222,16 @@ async function handleLogout() {
         currentSessionId = null;
         currentImage = null;
         currentOCRText = '';
-        showNotification(lang[currentLanguage].loggedOut);
+        showNotification('Logged out successfully!');
     } catch (error) {
         showNotification('Logout failed', 'error');
     }
 }
 
-// CHAT SESSION MANAGEMENT
+// SESSION MANAGEMENT
 function getStorageKey() {
     const userId = auth.currentUser?.uid || 'anonymous';
-    return `smartai-sessions-${userId}`;
+    return `gemini-sessions-${userId}`;
 }
 
 function generateSessionId() {
@@ -305,7 +256,7 @@ function loadChatSessions() {
         
         renderSessions();
     } catch (error) {
-        console.error('Error loading sessions:', error);
+        console.error('Load error:', error);
         createNewChat();
     }
 }
@@ -318,15 +269,17 @@ function saveChatSessions() {
         }
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
     } catch (error) {
-        console.error('Error saving sessions:', error);
+        console.error('Save error:', error);
     }
 }
 
 function createNewChat() {
     const sessionId = generateSessionId();
+    const userName = auth.currentUser?.displayName || 'there';
+    
     const newSession = {
         id: sessionId,
-        title: lang[currentLanguage].newChat,
+        title: 'New Chat',
         messages: [],
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -339,9 +292,8 @@ function createNewChat() {
     renderSessions();
     clearMessages();
     
-    showNotification('New chat created!');
+    document.getElementById('welcomeTitle').textContent = `Hi ${userName}`;
     
-    // Close sidebar on mobile after creating new chat
     if (window.innerWidth <= 768) {
         closeSidebar();
     }
@@ -397,15 +349,10 @@ function getTimeString(timestamp) {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
     
-    if (days === 0) {
-        return lang[currentLanguage].today;
-    } else if (days === 1) {
-        return lang[currentLanguage].yesterday;
-    } else if (days < 7) {
-        return `${days} days ago`;
-    } else {
-        return new Date(timestamp).toLocaleDateString();
-    }
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return `${days} days ago`;
+    return new Date(timestamp).toLocaleDateString();
 }
 
 function escapeHtml(text) {
@@ -414,28 +361,30 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// CHAT MESSAGE FUNCTIONS
+// CHAT MESSAGES
 function clearMessages() {
     const messagesDiv = document.getElementById('chatMessages');
-    const content = lang[currentLanguage];
+    const userName = auth.currentUser?.displayName || 'Sandun';
     
     messagesDiv.innerHTML = `
-        <div class="welcome-message">
-            <div class="welcome-icon">🚀</div>
-            <h2 id="welcomeTitle">${content.welcomeTitle}</h2>
-            <p id="welcomeText">${content.welcomeText}</p>
-            <div class="welcome-features">
-                <div class="feature-item">
-                    <i class="fas fa-image"></i>
-                    <span>Image OCR</span>
+        <div class="welcome-screen">
+            <div class="welcome-icon">✨</div>
+            <h1 id="welcomeTitle">Hi ${userName}</h1>
+            <h2 id="welcomeSubtitle">Where should we start?</h2>
+            
+            <div class="suggestion-cards">
+                <div class="suggestion-card" onclick="useSuggestion('Create a stunning image for me')">
+                    <div class="card-icon">🎨</div>
+                    <div class="card-text">Create image</div>
                 </div>
-                <div class="feature-item">
-                    <i class="fas fa-language"></i>
-                    <span>Multi-language</span>
+                <div class="suggestion-card" onclick="useSuggestion('Help me write a professional email')">
+                    <div class="card-text">Write anything</div>
                 </div>
-                <div class="feature-item">
-                    <i class="fas fa-history"></i>
-                    <span>Chat History</span>
+                <div class="suggestion-card" onclick="useSuggestion('Help me develop an innovative idea')">
+                    <div class="card-text">Build an idea</div>
+                </div>
+                <div class="suggestion-card" onclick="useSuggestion('Research a topic in depth for me')">
+                    <div class="card-text">Deep Research</div>
                 </div>
             </div>
         </div>
@@ -464,7 +413,7 @@ function renderChatHistory() {
 function addMessageToDOM(content, isUser, imageData = null, animate = true) {
     const messagesDiv = document.getElementById('chatMessages');
     
-    const welcome = messagesDiv.querySelector('.welcome-message');
+    const welcome = messagesDiv.querySelector('.welcome-screen');
     if (welcome) {
         welcome.remove();
     }
@@ -472,8 +421,8 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
     
-    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
-    const messageLabel = isUser ? lang[currentLanguage].you : lang[currentLanguage].ai;
+    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '✨';
+    const messageLabel = isUser ? 'You' : 'Gemini';
     
     let imageHTML = '';
     if (imageData) {
@@ -492,7 +441,7 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
         ${!isUser ? `
             <div class="message-actions">
                 <button class="action-btn copy-btn" onclick="copyMessage(this)">
-                    <i class="fas fa-copy"></i> ${lang[currentLanguage].copy}
+                    <i class="fas fa-copy"></i> Copy
                 </button>
             </div>
         ` : ''}
@@ -530,7 +479,7 @@ function addMessage(content, isUser, imageData = null) {
 }
 
 function clearCurrentChat() {
-    if (!confirm(lang[currentLanguage].clearConfirm)) return;
+    if (!confirm('Clear this chat?')) return;
     
     const session = getCurrentSession();
     if (session) {
@@ -539,7 +488,7 @@ function clearCurrentChat() {
         saveChatSessions();
         renderChatHistory();
         renderSessions();
-        showNotification(lang[currentLanguage].cleared);
+        showNotification('Chat cleared!');
     }
 }
 
@@ -556,30 +505,30 @@ function copyMessage(button) {
     
     navigator.clipboard.writeText(textContent).then(() => {
         const originalHTML = button.innerHTML;
-        button.innerHTML = `<i class="fas fa-check"></i> ${lang[currentLanguage].copied}`;
+        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
         
         setTimeout(() => {
             button.innerHTML = originalHTML;
         }, 2000);
-        
-        showNotification(lang[currentLanguage].messageCopied);
-    }).catch(err => {
-        console.error('Copy failed:', err);
-        showNotification('Copy failed', 'error');
     });
 }
 
-// IMAGE UPLOAD AND OCR
+function useSuggestion(text) {
+    document.getElementById('messageInput').value = text;
+    document.getElementById('messageInput').focus();
+}
+
+// IMAGE UPLOAD
 async function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
     
     if (!file.type.startsWith('image/')) {
-        showNotification('Please upload a valid image file', 'error');
+        showNotification('Please upload an image', 'error');
         return;
     }
     
-    showLoading(lang[currentLanguage].processingImage);
+    showLoading('Processing image...');
     
     const reader = new FileReader();
     reader.onload = async function(e) {
@@ -592,9 +541,8 @@ async function handleImageUpload(event) {
         preview.style.display = 'block';
         
         hideLoading();
-        showNotification(lang[currentLanguage].imageUploaded);
+        showNotification('Image uploaded!');
         
-        // Perform OCR
         await performOCR(currentImage);
     };
     
@@ -604,7 +552,7 @@ async function handleImageUpload(event) {
 
 async function performOCR(imageData) {
     try {
-        showLoading(lang[currentLanguage].extractingText);
+        showLoading('Extracting text...');
         
         const result = await Tesseract.recognize(
             imageData,
@@ -614,7 +562,7 @@ async function performOCR(imageData) {
                     if (m.status === 'recognizing text') {
                         const progress = Math.round(m.progress * 100);
                         document.getElementById('loadingText').textContent = 
-                            `${lang[currentLanguage].extractingText} ${progress}%`;
+                            `Extracting text... ${progress}%`;
                     }
                 }
             }
@@ -624,18 +572,16 @@ async function performOCR(imageData) {
         
         if (currentOCRText) {
             const ocrTextDiv = document.getElementById('ocrText');
-            ocrTextDiv.textContent = `Extracted text: ${currentOCRText}`;
+            ocrTextDiv.textContent = `Text: ${currentOCRText}`;
             ocrTextDiv.style.display = 'block';
-            showNotification(lang[currentLanguage].ocrComplete);
-        } else {
-            showNotification('No text found in image', 'error');
+            showNotification('Text extracted!');
         }
         
         hideLoading();
     } catch (error) {
-        console.error('OCR Error:', error);
+        console.error('OCR error:', error);
         hideLoading();
-        showNotification(lang[currentLanguage].ocrFailed, 'error');
+        showNotification('OCR failed', 'error');
     }
 }
 
@@ -647,23 +593,18 @@ function removeImage() {
     document.getElementById('ocrText').textContent = '';
 }
 
-// GEMINI AI INTEGRATION
+// GEMINI AI
 async function getAIResponse(userMessage, imageData = null, ocrText = '') {
     try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
         
-        const languageInstruction = currentLanguage === 'sinhala' 
-            ? 'කරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න. පිළිතුර සරල හා පැහැදිලි විය යුතුය.'
-            : 'Please respond in English only. Keep the response clear and helpful.';
-        
         let messageText = userMessage;
         
-        // Add OCR text context if available
         if (ocrText) {
             if (userMessage) {
-                messageText = `User's question: ${userMessage}\n\nText extracted from the uploaded image:\n${ocrText}\n\nPlease answer the user's question based on the extracted text from the image.`;
+                messageText = `Question: ${userMessage}\n\nText from image:\n${ocrText}\n\nAnswer based on the image text.`;
             } else {
-                messageText = `The user uploaded an image with the following text:\n${ocrText}\n\nPlease analyze and provide information about this text.`;
+                messageText = `Image contains:\n${ocrText}\n\nAnalyze this text.`;
             }
         }
         
@@ -675,14 +616,12 @@ async function getAIResponse(userMessage, imageData = null, ocrText = '') {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `${messageText}\n\n${languageInstruction}`
+                        text: messageText
                     }]
                 }],
                 generationConfig: {
                     temperature: 0.7,
-                    maxOutputTokens: 2048,
-                    topP: 0.9,
-                    topK: 40
+                    maxOutputTokens: 2048
                 }
             })
         });
@@ -695,15 +634,13 @@ async function getAIResponse(userMessage, imageData = null, ocrText = '') {
         const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (!aiResponse) {
-            throw new Error('Empty response from API');
+            throw new Error('Empty response');
         }
         
         return aiResponse;
     } catch (error) {
-        console.error('AI API Error:', error);
-        return currentLanguage === 'sinhala'
-            ? 'කණගාටුයි, දෝෂයක් ඇති විය. කරුණාකර නැවත උත්සාහ කරන්න.'
-            : 'Sorry, an error occurred. Please try again.';
+        console.error('AI error:', error);
+        return 'Sorry, an error occurred. Please try again.';
     }
 }
 
@@ -738,10 +675,7 @@ async function sendMessage() {
         addMessage(response, false);
     } catch (error) {
         typing.style.display = 'none';
-        const errorMsg = currentLanguage === 'sinhala'
-            ? 'කණගාටුයි, දෝෂයක් ඇති විය.'
-            : 'Sorry, an error occurred.';
-        addMessage(errorMsg, false);
+        addMessage('Sorry, an error occurred.', false);
     } finally {
         isProcessing = false;
         sendBtn.disabled = false;
@@ -759,39 +693,8 @@ function handleKeyPress(event) {
 
 function autoResizeTextarea(textarea) {
     textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
 }
 
-// LANGUAGE SWITCHING
-function switchLanguage(language) {
-    currentLanguage = language;
-    
-    const englishBtn = document.getElementById('englishBtn');
-    const sinhalaBtn = document.getElementById('sinhalaBtn');
-    
-    if (language === 'english') {
-        englishBtn.classList.add('active');
-        sinhalaBtn.classList.remove('active');
-    } else {
-        sinhalaBtn.classList.add('active');
-        englishBtn.classList.remove('active');
-    }
-    
-    const content = lang[language];
-    const welcomeTitle = document.getElementById('welcomeTitle');
-    const welcomeText = document.getElementById('welcomeText');
-    const typingText = document.getElementById('typingText');
-    const messageInput = document.getElementById('messageInput');
-    const newChatText = document.getElementById('newChatText');
-    
-    if (welcomeTitle) welcomeTitle.textContent = content.welcomeTitle;
-    if (welcomeText) welcomeText.textContent = content.welcomeText;
-    if (typingText) typingText.textContent = content.typing;
-    if (messageInput) messageInput.placeholder = content.placeholder;
-    if (newChatText) newChatText.textContent = content.newChat;
-    
-    renderSessions();
-}
-
-// INITIALIZE APP
+// INITIALIZE
 window.addEventListener('load', initializeFirebase);
