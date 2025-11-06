@@ -878,23 +878,23 @@ body {
     font-size: 14px;
 }
 
-/* NOTIFICATION - GREEN BACKGROUND WITH CHAT BUBBLES */
+/* NOTIFICATION */
 .notification {
     position: fixed;
     top: 20px;
     right: 16px;
     left: 16px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border: none;
-    padding: 16px 18px;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    background: var(--bg-dark-secondary);
+    border: 1px solid var(--border-dark);
+    padding: 14px 18px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     transform: translateY(-100px);
     transition: transform 0.3s;
     z-index: 1000;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     max-width: 400px;
     margin: 0 auto;
 }
