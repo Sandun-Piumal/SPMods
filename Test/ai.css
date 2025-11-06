@@ -904,32 +904,29 @@ body {
 }
 
 .notification.success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-left: 4px solid #22c55e;
 }
 
 .notification.error {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+    border-left: 4px solid #ef4444;
 }
 
 .notification i {
-    font-size: 20px;
-    color: white;
-    background: rgba(255, 255, 255, 0.2);
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    flex-shrink: 0;
+    font-size: 18px;
+}
+
+.notification.success i {
+    color: #22c55e;
+}
+
+.notification.error i {
+    color: #ef4444;
 }
 
 .notification span {
-    font-size: 15px;
-    color: white;
-    font-weight: 500;
-}
+    font-size: 14px;
+    color: var(--text-white);
+        }
 
 /* SCROLLBAR */
 ::-webkit-scrollbar {
