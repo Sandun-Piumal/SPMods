@@ -648,7 +648,7 @@ function removeImage() {
 }
 
 // GEMINI AI INTEGRATION
-async function getAIResponse(userMessage, imageData = null) {
+async function getAIResponse(userMessage, imageData = null, ocrText = '') {
     try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
         
@@ -657,8 +657,14 @@ async function getAIResponse(userMessage, imageData = null) {
             : 'Please respond in English only. Keep the response clear and helpful.';
         
         let messageText = userMessage;
-        if (currentOCRText) {
-            messageText += `\n\n[Text extracted from image: ${currentOCRText}]`;
+        
+        // Add OCR text context if available
+        if (ocrText) {
+            if (userMessage) {
+                messageText = `User's question: ${userMessage}\n\nText extracted from the uploaded image:\n${ocrText}\n\nPlease answer the user's question based on the extracted text from the image.`;
+            } else {
+                messageText = `The user uploaded an image with the following text:\n${ocrText}\n\nPlease analyze and provide information about this text.`;
+            }
         }
         
         const response = await fetch(url, {
@@ -711,6 +717,7 @@ async function sendMessage() {
     
     const messageToSend = message || '[Image sent]';
     const imageToSend = currentImage;
+    const ocrTextToSend = currentOCRText;
     
     addMessage(messageToSend, true, imageToSend);
     
@@ -726,7 +733,7 @@ async function sendMessage() {
     typing.style.display = 'flex';
     
     try {
-        const response = await getAIResponse(message, imageToSend);
+        const response = await getAIResponse(message, imageToSend, ocrTextToSend);
         typing.style.display = 'none';
         addMessage(response, false);
     } catch (error) {
