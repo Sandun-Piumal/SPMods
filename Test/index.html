@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart AI Chat - Complete System</title>
+    <title>Smart AI Chat - Enhanced</title>
     
     <!-- Firebase SDKs -->
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,13 +25,22 @@
         <span id="notificationText"></span>
     </div>
 
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <p id="loadingText">Processing...</p>
+        </div>
+    </div>
+
     <!-- AUTH CONTAINER -->
     <div id="authContainer">
         <div class="auth-box">
             <!-- LOGIN FORM -->
-            <div id="loginForm" style="display: block;">
+            <div id="loginForm">
                 <div class="auth-header">
-                    <h1>🤖 Smart AI</h1>
+                    <div class="auth-logo">🤖</div>
+                    <h1>Smart AI</h1>
                     <p>Powered by Gemini AI</p>
                 </div>
                 
@@ -36,12 +48,12 @@
                 
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" required autocomplete="email">
                     </div>
                     <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
                     </div>
                     <button type="submit" class="btn btn-primary" id="loginBtn">
                         <span id="loginLoader" class="loader"></span>
@@ -57,7 +69,8 @@
             <!-- SIGNUP FORM -->
             <div id="signupForm" style="display: none;">
                 <div class="auth-header">
-                    <h1>🤖 Smart AI</h1>
+                    <div class="auth-logo">🤖</div>
+                    <h1>Smart AI</h1>
                     <p>Create Your Account</p>
                 </div>
                 
@@ -66,16 +79,16 @@
                 
                 <form onsubmit="handleSignup(event)">
                     <div class="form-group">
-                        <label>Name</label>
-                        <input type="text" id="signupName" placeholder="Enter your name" required>
+                        <label><i class="fas fa-user"></i> Name</label>
+                        <input type="text" id="signupName" placeholder="Enter your name" required autocomplete="name">
                     </div>
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="signupEmail" placeholder="Enter your email" required autocomplete="email">
                     </div>
                     <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)" required minlength="6">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)" required minlength="6" autocomplete="new-password">
                     </div>
                     <button type="submit" class="btn btn-primary" id="signupBtn">
                         <span id="signupLoader" class="loader"></span>
@@ -92,39 +105,63 @@
 
     <!-- CHAT APP -->
     <div id="chatApp">
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
         <div class="chat-container">
             <!-- SIDEBAR -->
             <div class="chat-sidebar" id="chatSidebar">
                 <div class="sidebar-header">
                     <button class="new-chat-btn" onclick="createNewChat()">
                         <i class="fas fa-plus"></i>
-                        <span>New Chat</span>
+                        <span id="newChatText">New Chat</span>
                     </button>
                 </div>
                 
                 <div class="chat-history" id="chatHistory">
                     <!-- History items will be inserted here -->
                 </div>
+
+                <div class="sidebar-footer">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">User</div>
+                            <div class="user-email" id="userEmail">user@email.com</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- MAIN CHAT -->
             <div class="chat-main">
                 <div class="chat-header">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <button class="header-btn mobile-toggle" onclick="toggleSidebar()">
+                    <div class="header-left">
+                        <button class="header-btn mobile-menu-btn" onclick="toggleSidebar()">
                             <i class="fas fa-bars"></i>
                         </button>
-                        <h1>🤖 Smart AI Chat</h1>
+                        <div class="header-title">
+                            <h1>🤖 Smart AI</h1>
+                            <span class="header-subtitle">Powered by Gemini AI</span>
+                        </div>
                     </div>
                     <div class="header-actions">
                         <div class="language-switcher">
-                            <button class="lang-btn active" id="englishBtn" onclick="switchLanguage('english')">EN</button>
-                            <button class="lang-btn" id="sinhalaBtn" onclick="switchLanguage('sinhala')">සිං</button>
+                            <button class="lang-btn active" id="englishBtn" onclick="switchLanguage('english')" title="English">
+                                <span class="lang-icon">🇬🇧</span>
+                                <span class="lang-text">EN</span>
+                            </button>
+                            <button class="lang-btn" id="sinhalaBtn" onclick="switchLanguage('sinhala')" title="Sinhala">
+                                <span class="lang-icon">🇱🇰</span>
+                                <span class="lang-text">සිං</span>
+                            </button>
                         </div>
-                        <button class="header-btn" onclick="clearCurrentChat()">
+                        <button class="header-btn" onclick="clearCurrentChat()" title="Clear Chat">
                             <i class="fas fa-trash"></i>
                         </button>
-                        <button class="header-btn" onclick="handleLogout()">
+                        <button class="header-btn" onclick="handleLogout()" title="Logout">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
                     </div>
@@ -135,25 +172,60 @@
                         <div class="welcome-icon">🚀</div>
                         <h2 id="welcomeTitle">Welcome to Smart AI!</h2>
                         <p id="welcomeText">Ready to chat with Gemini AI. Ask me anything!</p>
+                        <div class="welcome-features">
+                            <div class="feature-item">
+                                <i class="fas fa-image"></i>
+                                <span>Image OCR</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-language"></i>
+                                <span>Multi-language</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-history"></i>
+                                <span>Chat History</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div id="typingIndicator" class="typing-indicator">
-                    <i class="fas fa-circle-notch fa-spin"></i> 
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                     <span id="typingText">Smart AI is typing...</span>
                 </div>
 
                 <div class="chat-input-container">
+                    <!-- Image Preview -->
+                    <div id="imagePreview" class="image-preview" style="display: none;">
+                        <div class="preview-content">
+                            <img id="previewImage" src="" alt="Preview">
+                            <button class="remove-image-btn" onclick="removeImage()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="ocrText" class="ocr-text"></div>
+                    </div>
+
                     <div class="chat-input-wrapper">
+                        <button class="input-btn" onclick="document.getElementById('imageInput').click()" title="Upload Image">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                        
                         <textarea 
                             id="messageInput" 
                             placeholder="Type your message here..."
                             rows="1"
                             onkeydown="handleKeyPress(event)"
+                            oninput="autoResizeTextarea(this)"
                         ></textarea>
-                        <button id="sendButton" onclick="sendMessage()">
+                        
+                        <button id="sendButton" class="send-btn" onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i>
-                            <span>Send</span>
                         </button>
                     </div>
                 </div>
