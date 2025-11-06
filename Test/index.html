@@ -40,35 +40,43 @@
             <div id="loginForm">
                 <div class="auth-header">
                     <div class="auth-logo">
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-                            <path d="M30 5C16.2 5 5 16.2 5 30C5 43.8 16.2 55 30 55C43.8 55 55 43.8 55 30C55 16.2 43.8 5 30 5Z" fill="#4A90E2"/>
-                            <path d="M25 20C25 17.2 27.2 15 30 15C32.8 15 35 17.2 35 20V30H25V20Z" fill="white"/>
-                            <circle cx="30" cy="40" r="5" fill="white"/>
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="30" cy="30" r="28" fill="url(#logoGrad)"/>
+                            <path d="M20 25 L30 15 L40 25 L35 25 L35 40 L25 40 L25 25 Z" fill="white" opacity="0.9"/>
+                            <circle cx="30" cy="44" r="3" fill="white" opacity="0.9"/>
+                            <path d="M15 30 Q15 20, 25 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+                            <path d="M45 30 Q45 20, 35 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
                         </svg>
                     </div>
-                    <h1>Smart AI</h1>
-                    <p>Powered by Gemini AI</p>
+                    <h1 data-i18n="appTitle">Smart AI</h1>
+                    <p data-i18n="appSubtitle">Powered by Gemini AI</p>
                 </div>
                 
                 <div id="loginError" class="error-message"></div>
                 
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="loginEmail" placeholder="Enter your email" required autocomplete="email">
+                        <label><i class="fas fa-envelope"></i> <span data-i18n="email">Email</span></label>
+                        <input type="email" id="loginEmail" data-i18n-placeholder="enterEmail" placeholder="Enter your email" required autocomplete="email">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-lock"></i> Password</label>
-                        <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
+                        <label><i class="fas fa-lock"></i> <span data-i18n="password">Password</span></label>
+                        <input type="password" id="loginPassword" data-i18n-placeholder="enterPassword" placeholder="Enter your password" required autocomplete="current-password">
                     </div>
                     <button type="submit" class="btn btn-primary" id="loginBtn">
                         <span id="loginLoader" class="loader"></span>
-                        <span id="loginText">Login</span>
+                        <span id="loginText" data-i18n="login">Login</span>
                     </button>
                 </form>
                 
                 <div class="toggle-link">
-                    Don't have an account? <a onclick="showSignup()">Sign Up</a>
+                    <span data-i18n="noAccount">Don't have an account?</span> <a onclick="showSignup()" data-i18n="signUp">Sign Up</a>
                 </div>
             </div>
 
@@ -76,14 +84,22 @@
             <div id="signupForm" style="display: none;">
                 <div class="auth-header">
                     <div class="auth-logo">
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-                            <path d="M30 5C16.2 5 5 16.2 5 30C5 43.8 16.2 55 30 55C43.8 55 55 43.8 55 30C55 16.2 43.8 5 30 5Z" fill="#4A90E2"/>
-                            <path d="M25 20C25 17.2 27.2 15 30 15C32.8 15 35 17.2 35 20V30H25V20Z" fill="white"/>
-                            <circle cx="30" cy="40" r="5" fill="white"/>
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="30" cy="30" r="28" fill="url(#logoGrad2)"/>
+                            <path d="M20 25 L30 15 L40 25 L35 25 L35 40 L25 40 L25 25 Z" fill="white" opacity="0.9"/>
+                            <circle cx="30" cy="44" r="3" fill="white" opacity="0.9"/>
+                            <path d="M15 30 Q15 20, 25 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+                            <path d="M45 30 Q45 20, 35 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
                         </svg>
                     </div>
-                    <h1>Smart AI</h1>
-                    <p>Create Your Account</p>
+                    <h1 data-i18n="appTitle">Smart AI</h1>
+                    <p data-i18n="createAccount">Create Your Account</p>
                 </div>
                 
                 <div id="signupError" class="error-message"></div>
@@ -91,25 +107,25 @@
                 
                 <form onsubmit="handleSignup(event)">
                     <div class="form-group">
-                        <label><i class="fas fa-user"></i> Name</label>
-                        <input type="text" id="signupName" placeholder="Enter your name" required autocomplete="name">
+                        <label><i class="fas fa-user"></i> <span data-i18n="name">Name</span></label>
+                        <input type="text" id="signupName" data-i18n-placeholder="enterName" placeholder="Enter your name" required autocomplete="name">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="signupEmail" placeholder="Enter your email" required autocomplete="email">
+                        <label><i class="fas fa-envelope"></i> <span data-i18n="email">Email</span></label>
+                        <input type="email" id="signupEmail" data-i18n-placeholder="enterEmail" placeholder="Enter your email" required autocomplete="email">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-lock"></i> Password</label>
-                        <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)" required minlength="6" autocomplete="new-password">
+                        <label><i class="fas fa-lock"></i> <span data-i18n="password">Password</span></label>
+                        <input type="password" id="signupPassword" data-i18n-placeholder="createPassword" placeholder="Create a password (min 6 characters)" required minlength="6" autocomplete="new-password">
                     </div>
                     <button type="submit" class="btn btn-primary" id="signupBtn">
                         <span id="signupLoader" class="loader"></span>
-                        <span id="signupText">Sign Up</span>
+                        <span id="signupText" data-i18n="signUp">Sign Up</span>
                     </button>
                 </form>
                 
                 <div class="toggle-link">
-                    Already have an account? <a onclick="showLogin()">Login</a>
+                    <span data-i18n="haveAccount">Already have an account?</span> <a onclick="showLogin()" data-i18n="login">Login</a>
                 </div>
             </div>
         </div>
@@ -143,7 +159,7 @@
                             <div class="user-email" id="userEmail">user@email.com</div>
                         </div>
                     </div>
-                    <button class="sidebar-action-btn" onclick="handleLogout()" title="Logout">
+                    <button class="sidebar-action-btn" onclick="handleLogout()" data-i18n-title="logout" title="Logout">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
@@ -155,8 +171,11 @@
                     <button class="menu-btn" onclick="toggleSidebar()">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="header-title">New chat</div>
-                    <button class="header-action-btn" onclick="createNewChat()" title="New Chat">
+                    <div class="header-title" data-i18n="newChat">New chat</div>
+                    <button class="header-action-btn language-btn" onclick="toggleLanguage()" title="Change Language">
+                        <i class="fas fa-language"></i>
+                    </button>
+                    <button class="header-action-btn" onclick="createNewChat()" data-i18n-title="newChat" title="New Chat">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -164,14 +183,22 @@
                 <div id="chatMessages" class="chat-messages">
                     <div class="welcome-screen">
                         <div class="ai-logo">
-                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                                <path d="M40 10C23.4 10 10 23.4 10 40C10 56.6 23.4 70 40 70C56.6 70 70 56.6 70 40C70 23.4 56.6 10 40 10Z" fill="#4A90E2"/>
-                                <path d="M32 28C32 24.7 34.7 22 38 22C41.3 22 44 24.7 44 28V42H32V28Z" fill="white"/>
-                                <circle cx="40" cy="54" r="6" fill="white"/>
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
+                                <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
+                                <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
+                                <path d="M18 40 Q18 28, 32 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
+                                <path d="M62 40 Q62 28, 48 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
                             </svg>
                         </div>
-                        <h1 id="welcomeTitle">Hi, I'm Smart AI.</h1>
-                        <p id="welcomeSubtitle">How can I help you today?</p>
+                        <h1 id="welcomeTitle" data-i18n="welcomeTitle">Hi, I'm Smart AI.</h1>
+                        <p id="welcomeSubtitle" data-i18n="welcomeSubtitle">How can I help you today?</p>
                     </div>
                 </div>
 
@@ -198,17 +225,18 @@
                     <div class="input-wrapper">
                         <input type="text" 
                             id="messageInput" 
+                            data-i18n-placeholder="messagePlaceholder"
                             placeholder="Message Smart AI"
                             onkeydown="handleKeyPress(event)"
                         />
                         
                         <div class="input-actions">
-                            <button class="input-action-btn" onclick="document.getElementById('imageInput').click()" title="Upload Image">
+                            <button class="input-action-btn" onclick="document.getElementById('imageInput').click()" data-i18n-title="uploadImage" title="Upload Image">
                                 <i class="fas fa-image"></i>
                             </button>
                             <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                             
-                            <button class="input-action-btn" title="More options">
+                            <button class="input-action-btn" data-i18n-title="moreOptions" title="More options">
                                 <i class="fas fa-ellipsis-h"></i>
                             </button>
                             
@@ -221,11 +249,11 @@
                     <div class="input-footer">
                         <button class="footer-btn">
                             <i class="fas fa-brain"></i>
-                            <span>DeepThink</span>
+                            <span data-i18n="deepThink">DeepThink</span>
                         </button>
                         <button class="footer-btn">
                             <i class="fas fa-globe"></i>
-                            <span>Search</span>
+                            <span data-i18n="search">Search</span>
                         </button>
                     </div>
                 </div>
