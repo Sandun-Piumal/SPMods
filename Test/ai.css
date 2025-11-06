@@ -64,10 +64,12 @@ body {
 /* AUTH STYLES */
 #authContainer {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
+    padding-bottom: 70px;
 }
 
 .auth-box {
@@ -281,6 +283,8 @@ body {
     flex-direction: column;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 99;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .sidebar-header {
@@ -518,8 +522,8 @@ body {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 25px;
-    padding-bottom: 100px;
+    padding: 20px;
+    padding-bottom: 20px;
     scroll-behavior: smooth;
 }
 
@@ -737,7 +741,7 @@ body {
 }
 
 .chat-input-container {
-    padding: 20px 25px 85px 25px;
+    padding: 15px 20px;
     background: rgba(0, 0, 0, 0.3);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -925,12 +929,19 @@ body {
 
 /* FOOTER */
 .footer {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.5);
     color: white;
     text-align: center;
-    padding: 15px 20px;
-    font-size: 13px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 15px;
+    font-size: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    width: 100%;
+    margin-top: auto;
+    backdrop-filter: blur(10px);
+}
+
+#authContainer .footer {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -938,13 +949,19 @@ body {
     z-index: 100;
 }
 
+#chatApp .footer {
+    display: none;
+}
+
 .footer p {
-    margin: 2px 0;
+    margin: 3px 0;
+    line-height: 1.4;
 }
 
 .developer {
     font-style: italic;
-    opacity: 0.8;
+    opacity: 0.85;
+    font-size: 11px;
 }
 
 /* SCROLLBAR */
@@ -967,12 +984,40 @@ body {
 
 /* MOBILE RESPONSIVE */
 @media (max-width: 768px) {
+    .auth-box {
+        padding: 30px 20px;
+        max-width: 95%;
+    }
+
+    .auth-header h1 {
+        font-size: 26px;
+    }
+
+    .auth-logo {
+        font-size: 48px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group input {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+
+    .btn {
+        padding: 13px;
+        font-size: 15px;
+    }
+
     .chat-sidebar {
         position: fixed;
         left: 0;
         top: 0;
         height: 100vh;
         transform: translateX(-100%);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     }
 
     .chat-sidebar.active {
@@ -1044,12 +1089,32 @@ body {
     }
 
     .chat-input-container {
-        padding: 15px 15px 80px 15px;
+        padding: 12px 15px;
+    }
+
+    .chat-input-wrapper {
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .input-btn, .send-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+    }
+
+    #messageInput {
+        font-size: 14px;
+        padding: 8px;
     }
 
     .footer {
-        font-size: 11px;
-        padding: 12px 15px;
+        font-size: 10px;
+        padding: 10px 12px;
+    }
+
+    .developer {
+        font-size: 9px;
     }
 
     .notification {
@@ -1061,16 +1126,84 @@ body {
 
 @media (max-width: 480px) {
     .auth-header h1 {
-        font-size: 28px;
+        font-size: 24px;
+    }
+
+    .auth-logo {
+        font-size: 42px;
+        margin-bottom: 10px;
+    }
+
+    .auth-header p {
+        font-size: 13px;
     }
 
     .welcome-features {
         flex-direction: column;
         align-items: center;
+        gap: 12px;
+    }
+
+    .feature-item {
+        width: 100%;
+        max-width: 250px;
+        justify-content: center;
     }
 
     .preview-content img {
-        max-width: 150px;
-        max-height: 150px;
+        max-width: 120px;
+        max-height: 120px;
+    }
+
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 15px;
+    }
+
+    .message-content {
+        margin-left: 40px;
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    .message-actions {
+        margin-left: 40px;
+    }
+
+    .action-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .header-btn {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .language-switcher {
+        gap: 4px;
+        padding: 4px;
+    }
+
+    .lang-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .lang-icon {
+        font-size: 14px;
+    }
+
+    .footer p {
+        font-size: 9px;
+    }
+
+    .developer {
+        font-size: 8px;
     }
 }
