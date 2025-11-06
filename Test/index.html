@@ -140,11 +140,16 @@
             <!-- SIDEBAR -->
             <div class="chat-sidebar" id="chatSidebar">
                 <div class="sidebar-header">
-                    <!--button class="close-sidebar-btn" onclick="closeSidebar()">
+                    <button class="close-sidebar-btn" onclick="closeSidebar()">
                         <i class="fas fa-times"></i>
-                </button-->
+                    </button>
+                </div>
+                
+                <div class="chat-history" id="chatHistory">
+                    <!-- History items will be inserted here -->
+                </div>
 
-                  <div class="sidebar-footer">
+                <div class="sidebar-footer">
                     <div class="user-info">
                         <div class="user-avatar">
                             <i class="fas fa-user"></i>
@@ -157,14 +162,7 @@
                     <button class="sidebar-action-btn" onclick="handleLogout()" data-i18n-title="logout" title="Logout">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
-                  </div>
                 </div>
-                
-                <div class="chat-history" id="chatHistory">
-                    <!-- History items will be inserted here -->
-                </div>
-
-                
             </div>
 
             <!-- MAIN CHAT -->
@@ -238,9 +236,9 @@
                             </button>
                             <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                             
-                            <!--button class="input-action-btn" data-i18n-title="moreOptions" title="More options">
+                            <button class="input-action-btn" data-i18n-title="moreOptions" title="More options">
                                 <i class="fas fa-ellipsis-h"></i>
-                            </button-->
+                            </button>
                             
                             <button id="sendButton" class="send-btn" onclick="sendMessage()">
                                 <i class="fas fa-arrow-up"></i>
@@ -257,7 +255,7 @@
                             <i class="fas fa-globe"></i>
                             <span data-i18n="search">Search</span>
                         </button>
-                </div-->
+                    </div-->
                 </div>
             </div>
         </div>
