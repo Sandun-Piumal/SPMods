@@ -1,405 +1,24 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart AI Chat - Optimized</title>
+    <title>Smart AI Chat - Complete System</title>
     
-    <!-- Firebase SDKs - OPTIMIZED LOADING -->
+    <!-- Firebase SDKs -->
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --bg-dark: #1a1a2e;
-            --bg-light: #ffffff;
-            --text-dark: #ffffff;
-            --text-light: #333333;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        /* AUTH CONTAINER */
-        #authContainer {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .auth-box {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 400px;
-            width: 100%;
-            padding: 40px;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .auth-header h1 {
-            color: var(--primary);
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-
-        .auth-header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 15px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .loader {
-            display: none;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ffffff;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .error-message, .success-message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c00;
-            border: 1px solid #fcc;
-        }
-
-        .success-message {
-            background: #efe;
-            color: #0a0;
-            border: 1px solid #cfc;
-        }
-
-        .toggle-link {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .toggle-link a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* CHAT APP */
-        #chatApp {
-            display: none;
-            flex-direction: column;
-            height: 100vh;
-            background: #0f0f1e;
-        }
-
-        .chat-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
-
-        .chat-header h1 {
-            font-size: 20px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .header-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        .header-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            scroll-behavior: smooth;
-        }
-
-        .welcome-message {
-            text-align: center;
-            color: white;
-            padding: 40px 20px;
-        }
-
-        .welcome-message h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .message {
-            margin-bottom: 20px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .user-message .message-header {
-            color: #667eea;
-        }
-
-        .ai-message .message-header {
-            color: #10b981;
-        }
-
-        .message-content {
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 12px;
-            color: white;
-            line-height: 1.6;
-            word-wrap: break-word;
-        }
-
-        .user-message .message-content {
-            background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
-            margin-left: 30px;
-        }
-
-        .ai-message .message-content {
-            background: rgba(16,185,129,0.1);
-            margin-right: 30px;
-        }
-
-        .typing-indicator {
-            display: none;
-            padding: 15px;
-            color: #888;
-            font-style: italic;
-        }
-
-        .chat-input-container {
-            padding: 20px;
-            background: rgba(0,0,0,0.3);
-        }
-
-        .chat-input-wrapper {
-            display: flex;
-            gap: 10px;
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 12px;
-        }
-
-        #messageInput {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 15px;
-            resize: none;
-            max-height: 120px;
-            padding: 8px;
-        }
-
-        #messageInput:focus {
-            outline: none;
-        }
-
-        #messageInput::placeholder {
-            color: #888;
-        }
-
-        #sendButton {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-
-        #sendButton:hover:not(:disabled) {
-            transform: scale(1.05);
-        }
-
-        #sendButton:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* NOTIFICATION */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            transform: translateX(400px);
-            transition: transform 0.3s;
-            z-index: 1000;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            border-left: 4px solid #10b981;
-        }
-
-        .notification.error {
-            border-left: 4px solid #ef4444;
-        }
-
-        /* SCROLLBAR */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.2);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        @media (max-width: 768px) {
-            .auth-box {
-                padding: 30px 20px;
-            }
-
-            .message-content {
-                font-size: 14px;
-            }
-        }
-    </style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="ai.css">
 </head>
 <body>
     <!-- NOTIFICATION -->
     <div id="notification" class="notification">
+        <i class="fas fa-check-circle"></i>
         <span id="notificationText"></span>
     </div>
 
@@ -418,11 +37,11 @@
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="loginEmail" required>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
                     </div>
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" id="loginPassword" required>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
                     </div>
                     <button type="submit" class="btn btn-primary" id="loginBtn">
                         <span id="loginLoader" class="loader"></span>
@@ -431,7 +50,7 @@
                 </form>
                 
                 <div class="toggle-link">
-                    ගිණුමක් නැද්ද? <a onclick="showSignup()">Sign Up</a>
+                    Don't have an account? <a onclick="showSignup()">Sign Up</a>
                 </div>
             </div>
 
@@ -439,7 +58,7 @@
             <div id="signupForm" style="display: none;">
                 <div class="auth-header">
                     <h1>🤖 Smart AI</h1>
-                    <p>Create Account</p>
+                    <p>Create Your Account</p>
                 </div>
                 
                 <div id="signupError" class="error-message"></div>
@@ -448,15 +67,15 @@
                 <form onsubmit="handleSignup(event)">
                     <div class="form-group">
                         <label>Name</label>
-                        <input type="text" id="signupName" required>
+                        <input type="text" id="signupName" placeholder="Enter your name" required>
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="signupEmail" required>
+                        <input type="email" id="signupEmail" placeholder="Enter your email" required>
                     </div>
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" id="signupPassword" required minlength="6">
+                        <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)" required minlength="6">
                     </div>
                     <button type="submit" class="btn btn-primary" id="signupBtn">
                         <span id="signupLoader" class="loader"></span>
@@ -465,7 +84,7 @@
                 </form>
                 
                 <div class="toggle-link">
-                    ගිණුමක් තියෙනවද? <a onclick="showLogin()">Login</a>
+                    Already have an account? <a onclick="showLogin()">Login</a>
                 </div>
             </div>
         </div>
@@ -473,379 +92,76 @@
 
     <!-- CHAT APP -->
     <div id="chatApp">
-        <div class="chat-header">
-            <h1>🤖 Smart AI Chat</h1>
-            <div class="header-actions">
-                <button class="header-btn" onclick="clearChat()">Clear</button>
-                <button class="header-btn" onclick="handleLogout()">Logout</button>
+        <div class="chat-container">
+            <!-- SIDEBAR -->
+            <div class="chat-sidebar" id="chatSidebar">
+                <div class="sidebar-header">
+                    <button class="new-chat-btn" onclick="createNewChat()">
+                        <i class="fas fa-plus"></i>
+                        <span>New Chat</span>
+                    </button>
+                </div>
+                
+                <div class="chat-history" id="chatHistory">
+                    <!-- History items will be inserted here -->
+                </div>
             </div>
-        </div>
 
-        <div id="chatMessages" class="chat-messages">
-            <div class="welcome-message">
-                <h2>✨ නව Model සාර්ථකව යාවත්කාලීන කරන ලදී!</h2>
-                <p>Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!</p>
-                <p>ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කරන්න 🚀</p>
-            </div>
-        </div>
+            <!-- MAIN CHAT -->
+            <div class="chat-main">
+                <div class="chat-header">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <button class="header-btn mobile-toggle" onclick="toggleSidebar()">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1>🤖 Smart AI Chat</h1>
+                    </div>
+                    <div class="header-actions">
+                        <div class="language-switcher">
+                            <button class="lang-btn active" id="englishBtn" onclick="switchLanguage('english')">EN</button>
+                            <button class="lang-btn" id="sinhalaBtn" onclick="switchLanguage('sinhala')">සිං</button>
+                        </div>
+                        <button class="header-btn" onclick="clearCurrentChat()">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="header-btn" onclick="handleLogout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
 
-        <div id="typingIndicator" class="typing-indicator">
-            Smart AI ප්‍රතිචාර සකසමින්...
-        </div>
+                <div id="chatMessages" class="chat-messages">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">🚀</div>
+                        <h2 id="welcomeTitle">Welcome to Smart AI!</h2>
+                        <p id="welcomeText">Ready to chat with Gemini AI. Ask me anything!</p>
+                    </div>
+                </div>
 
-        <div class="chat-input-container">
-            <div class="chat-input-wrapper">
-                <textarea 
-                    id="messageInput" 
-                    placeholder="ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න..."
-                    rows="1"
-                    onkeydown="handleKeyPress(event)"
-                ></textarea>
-                <button id="sendButton" onclick="sendMessage()">Send</button>
+                <div id="typingIndicator" class="typing-indicator">
+                    <i class="fas fa-circle-notch fa-spin"></i> 
+                    <span id="typingText">Smart AI is typing...</span>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Type your message here..."
+                            rows="1"
+                            onkeydown="handleKeyPress(event)"
+                        ></textarea>
+                        <button id="sendButton" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Send</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // FIREBASE CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
-            authDomain: "smart-ai-chat-app.firebaseapp.com",
-            projectId: "smart-ai-chat-app"
-        };
-
-        // GEMINI API
-        const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
-
-        // STATE
-        let auth = null;
-        let isProcessing = false;
-        let chatHistory = [];
-
-        // INITIALIZE FIREBASE
-        function initializeFirebase() {
-            try {
-                if (typeof firebase === 'undefined') {
-                    setTimeout(initializeFirebase, 100);
-                    return;
-                }
-                
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                
-                auth = firebase.auth();
-                
-                // Auth state listener
-                auth.onAuthStateChanged((user) => {
-                    if (user) {
-                        showChatApp();
-                        loadChatHistory();
-                    } else {
-                        showAuthContainer();
-                    }
-                });
-                
-                console.log("✅ Firebase initialized");
-            } catch (error) {
-                console.error("Firebase init error:", error);
-                showNotification("පද්ධති දෝෂයක් ඇතිවිය", "error");
-            }
-        }
-
-        // UI FUNCTIONS
-        function showLogin() {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('signupForm').style.display = 'none';
-            hideMessages();
-        }
-
-        function showSignup() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('signupForm').style.display = 'block';
-            hideMessages();
-        }
-
-        function showAuthContainer() {
-            document.getElementById('authContainer').style.display = 'flex';
-            document.getElementById('chatApp').style.display = 'none';
-        }
-
-        function showChatApp() {
-            document.getElementById('authContainer').style.display = 'none';
-            document.getElementById('chatApp').style.display = 'flex';
-        }
-
-        function hideMessages() {
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('signupError').style.display = 'none';
-            document.getElementById('signupSuccess').style.display = 'none';
-        }
-
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            const text = document.getElementById('notificationText');
-            
-            notification.className = `notification ${type}`;
-            text.textContent = message;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        // AUTH HANDLERS
-        async function handleLogin(event) {
-            event.preventDefault();
-            if (isProcessing) return;
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const btn = document.getElementById('loginBtn');
-            const loader = document.getElementById('loginLoader');
-            const text = document.getElementById('loginText');
-            
-            isProcessing = true;
-            btn.disabled = true;
-            loader.style.display = 'block';
-            text.textContent = 'Logging in...';
-            hideMessages();
-            
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                showNotification('සාර්ථකව පිවිසියා!');
-            } catch (error) {
-                const errorMsg = document.getElementById('loginError');
-                errorMsg.textContent = 'පිවිසුම අසාර්ථකයි. තොරතුරු පරීක්ෂා කරන්න.';
-                errorMsg.style.display = 'block';
-            } finally {
-                isProcessing = false;
-                btn.disabled = false;
-                loader.style.display = 'none';
-                text.textContent = 'Login';
-            }
-        }
-
-        async function handleSignup(event) {
-            event.preventDefault();
-            if (isProcessing) return;
-            
-            const name = document.getElementById('signupName').value;
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            const btn = document.getElementById('signupBtn');
-            const loader = document.getElementById('signupLoader');
-            const text = document.getElementById('signupText');
-            
-            isProcessing = true;
-            btn.disabled = true;
-            loader.style.display = 'block';
-            text.textContent = 'Creating...';
-            hideMessages();
-            
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                await userCredential.user.updateProfile({ displayName: name });
-                
-                const successMsg = document.getElementById('signupSuccess');
-                successMsg.textContent = 'ලියාපදිංචිය සාර්ථකයි! පිවිසෙමින්...';
-                successMsg.style.display = 'block';
-                
-                setTimeout(() => {
-                    showLogin();
-                }, 2000);
-            } catch (error) {
-                const errorMsg = document.getElementById('signupError');
-                errorMsg.textContent = 'ලියාපදිංචිය අසාර්ථකයි. නැවත උත්සාහ කරන්න.';
-                errorMsg.style.display = 'block';
-            } finally {
-                isProcessing = false;
-                btn.disabled = false;
-                loader.style.display = 'none';
-                text.textContent = 'Sign Up';
-            }
-        }
-
-        async function handleLogout() {
-            try {
-                await auth.signOut();
-                chatHistory = [];
-                showNotification('සාර්ථකව පිටවිය!');
-            } catch (error) {
-                showNotification('දෝෂයක් ඇතිවිය', 'error');
-            }
-        }
-
-        // CHAT FUNCTIONS
-        function loadChatHistory() {
-            const userId = auth.currentUser?.uid;
-            if (!userId) return;
-            
-            const saved = localStorage.getItem(`chat-${userId}`);
-            if (saved) {
-                chatHistory = JSON.parse(saved);
-                renderMessages();
-            }
-        }
-
-        function saveChatHistory() {
-            const userId = auth.currentUser?.uid;
-            if (!userId) return;
-            
-            localStorage.setItem(`chat-${userId}`, JSON.stringify(chatHistory.slice(-50))); // Keep last 50
-        }
-
-        function addMessage(content, isUser) {
-            const messagesDiv = document.getElementById('chatMessages');
-            
-            // Remove welcome message
-            const welcome = messagesDiv.querySelector('.welcome-message');
-            if (welcome) welcome.remove();
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    ${isUser ? '👤 ඔබ' : '🤖 Smart AI'}
-                </div>
-                <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
-            `;
-            
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            
-            chatHistory.push({ content, isUser, time: Date.now() });
-            saveChatHistory();
-        }
-
-        function renderMessages() {
-            const messagesDiv = document.getElementById('chatMessages');
-            messagesDiv.innerHTML = '';
-            
-            if (chatHistory.length === 0) {
-                messagesDiv.innerHTML = `
-                    <div class="welcome-message">
-                        <h2>✨ නව Model සාර්ථකව යාවත්කාලීන කරන ලදී!</h2>
-                        <p>Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!</p>
-                        <p>ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කරන්න 🚀</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            chatHistory.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${msg.isUser ? 'user-message' : 'ai-message'}`;
-                messageDiv.innerHTML = `
-                    <div class="message-header">
-                        ${msg.isUser ? '👤 ඔබ' : '🤖 Smart AI'}
-                    </div>
-                    <div class="message-content">${msg.content.replace(/\n/g, '<br>')}</div>
-                `;
-                messagesDiv.appendChild(messageDiv);
-            });
-            
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function clearChat() {
-            if (!confirm('සියලු සංවාදය මකන්නද?')) return;
-            
-            chatHistory = [];
-            saveChatHistory();
-            
-            const messagesDiv = document.getElementById('chatMessages');
-            messagesDiv.innerHTML = `
-                <div class="welcome-message">
-                    <h2>✨ නව Model සාර්ථකව යාවත්කාලීන කරන ලදී!</h2>
-                    <p>Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!</p>
-                    <p>ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කරන්න 🚀</p>
-                </div>
-            `;
-            
-            showNotification('සංවාදය හිස් කරන ලදී');
-        }
-
-        async function getAIResponse(message) {
-            try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-                
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `${message}\n\nකරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න.`
-                            }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.7,
-                            maxOutputTokens: 1000
-                        }
-                    })
-                });
-                
-                if (!response.ok) throw new Error('API Error');
-                
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || 
-                       'කණගාටුයි, පිළිතුරු ලබා ගැනීමට නොහැකි විය.';
-            } catch (error) {
-                console.error('API Error:', error);
-                return 'කණගාටුයි, දෝෂයක් ඇති විය. පසුව උත්සාහ කරන්න.';
-            }
-        }
-
-        async function sendMessage() {
-            if (isProcessing) return;
-            
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            addMessage(message, true);
-            input.value = '';
-            input.style.height = 'auto';
-            
-            const sendBtn = document.getElementById('sendButton');
-            const typing = document.getElementById('typingIndicator');
-            
-            isProcessing = true;
-            sendBtn.disabled = true;
-            typing.style.display = 'block';
-            
-            try {
-                const response = await getAIResponse(message);
-                typing.style.display = 'none';
-                addMessage(response, false);
-            } catch (error) {
-                typing.style.display = 'none';
-                addMessage('කණගාටුයි, දෝෂයක් ඇති විය.', false);
-            } finally {
-                isProcessing = false;
-                sendBtn.disabled = false;
-                input.focus();
-            }
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        }
-
-        // Auto-resize textarea
-        document.getElementById('messageInput')?.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        });
-
-        // INITIALIZE ON LOAD
-        window.addEventListener('load', initializeFirebase);
-    </script>
+    <!-- Custom JavaScript -->
+    <script src="ai.js"></script>
 </body>
 </html>
