@@ -1,4 +1,3 @@
-import { getDatabase, ref, set } from "firebase/database";
 // FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
