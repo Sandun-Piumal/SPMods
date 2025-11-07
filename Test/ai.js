@@ -21,7 +21,7 @@ let currentImage = null;
 let currentOCRText = '';
 let currentLanguage = 'en';
 
-// TRANSLATIONS (සම්පූර්ණ translations object එක තියන්න)
+// TRANSLATIONS (ඔබේ existing translations එකම තියන්න)
 const translations = {
     en: {
         appTitle: "Smart AI",
@@ -95,60 +95,26 @@ const translations = {
     }
 };
 
-// LANGUAGE FUNCTIONS
-function getTranslation(key) {
-    return translations[currentLanguage][key] || translations.en[key] || key;
-}
-
-function updateLanguage() {
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        element.textContent = getTranslation(key);
-    });
-
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        element.placeholder = getTranslation(key);
-    });
-
-    document.querySelectorAll('[data-i18n-title]').forEach(element => {
-        const key = element.getAttribute('data-i18n-title');
-        element.title = getTranslation(key);
-    });
-
-    localStorage.setItem('smartai-language', currentLanguage);
-}
-
-function toggleLanguage() {
-    currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
-    updateLanguage();
-    showNotification(currentLanguage === 'en' ? 'Language changed to English' : 'භාෂාව සිංහලට වෙනස් විය');
-}
-
-function loadLanguagePreference() {
-    const savedLang = localStorage.getItem('smartai-language');
-    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
-        currentLanguage = savedLang;
-        updateLanguage();
-    }
-}
-
-// SIMPLE FIREBASE INITIALIZATION
+// FIREBASE VERSION 9 INITIALIZATION
 function initializeFirebase() {
     try {
+        console.log("🔄 Initializing Firebase v9...");
+        
         // Check if Firebase is loaded
         if (typeof firebase === 'undefined') {
-            console.error('Firebase SDK not loaded');
-            showNotification('Firebase not loaded. Please check internet connection.', 'error');
+            console.error('❌ Firebase SDK not loaded');
+            showNotification('Firebase not loaded. Please refresh.', 'error');
             return;
         }
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
+        
+        // Initialize services
         auth = firebase.auth();
         db = firebase.firestore();
         
-        console.log("✅ Firebase initialized successfully");
+        console.log("✅ Firebase v9 initialized successfully");
 
         // Auth state listener
         auth.onAuthStateChanged((user) => {
@@ -165,8 +131,41 @@ function initializeFirebase() {
         loadLanguagePreference();
         
     } catch (error) {
-        console.error("Firebase initialization error:", error);
-        showNotification("Firebase initialization failed: " + error.message, "error");
+        console.error("Firebase v9 initialization error:", error);
+        showNotification("Firebase setup failed: " + error.message, "error");
+    }
+}
+
+// LANGUAGE FUNCTIONS
+function getTranslation(key) {
+    return translations[currentLanguage][key] || translations.en[key] || key;
+}
+
+function updateLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        element.textContent = getTranslation(key);
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        element.placeholder = getTranslation(key);
+    });
+
+    localStorage.setItem('smartai-language', currentLanguage);
+}
+
+function toggleLanguage() {
+    currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
+    updateLanguage();
+    showNotification(currentLanguage === 'en' ? 'Language changed to English' : 'භාෂාව සිංහලට වෙනස් විය');
+}
+
+function loadLanguagePreference() {
+    const savedLang = localStorage.getItem('smartai-language');
+    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
+        currentLanguage = savedLang;
+        updateLanguage();
     }
 }
 
@@ -287,7 +286,7 @@ function closeSidebar() {
     if (overlay) overlay.classList.remove('active');
 }
 
-// AUTH HANDLERS - SIMPLIFIED
+// AUTH HANDLERS - VERSION 9 COMPATIBLE
 async function handleLogin(event) {
     if (event) event.preventDefault();
     if (isProcessing) return;
@@ -308,7 +307,6 @@ async function handleLogin(event) {
         await auth.signInWithEmailAndPassword(email, password);
         showNotification(getTranslation('loginSuccess'));
         
-        // Clear form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) loginForm.reset();
         
@@ -359,11 +357,9 @@ async function handleSignup(event) {
         
         showNotification('Registration successful! Redirecting...');
         
-        // Clear form
         const signupForm = document.getElementById('signupForm');
         if (signupForm) signupForm.reset();
         
-        // Auto login after signup
         setTimeout(() => {
             showLogin();
         }, 2000);
@@ -399,51 +395,30 @@ async function handleLogout() {
     }
 }
 
-// SIMPLE SESSION MANAGEMENT (LocalStorage First)
+// FIRESTORE VERSION 9 COMPATIBLE FUNCTIONS
 function generateSessionId() {
     return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-function getStorageKey(userId) {
-    return `smartai-sessions-${userId}`;
-}
-
 async function loadChatSessions(userId) {
     try {
-        // Try localStorage first (immediate fallback)
-        const storageKey = getStorageKey(userId);
-        const saved = localStorage.getItem(storageKey);
+        if (!userId || !db) return;
         
-        if (saved) {
-            chatSessions = JSON.parse(saved);
-            console.log("✅ Loaded from localStorage:", chatSessions.length, "sessions");
-        }
+        console.log("🔄 Loading sessions from Firestore v9...");
         
-        // Then try Firestore in background
-        if (db) {
-            try {
-                const sessionsRef = db.collection('users').doc(userId).collection('chatSessions');
-                const snapshot = await sessionsRef.orderBy('updatedAt', 'desc').limit(50).get();
-                
-                const firestoreSessions = [];
-                snapshot.forEach(doc => {
-                    const sessionData = doc.data();
-                    firestoreSessions.push({
-                        id: doc.id,
-                        ...sessionData
-                    });
-                });
-                
-                if (firestoreSessions.length > 0) {
-                    chatSessions = firestoreSessions;
-                    console.log("✅ Loaded from Firestore:", chatSessions.length, "sessions");
-                    // Sync back to localStorage
-                    localStorage.setItem(storageKey, JSON.stringify(chatSessions));
-                }
-            } catch (firestoreError) {
-                console.log("ℹ️ Firestore not available, using localStorage");
-            }
-        }
+        const sessionsRef = db.collection('users').doc(userId).collection('chatSessions');
+        const snapshot = await sessionsRef.orderBy('updatedAt', 'desc').limit(50).get();
+        
+        chatSessions = [];
+        snapshot.forEach(doc => {
+            const sessionData = doc.data();
+            chatSessions.push({
+                id: doc.id,
+                ...sessionData
+            });
+        });
+        
+        console.log("✅ Loaded from Firestore:", chatSessions.length, "sessions");
         
         if (chatSessions.length === 0) {
             await createNewChat();
@@ -455,55 +430,71 @@ async function loadChatSessions(userId) {
         renderSessions();
         
     } catch (error) {
-        console.error('Load sessions error:', error);
-        await createNewChat();
+        console.error('Firestore v9 load error:', error);
+        // Fallback to localStorage
+        loadFromLocalStorage(userId);
     }
 }
 
 async function saveChatSession(session) {
     try {
         const userId = auth.currentUser?.uid;
-        if (!userId) return;
+        if (!userId || !db) return;
 
-        // Save to localStorage immediately
-        const storageKey = getStorageKey(userId);
-        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+        const sessionData = {
+            title: session.title,
+            messages: session.messages,
+            createdAt: firebase.firestore.Timestamp.fromDate(new Date(session.createdAt)),
+            updatedAt: firebase.firestore.Timestamp.fromDate(new Date(session.updatedAt))
+        };
 
-        // Try to save to Firestore in background
-        if (db) {
-            try {
-                const sessionData = {
-                    title: session.title,
-                    messages: session.messages,
-                    createdAt: session.createdAt,
-                    updatedAt: session.updatedAt
-                };
-
-                await db.collection('users').doc(userId).collection('chatSessions').doc(session.id).set(sessionData);
-            } catch (firestoreError) {
-                console.log("ℹ️ Firestore save failed, using localStorage only");
-            }
-        }
+        await db.collection('users').doc(userId).collection('chatSessions').doc(session.id).set(sessionData);
+        console.log("✅ Saved to Firestore v9:", session.id);
+        
     } catch (error) {
-        console.error('Save session error:', error);
+        console.error('Firestore v9 save error:', error);
+        throw error;
     }
 }
 
 async function deleteChatSession(sessionId) {
     try {
         const userId = auth.currentUser?.uid;
-        if (!userId) return;
+        if (!userId || !db) return;
         
-        // Delete from Firestore if available
-        if (db) {
-            try {
-                await db.collection('users').doc(userId).collection('chatSessions').doc(sessionId).delete();
-            } catch (firestoreError) {
-                console.log("ℹ️ Firestore delete failed");
-            }
-        }
+        await db.collection('users').doc(userId).collection('chatSessions').doc(sessionId).delete();
     } catch (error) {
-        console.error('Delete session error:', error);
+        console.error('Firestore v9 delete error:', error);
+        throw error;
+    }
+}
+
+// LOCALSTORAGE FALLBACK
+function getStorageKey(userId) {
+    return `smartai-sessions-${userId}`;
+}
+
+function loadFromLocalStorage(userId) {
+    try {
+        const storageKey = getStorageKey(userId);
+        const saved = localStorage.getItem(storageKey);
+        
+        if (saved) {
+            chatSessions = JSON.parse(saved);
+            console.log("✅ Loaded from localStorage:", chatSessions.length, "sessions");
+        }
+        
+        if (chatSessions.length === 0) {
+            createNewChat();
+        } else {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        }
+        
+        renderSessions();
+    } catch (error) {
+        console.error('LocalStorage load error:', error);
+        createNewChat();
     }
 }
 
@@ -522,7 +513,12 @@ async function createNewChat() {
     chatSessions.unshift(newSession);
     currentSessionId = sessionId;
     
-    await saveChatSession(newSession);
+    try {
+        await saveChatSession(newSession);
+    } catch (error) {
+        console.error('Failed to save new chat:', error);
+    }
+    
     renderSessions();
     clearMessages();
     
@@ -552,27 +548,25 @@ async function deleteChat(sessionId, event) {
     const index = chatSessions.findIndex(s => s.id === sessionId);
     if (index === -1) return;
     
-    await deleteChatSession(sessionId);
-    chatSessions.splice(index, 1);
-    
-    if (currentSessionId === sessionId) {
-        if (chatSessions.length > 0) {
-            currentSessionId = chatSessions[0].id;
-            renderChatHistory();
-        } else {
-            await createNewChat();
+    try {
+        await deleteChatSession(sessionId);
+        chatSessions.splice(index, 1);
+        
+        if (currentSessionId === sessionId) {
+            if (chatSessions.length > 0) {
+                currentSessionId = chatSessions[0].id;
+                renderChatHistory();
+            } else {
+                await createNewChat();
+            }
         }
+        
+        renderSessions();
+        showNotification(getTranslation('chatDeleted'));
+    } catch (error) {
+        console.error('Delete failed:', error);
+        showNotification('Failed to delete chat', 'error');
     }
-    
-    // Save the updated sessions list
-    const userId = auth.currentUser?.uid;
-    if (userId) {
-        const storageKey = getStorageKey(userId);
-        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
-    }
-    
-    renderSessions();
-    showNotification(getTranslation('chatDeleted'));
 }
 
 function getCurrentSession() {
@@ -771,7 +765,12 @@ async function addMessage(content, isUser, imageData = null) {
             session.title = titleText + (titleText.length >= 30 ? '...' : '');
         }
         
-        await saveChatSession(session);
+        try {
+            await saveChatSession(session);
+        } catch (error) {
+            console.error('Failed to save message:', error);
+        }
+        
         renderSessions();
     }
 }
