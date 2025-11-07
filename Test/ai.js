@@ -1,9 +1,9 @@
-// FIREBASE CONFIG
+// FIREBASE CONFIG - CORRECT URL
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
     authDomain: "smart-ai-chat-app.firebaseapp.com",
     projectId: "smart-ai-chat-app",
-    databaseURL: "https://smart-ai-chat-app-default-rtdb.asia-southeast1.firebasedatabase.app"
+    databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com"
 };
 
 // GEMINI API KEY
@@ -19,15 +19,102 @@ let currentImage = null;
 let currentOCRText = '';
 let currentLanguage = 'en';
 
-// SIMPLIFIED FIREBASE INITIALIZATION
+// TRANSLATIONS
+const translations = {
+    en: {
+        appTitle: "Smart AI",
+        appSubtitle: "Powered by Gemini AI",
+        email: "Email",
+        password: "Password",
+        name: "Name",
+        login: "Login",
+        signUp: "Sign Up",
+        noAccount: "Don't have an account?",
+        haveAccount: "Already have an account?",
+        enterEmail: "Enter your email",
+        enterPassword: "Enter your password",
+        enterName: "Enter your name",
+        createPassword: "Create a password (min 6 characters)",
+        createAccount: "Create Your Account",
+        newChat: "New chat",
+        welcomeTitle: "Hi, I'm Smart AI.",
+        welcomeSubtitle: "How can I help you today?",
+        messagePlaceholder: "Message Smart AI",
+        uploadImage: "Upload Image",
+        logout: "Logout",
+        loginSuccess: "Login successful!",
+        logoutSuccess: "Logged out successfully!",
+        chatDeleted: "Chat deleted!",
+        deleteConfirm: "Delete this chat?"
+    },
+    si: {
+        appTitle: "Smart AI",
+        appSubtitle: "Gemini AI මගින් බලගන්වා ඇත",
+        email: "විද්‍යුත් ලිපිනය",
+        password: "මුරපදය",
+        name: "නම",
+        login: "ඇතුල් වන්න",
+        signUp: "ලියාපදිංචි වන්න",
+        noAccount: "ගිණුමක් නැද්ද?",
+        haveAccount: "දැනටමත් ගිණුමක් තිබේද?",
+        enterEmail: "ඔබගේ විද්‍යුත් ලිපිනය ඇතුළත් කරන්න",
+        enterPassword: "ඔබගේ මුරපදය ඇතුළත් කරන්න",
+        enterName: "ඔබගේ නම ඇතුළත් කරන්න",
+        createPassword: "මුරපදයක් සාදන්න (අවම අක්ෂර 6ක්)",
+        createAccount: "ඔබගේ ගිණුම සාදන්න",
+        newChat: "නව සංවාදය",
+        welcomeTitle: "හායි, මම Smart AI.",
+        welcomeSubtitle: "අද මට ඔබට උදව් කරන්නේ කෙසේද?",
+        messagePlaceholder: "Smart AI වෙත පණිවිඩයක්",
+        uploadImage: "පින්තූරය උඩුගත කරන්න",
+        logout: "ඉවත් වන්න",
+        loginSuccess: "පිවිසුම සාර්ථකයි!",
+        logoutSuccess: "සාර්ථකව ඉවත් විය!",
+        chatDeleted: "සංවාදය මකා දමන ලදී!",
+        deleteConfirm: "මෙම සංවාදය මකන්න ද?"
+    }
+};
+
+// LANGUAGE FUNCTIONS
+function getTranslation(key) {
+    return translations[currentLanguage][key] || translations.en[key] || key;
+}
+
+function updateLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        element.textContent = getTranslation(key);
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        element.placeholder = getTranslation(key);
+    });
+
+    localStorage.setItem('smartai-language', currentLanguage);
+}
+
+function toggleLanguage() {
+    currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
+    updateLanguage();
+}
+
+function loadLanguagePreference() {
+    const savedLang = localStorage.getItem('smartai-language');
+    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
+        currentLanguage = savedLang;
+        updateLanguage();
+    }
+}
+
+// FIREBASE INITIALIZATION
 function initializeFirebase() {
     try {
-        console.log("🔄 Initializing Firebase...");
+        console.log("🔄 Starting Firebase initialization...");
         
-        // Check if Firebase is available
         if (typeof firebase === 'undefined') {
             console.error('❌ Firebase SDK not loaded');
-            showNotification('Please check your internet connection and refresh the page.', 'error');
+            showNotification('Please check internet connection', 'error');
             return;
         }
 
@@ -38,55 +125,92 @@ function initializeFirebase() {
         // Initialize services
         auth = firebase.auth();
         database = firebase.database();
-        console.log("✅ Auth & Database initialized");
+        console.log("✅ Auth & Database services ready");
 
-        // Set up auth state listener
+        // Auth state listener
         auth.onAuthStateChanged((user) => {
-            console.log("🔐 Auth state:", user ? `User: ${user.email}` : "No user");
+            console.log("🔐 Auth state changed:", user ? user.email : "No user");
             if (user) {
                 showChatApp();
                 loadChatSessions();
                 updateUserProfile(user);
+                saveUserToDatabase(user);
             } else {
                 showAuthContainer();
             }
         });
 
         loadLanguagePreference();
-        console.log("🚀 App initialized successfully");
+        console.log("🚀 App ready!");
         
     } catch (error) {
-        console.error('❌ Firebase init error:', error);
-        showNotification('App initialization failed. Please refresh.', 'error');
+        console.error('❌ Init error:', error);
+        showNotification('App load failed. Refresh page.', 'error');
     }
 }
 
-// SIMPLE DATABASE FUNCTIONS
-async function saveUserToDatabase(user, name) {
+// DATABASE FUNCTIONS
+async function saveUserToDatabase(user) {
     try {
         if (!database) {
-            console.log("📝 Database not available, skipping user save");
-            return true;
+            console.log("ℹ️ Database not available");
+            return;
         }
         
         const userData = {
             uid: user.uid,
             email: user.email,
-            displayName: name,
-            createdAt: Date.now(),
+            displayName: user.displayName || user.email.split('@')[0],
             lastLogin: Date.now()
         };
         
         await database.ref('users/' + user.uid).set(userData);
-        console.log("✅ User saved to database");
-        return true;
+        console.log("✅ User data saved to database");
     } catch (error) {
         console.error("❌ User save error:", error);
-        return true; // Continue even if database fails
     }
 }
 
-// SIMPLE AUTH HANDLERS
+async function saveChatSessionsToDatabase() {
+    try {
+        const user = auth.currentUser;
+        if (!user || !database) {
+            saveChatSessionsToLocal();
+            return;
+        }
+        
+        await database.ref('userChatSessions/' + user.uid).set({
+            sessions: chatSessions,
+            lastUpdated: Date.now()
+        });
+        console.log("✅ Chat sessions saved to database");
+    } catch (error) {
+        console.error("❌ Sessions save error:", error);
+        saveChatSessionsToLocal();
+    }
+}
+
+async function loadChatSessionsFromDatabase() {
+    try {
+        const user = auth.currentUser;
+        if (!user || !database) return false;
+        
+        const snapshot = await database.ref('userChatSessions/' + user.uid).once('value');
+        const data = snapshot.val();
+        
+        if (data && data.sessions) {
+            chatSessions = data.sessions;
+            console.log("✅ Chat sessions loaded from database");
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error("❌ Sessions load error:", error);
+        return false;
+    }
+}
+
+// AUTH HANDLERS
 async function handleLogin(event) {
     event.preventDefault();
     if (isProcessing) return;
@@ -94,18 +218,13 @@ async function handleLogin(event) {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     
-    if (!email || !password) {
-        showNotification('Please fill all fields', 'error');
-        return;
-    }
-    
     isProcessing = true;
     updateButtonState('loginBtn', 'Logging in...', true);
     hideMessages();
 
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        showNotification('Login successful!', 'success');
+        showNotification(getTranslation('loginSuccess'));
         document.getElementById('loginForm').reset();
     } catch (error) {
         console.error('Login error:', error);
@@ -114,7 +233,7 @@ async function handleLogin(event) {
         document.getElementById('loginError').style.display = 'block';
     } finally {
         isProcessing = false;
-        updateButtonState('loginBtn', 'Login', false);
+        updateButtonState('loginBtn', getTranslation('login'), false);
     }
 }
 
@@ -126,16 +245,6 @@ async function handleSignup(event) {
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
     
-    if (!name || !email || !password) {
-        showNotification('Please fill all fields', 'error');
-        return;
-    }
-    
-    if (password.length < 6) {
-        showNotification('Password must be at least 6 characters', 'error');
-        return;
-    }
-    
     isProcessing = true;
     updateButtonState('signupBtn', 'Creating account...', true);
     hideMessages();
@@ -144,8 +253,7 @@ async function handleSignup(event) {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await userCredential.user.updateProfile({ displayName: name });
         
-        // Try to save to database (but don't block if it fails)
-        await saveUserToDatabase(userCredential.user, name);
+        await saveUserToDatabase(userCredential.user);
         
         document.getElementById('signupSuccess').textContent = 'Account created successfully!';
         document.getElementById('signupSuccess').style.display = 'block';
@@ -162,7 +270,7 @@ async function handleSignup(event) {
         document.getElementById('signupError').style.display = 'block';
     } finally {
         isProcessing = false;
-        updateButtonState('signupBtn', 'Sign Up', false);
+        updateButtonState('signupBtn', getTranslation('signUp'), false);
     }
 }
 
@@ -183,10 +291,9 @@ function getAuthErrorMessage(error) {
         'auth/user-not-found': 'No account found with this email',
         'auth/wrong-password': 'Incorrect password',
         'auth/email-already-in-use': 'Email already registered',
-        'auth/weak-password': 'Password should be at least 6 characters',
-        'auth/network-request-failed': 'Network error. Check your connection'
+        'auth/weak-password': 'Password should be at least 6 characters'
     };
-    return messages[error.code] || 'Authentication failed. Please try again.';
+    return messages[error.code] || 'Authentication failed';
 }
 
 // UI FUNCTIONS
@@ -232,125 +339,123 @@ function showNotification(message, type = 'success') {
 }
 
 function updateUserProfile(user) {
-    document.getElementById('userName').textContent = user.displayName || user.email;
+    document.getElementById('userName').textContent = user.displayName || user.email.split('@')[0];
     document.getElementById('userEmail').textContent = user.email;
 }
 
-// LANGUAGE FUNCTIONS
-function getTranslation(key) {
-    const translations = {
-        en: {
-            appTitle: "Smart AI",
-            appSubtitle: "Powered by Gemini AI",
-            email: "Email",
-            password: "Password",
-            name: "Name",
-            login: "Login",
-            signUp: "Sign Up",
-            noAccount: "Don't have an account?",
-            haveAccount: "Already have an account?",
-            enterEmail: "Enter your email",
-            enterPassword: "Enter your password",
-            enterName: "Enter your name",
-            createPassword: "Create a password (min 6 characters)",
-            createAccount: "Create Your Account"
-        },
-        si: {
-            appTitle: "Smart AI",
-            appSubtitle: "Gemini AI මගින් බලගන්වා ඇත",
-            email: "විද්‍යුත් ලිපිනය",
-            password: "මුරපදය",
-            name: "නම",
-            login: "ඇතුල් වන්න",
-            signUp: "ලියාපදිංචි වන්න",
-            noAccount: "ගිණුමක් නැද්ද?",
-            haveAccount: "දැනටමත් ගිණුමක් තිබේද?",
-            enterEmail: "ඔබගේ විද්‍යුත් ලිපිනය ඇතුළත් කරන්න",
-            enterPassword: "ඔබගේ මුරපදය ඇතුළත් කරන්න",
-            enterName: "ඔබගේ නම ඇතුළත් කරන්න",
-            createPassword: "මුරපදයක් සාදන්න (අවම අක්ෂර 6ක්)",
-            createAccount: "ඔබගේ ගිණුම සාදන්න"
-        }
-    };
-    
-    return translations[currentLanguage][key] || translations.en[key] || key;
+// SESSION MANAGEMENT
+function getStorageKey() {
+    const userId = auth.currentUser?.uid || 'anonymous';
+    return `smartai-sessions-${userId}`;
 }
 
-function updateLanguage() {
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        element.textContent = getTranslation(key);
-    });
-
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        element.placeholder = getTranslation(key);
-    });
-}
-
-function toggleLanguage() {
-    currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
-    updateLanguage();
-    showNotification(currentLanguage === 'en' ? 'Language changed to English' : 'භාෂාව සිංහලට වෙනස් විය');
-}
-
-function loadLanguagePreference() {
-    const savedLang = localStorage.getItem('smartai-language');
-    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
-        currentLanguage = savedLang;
-        updateLanguage();
+function saveChatSessionsToLocal() {
+    try {
+        const storageKey = getStorageKey();
+        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+    } catch (error) {
+        console.error('Local save error:', error);
     }
 }
 
-// BASIC CHAT FUNCTIONALITY (කෝඩ් එක කෙටි කිරීම)
+function loadChatSessionsFromLocal() {
+    try {
+        const storageKey = getStorageKey();
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            chatSessions = JSON.parse(saved);
+        }
+    } catch (error) {
+        console.error('Local load error:', error);
+    }
+}
+
+function loadChatSessions() {
+    loadChatSessionsFromDatabase().then(success => {
+        if (!success) {
+            loadChatSessionsFromLocal();
+        }
+        
+        if (chatSessions.length === 0) {
+            createNewChat();
+        } else {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        }
+        renderSessions();
+    });
+}
+
+function saveChatSessions() {
+    saveChatSessionsToDatabase();
+    saveChatSessionsToLocal();
+}
+
 function createNewChat() {
     const sessionId = 'session_' + Date.now();
     const newSession = {
         id: sessionId,
-        title: currentLanguage === 'si' ? 'නව සංවාදය' : 'New Chat',
+        title: getTranslation('newChat'),
         messages: [],
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        updatedAt: Date.now()
     };
     
     chatSessions.unshift(newSession);
     currentSessionId = sessionId;
+    saveChatSessions();
+    renderSessions();
     clearMessages();
-    showNotification('New chat started');
 }
 
 function clearMessages() {
     document.getElementById('chatMessages').innerHTML = `
         <div class="welcome-screen">
             <div class="ai-logo">🤖</div>
-            <h1>Hi, I'm Smart AI</h1>
-            <p>How can I help you today?</p>
+            <h1>${getTranslation('welcomeTitle')}</h1>
+            <p>${getTranslation('welcomeSubtitle')}</p>
         </div>
     `;
 }
 
-// INITIALIZE APP
-window.addEventListener('load', function() {
-    console.log("🎯 Page loaded, starting initialization...");
-    initializeFirebase();
-});
+// BASIC CHAT FUNCTIONS
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message
+    addMessage(message, true);
+    input.value = '';
+    
+    // Simulate AI response
+    setTimeout(() => {
+        addMessage("I'm your Smart AI assistant. How can I help you?", false);
+    }, 1000);
+}
 
-// Add basic error handling for other functions
-async function handleLogout() {
-    try {
-        await auth.signOut();
-        showNotification('Logged out successfully');
-    } catch (error) {
-        console.error('Logout error:', error);
-        showNotification('Logout failed', 'error');
+function addMessage(content, isUser) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const welcome = messagesDiv.querySelector('.welcome-screen');
+    if (welcome) welcome.remove();
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+    messageDiv.innerHTML = `
+        <div class="message-content">${content}</div>
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
     }
 }
 
-function toggleSidebar() {
-    document.getElementById('chatSidebar').classList.toggle('active');
-    document.getElementById('sidebarOverlay').classList.toggle('active');
-}
-
-function closeSidebar() {
-    document.getElementById('chatSidebar').classList.remove('active');
-    document.getElementById('sidebarOverlay').classList.remove('active');
-}
+// INITIALIZE APP
+window.addEventListener('load', initializeFirebase);
