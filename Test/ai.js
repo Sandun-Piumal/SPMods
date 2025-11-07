@@ -1,3 +1,14 @@
+// Import Firebase v9 modular SDK functions
+import { initializeApp } from 'firebase/app';
+import { 
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, signOut, updateProfile 
+} from 'firebase/auth';
+import { 
+    getFirestore, collection, doc, getDocs, setDoc, deleteDoc, 
+    query, orderBy, limit, Timestamp 
+} from 'firebase/firestore';
+
 // COMPLETE FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
@@ -11,9 +22,12 @@ const firebaseConfig = {
 // GEMINI API KEY
 const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
+// Initialize Firebase App and services
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 // STATE VARIABLES
-let auth = null;
-let db = null;
 let isProcessing = false;
 let chatSessions = [];
 let currentSessionId = null;
@@ -21,7 +35,7 @@ let currentImage = null;
 let currentOCRText = '';
 let currentLanguage = 'en';
 
-// TRANSLATIONS (ඔබේ existing translations එකම තියන්න)
+// TRANSLATIONS (බැලූ ඔබේ translations එකම තියන්න)
 const translations = {
     en: {
         appTitle: "Smart AI",
@@ -95,48 +109,8 @@ const translations = {
     }
 };
 
-// FIREBASE VERSION 9 INITIALIZATION
-function initializeFirebase() {
-    try {
-        console.log("🔄 Initializing Firebase v9...");
-        
-        // Check if Firebase is loaded
-        if (typeof firebase === 'undefined') {
-            console.error('❌ Firebase SDK not loaded');
-            showNotification('Firebase not loaded. Please refresh.', 'error');
-            return;
-        }
+// --- LANGUAGE FUNCTIONS ---
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        
-        // Initialize services
-        auth = firebase.auth();
-        db = firebase.firestore();
-        
-        console.log("✅ Firebase v9 initialized successfully");
-
-        // Auth state listener
-        auth.onAuthStateChanged((user) => {
-            console.log("Auth state changed:", user ? "User logged in" : "No user");
-            if (user) {
-                showChatApp();
-                loadChatSessions(user.uid);
-                updateUserProfile(user);
-            } else {
-                showAuthContainer();
-            }
-        });
-
-        loadLanguagePreference();
-        
-    } catch (error) {
-        console.error("Firebase v9 initialization error:", error);
-        showNotification("Firebase setup failed: " + error.message, "error");
-    }
-}
-
-// LANGUAGE FUNCTIONS
 function getTranslation(key) {
     return translations[currentLanguage][key] || translations.en[key] || key;
 }
@@ -169,23 +143,25 @@ function loadLanguagePreference() {
     }
 }
 
-// UPDATE USER PROFILE
+// --- USER PROFILE ---
+
 function updateUserProfile(user) {
     const userName = user.displayName || user.email.split('@')[0];
     const userEmail = user.email;
-    
+
     const userNameElement = document.getElementById('userName');
     const userEmailElement = document.getElementById('userEmail');
-    
+
     if (userNameElement) userNameElement.textContent = userName;
     if (userEmailElement) userEmailElement.textContent = userEmail;
 }
 
-// UI FUNCTIONS
+// --- UI SHOW/HIDE FUNCTIONS ---
+
 function showLogin() {
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
-    
+
     if (loginForm) loginForm.style.display = 'block';
     if (signupForm) signupForm.style.display = 'none';
     hideMessages();
@@ -194,7 +170,7 @@ function showLogin() {
 function showSignup() {
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
-    
+
     if (loginForm) loginForm.style.display = 'none';
     if (signupForm) signupForm.style.display = 'block';
     hideMessages();
@@ -203,7 +179,7 @@ function showSignup() {
 function showAuthContainer() {
     const authContainer = document.getElementById('authContainer');
     const chatApp = document.getElementById('chatApp');
-    
+
     if (authContainer) authContainer.style.display = 'flex';
     if (chatApp) chatApp.style.display = 'none';
 }
@@ -211,7 +187,7 @@ function showAuthContainer() {
 function showChatApp() {
     const authContainer = document.getElementById('authContainer');
     const chatApp = document.getElementById('chatApp');
-    
+
     if (authContainer) authContainer.style.display = 'none';
     if (chatApp) chatApp.style.display = 'block';
 }
@@ -220,7 +196,7 @@ function hideMessages() {
     const loginError = document.getElementById('loginError');
     const signupError = document.getElementById('signupError');
     const signupSuccess = document.getElementById('signupSuccess');
-    
+
     if (loginError) loginError.style.display = 'none';
     if (signupError) signupError.style.display = 'none';
     if (signupSuccess) signupSuccess.style.display = 'none';
@@ -229,25 +205,25 @@ function hideMessages() {
 function showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');
     const text = document.getElementById('notificationText');
-    
+
     if (!notification || !text) {
         console.log("Notification:", message);
         return;
     }
-    
+
     const icon = notification.querySelector('i');
-    
+
     notification.className = `notification ${type}`;
     text.textContent = message;
-    
+
     if (type === 'success') {
         icon.className = 'fas fa-check-circle';
     } else {
         icon.className = 'fas fa-exclamation-circle';
     }
-    
+
     notification.classList.add('show');
-    
+
     setTimeout(() => {
         notification.classList.remove('show');
     }, 3000);
@@ -256,7 +232,7 @@ function showNotification(message, type = 'success') {
 function showLoading(text) {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
-    
+
     if (overlay && loadingText) {
         loadingText.textContent = text;
         overlay.classList.add('show');
@@ -273,7 +249,7 @@ function hideLoading() {
 function toggleSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    
+
     if (sidebar) sidebar.classList.toggle('active');
     if (overlay) overlay.classList.toggle('active');
 }
@@ -281,39 +257,37 @@ function toggleSidebar() {
 function closeSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    
+
     if (sidebar) sidebar.classList.remove('active');
     if (overlay) overlay.classList.remove('active');
 }
 
-// AUTH HANDLERS - VERSION 9 COMPATIBLE
+// --- AUTH HANDLERS ---
+
 async function handleLogin(event) {
     if (event) event.preventDefault();
     if (isProcessing) return;
-    
+
     const email = document.getElementById('loginEmail')?.value;
     const password = document.getElementById('loginPassword')?.value;
-    
+
     if (!email || !password) {
         showNotification('Please fill all fields', 'error');
         return;
     }
-    
+
     isProcessing = true;
     showLoading('Logging in...');
     hideMessages();
-    
+
     try {
-        await auth.signInWithEmailAndPassword(email, password);
+        await signInWithEmailAndPassword(auth, email, password);
         showNotification(getTranslation('loginSuccess'));
-        
         const loginForm = document.getElementById('loginForm');
         if (loginForm) loginForm.reset();
-        
     } catch (error) {
         console.error('Login error:', error);
         let errorMessage = 'Login failed. Please try again.';
-        
         if (error.code === 'auth/user-not-found') {
             errorMessage = 'User not found. Please check your email.';
         } else if (error.code === 'auth/wrong-password') {
@@ -321,7 +295,6 @@ async function handleLogin(event) {
         } else if (error.code === 'auth/invalid-email') {
             errorMessage = 'Invalid email address.';
         }
-        
         showNotification(errorMessage, 'error');
     } finally {
         isProcessing = false;
@@ -332,42 +305,37 @@ async function handleLogin(event) {
 async function handleSignup(event) {
     if (event) event.preventDefault();
     if (isProcessing) return;
-    
+
     const name = document.getElementById('signupName')?.value;
     const email = document.getElementById('signupEmail')?.value;
     const password = document.getElementById('signupPassword')?.value;
-    
+
     if (!name || !email || !password) {
         showNotification('Please fill all fields', 'error');
         return;
     }
-    
+
     if (password.length < 6) {
         showNotification('Password must be at least 6 characters', 'error');
         return;
     }
-    
+
     isProcessing = true;
     showLoading('Creating account...');
     hideMessages();
-    
+
     try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await userCredential.user.updateProfile({ displayName: name });
-        
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
         showNotification('Registration successful! Redirecting...');
-        
         const signupForm = document.getElementById('signupForm');
         if (signupForm) signupForm.reset();
-        
         setTimeout(() => {
             showLogin();
         }, 2000);
-        
     } catch (error) {
         console.error('Signup error:', error);
         let errorMessage = 'Registration failed. Please try again.';
-        
         if (error.code === 'auth/email-already-in-use') {
             errorMessage = 'Email already registered. Please use a different email.';
         } else if (error.code === 'auth/weak-password') {
@@ -375,7 +343,6 @@ async function handleSignup(event) {
         } else if (error.code === 'auth/invalid-email') {
             errorMessage = 'Invalid email address.';
         }
-        
         showNotification(errorMessage, 'error');
     } finally {
         isProcessing = false;
@@ -385,7 +352,7 @@ async function handleSignup(event) {
 
 async function handleLogout() {
     try {
-        await auth.signOut();
+        await signOut(auth);
         chatSessions = [];
         currentSessionId = null;
         showNotification(getTranslation('logoutSuccess'));
@@ -395,81 +362,76 @@ async function handleLogout() {
     }
 }
 
-// FIRESTORE VERSION 9 COMPATIBLE FUNCTIONS
+// --- FIRESTORE + CHAT SESSION FUNCTIONS ---
+
 function generateSessionId() {
     return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
 async function loadChatSessions(userId) {
+    if (!userId || !db) return;
     try {
-        if (!userId || !db) return;
-        
         console.log("🔄 Loading sessions from Firestore v9...");
-        
-        const sessionsRef = db.collection('users').doc(userId).collection('chatSessions');
-        const snapshot = await sessionsRef.orderBy('updatedAt', 'desc').limit(50).get();
-        
+        const sessionsRef = collection(db, 'users', userId, 'chatSessions');
+        const q = query(sessionsRef, orderBy('updatedAt', 'desc'), limit(50));
+        const snapshot = await getDocs(q);
+
         chatSessions = [];
-        snapshot.forEach(doc => {
-            const sessionData = doc.data();
+        snapshot.forEach(docSnap => {
             chatSessions.push({
-                id: doc.id,
-                ...sessionData
+                id: docSnap.id,
+                ...docSnap.data()
             });
         });
-        
+
         console.log("✅ Loaded from Firestore:", chatSessions.length, "sessions");
-        
         if (chatSessions.length === 0) {
             await createNewChat();
         } else {
             currentSessionId = chatSessions[0].id;
             renderChatHistory();
         }
-        
         renderSessions();
-        
     } catch (error) {
-        console.error('Firestore v9 load error:', error);
-        // Fallback to localStorage
+        console.error('Firestore load error:', error);
         loadFromLocalStorage(userId);
     }
 }
 
 async function saveChatSession(session) {
+    const userId = auth.currentUser?.uid;
+    if (!userId || !db) return;
+
+    const sessionData = {
+        title: session.title,
+        messages: session.messages,
+        createdAt: Timestamp.fromDate(new Date(session.createdAt)),
+        updatedAt: Timestamp.fromDate(new Date(session.updatedAt))
+    };
+
     try {
-        const userId = auth.currentUser?.uid;
-        if (!userId || !db) return;
-
-        const sessionData = {
-            title: session.title,
-            messages: session.messages,
-            createdAt: firebase.firestore.Timestamp.fromDate(new Date(session.createdAt)),
-            updatedAt: firebase.firestore.Timestamp.fromDate(new Date(session.updatedAt))
-        };
-
-        await db.collection('users').doc(userId).collection('chatSessions').doc(session.id).set(sessionData);
+        await setDoc(doc(db, 'users', userId, 'chatSessions', session.id), sessionData);
         console.log("✅ Saved to Firestore v9:", session.id);
-        
     } catch (error) {
-        console.error('Firestore v9 save error:', error);
+        console.error('Firestore save error:', error);
         throw error;
     }
 }
 
 async function deleteChatSession(sessionId) {
+    const userId = auth.currentUser?.uid;
+    if (!userId || !db) return;
+
     try {
-        const userId = auth.currentUser?.uid;
-        if (!userId || !db) return;
-        
-        await db.collection('users').doc(userId).collection('chatSessions').doc(sessionId).delete();
+        await deleteDoc(doc(db, 'users', userId, 'chatSessions', sessionId));
     } catch (error) {
-        console.error('Firestore v9 delete error:', error);
+        console.error('Firestore delete error:', error);
         throw error;
     }
 }
 
-// LOCALSTORAGE FALLBACK
+// --- LOCALSTORAGE FALLBACK ---
+
 function getStorageKey(userId) {
     return `smartai-sessions-${userId}`;
 }
@@ -478,19 +440,19 @@ function loadFromLocalStorage(userId) {
     try {
         const storageKey = getStorageKey(userId);
         const saved = localStorage.getItem(storageKey);
-        
+
         if (saved) {
             chatSessions = JSON.parse(saved);
             console.log("✅ Loaded from localStorage:", chatSessions.length, "sessions");
         }
-        
+
         if (chatSessions.length === 0) {
             createNewChat();
         } else {
             currentSessionId = chatSessions[0].id;
             renderChatHistory();
         }
-        
+
         renderSessions();
     } catch (error) {
         console.error('LocalStorage load error:', error);
@@ -498,10 +460,11 @@ function loadFromLocalStorage(userId) {
     }
 }
 
-// SESSION OPERATIONS
+// --- SESSION OPERATIONS ---
+
 async function createNewChat() {
     const sessionId = generateSessionId();
-    
+
     const newSession = {
         id: sessionId,
         title: currentLanguage === 'si' ? 'නව සංවාදය' : 'New Chat',
@@ -509,19 +472,19 @@ async function createNewChat() {
         createdAt: new Date(),
         updatedAt: new Date()
     };
-    
+
     chatSessions.unshift(newSession);
     currentSessionId = sessionId;
-    
+
     try {
         await saveChatSession(newSession);
     } catch (error) {
         console.error('Failed to save new chat:', error);
     }
-    
+
     renderSessions();
     clearMessages();
-    
+
     if (window.innerWidth <= 768) {
         closeSidebar();
     }
@@ -532,7 +495,7 @@ async function switchToSession(sessionId) {
         closeSidebar();
         return;
     }
-    
+
     currentSessionId = sessionId;
     renderChatHistory();
     renderSessions();
@@ -541,17 +504,17 @@ async function switchToSession(sessionId) {
 
 async function deleteChat(sessionId, event) {
     if (event) event.stopPropagation();
-    
+
     const confirmMsg = getTranslation('deleteConfirm');
     if (!confirm(confirmMsg)) return;
-    
+
     const index = chatSessions.findIndex(s => s.id === sessionId);
     if (index === -1) return;
-    
+
     try {
         await deleteChatSession(sessionId);
         chatSessions.splice(index, 1);
-        
+
         if (currentSessionId === sessionId) {
             if (chatSessions.length > 0) {
                 currentSessionId = chatSessions[0].id;
@@ -560,7 +523,7 @@ async function deleteChat(sessionId, event) {
                 await createNewChat();
             }
         }
-        
+
         renderSessions();
         showNotification(getTranslation('chatDeleted'));
     } catch (error) {
@@ -576,22 +539,22 @@ function getCurrentSession() {
 function renderSessions() {
     const historyContainer = document.getElementById('chatHistory');
     if (!historyContainer) return;
-    
+
     historyContainer.innerHTML = '';
-    
+
     chatSessions.forEach(session => {
         const item = document.createElement('div');
         item.className = 'history-item';
         if (session.id === currentSessionId) {
             item.classList.add('active');
         }
-        
-        const lastMessage = session.messages.length > 0 
-            ? session.messages[session.messages.length - 1].content 
+
+        const lastMessage = session.messages.length > 0
+            ? session.messages[session.messages.length - 1].content
             : (currentLanguage === 'si' ? 'තවම පණිවිඩ නැත' : 'No messages yet');
-        
+
         const timeStr = getTimeString(session.updatedAt);
-        
+
         item.innerHTML = `
             <div class="history-title">${escapeHtml(session.title)}</div>
             <div class="history-preview">${escapeHtml(lastMessage.substring(0, 40))}${lastMessage.length > 40 ? '...' : ''}</div>
@@ -600,7 +563,7 @@ function renderSessions() {
                 <i class="fas fa-trash"></i>
             </button>
         `;
-        
+
         item.onclick = () => switchToSession(session.id);
         historyContainer.appendChild(item);
     });
@@ -614,12 +577,12 @@ function getTimeString(timestamp) {
     } else if (typeof timestamp !== 'number') {
         timestamp = new Date(timestamp).getTime();
     }
-    
+
     const now = Date.now();
     const diff = now - timestamp;
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
-    
+
     if (currentLanguage === 'si') {
         if (days === 0) return 'අද';
         if (days === 1) return 'ඊයේ';
@@ -639,11 +602,12 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// CHAT MESSAGES (Rest of your existing chat functions remain the same)
+// --- CHAT MESSAGES ---
+
 function clearMessages() {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
-    
+
     const logoSvg = `<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -657,7 +621,7 @@ function clearMessages() {
         <path d="M18 40 Q18 28, 32 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
         <path d="M62 40 Q62 28, 48 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
     </svg>`;
-    
+
     messagesDiv.innerHTML = `
         <div class="welcome-screen">
             <div class="ai-logo">${logoSvg}</div>
@@ -670,36 +634,36 @@ function clearMessages() {
 function renderChatHistory() {
     const session = getCurrentSession();
     if (!session) return;
-    
+
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
-    
+
     messagesDiv.innerHTML = '';
-    
+
     if (session.messages.length === 0) {
         clearMessages();
         return;
     }
-    
+
     session.messages.forEach(msg => {
         addMessageToDOM(msg.content, msg.isUser, msg.imageData, false);
     });
-    
+
     scrollToBottom();
 }
 
 function addMessageToDOM(content, isUser, imageData = null, animate = true) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
-    
+
     const welcome = messagesDiv.querySelector('.welcome-screen');
     if (welcome) {
         welcome.remove();
     }
-    
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-    
+
     const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : `<svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="msgLogo" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -711,16 +675,16 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
         <path d="M13 17 L20 10 L27 17 L24 17 L24 27 L16 27 L16 17 Z" fill="white" opacity="0.9"/>
         <circle cx="20" cy="30" r="2" fill="white" opacity="0.9"/>
     </svg>`;
-    
-    const messageLabel = isUser 
+
+    const messageLabel = isUser
         ? (currentLanguage === 'si' ? 'ඔබ' : 'You')
         : 'Smart AI';
-    
+
     let imageHTML = '';
     if (imageData) {
         imageHTML = `<img src="${imageData}" alt="Uploaded" class="message-image">`;
     }
-    
+
     messageDiv.innerHTML = `
         <div class="message-header">
             <div class="message-avatar">${avatarIcon}</div>
@@ -728,7 +692,8 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
         </div>
         <div class="message-content">
             ${imageHTML}
-            ${content.replace(/\n/g, '<br>')}
+            ${content.replace(/
+/g, '<br>')}
         </div>
         ${!isUser ? `
             <div class="message-actions">
@@ -738,9 +703,9 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
             </div>
         ` : ''}
     `;
-    
+
     messagesDiv.appendChild(messageDiv);
-    
+
     if (animate) {
         scrollToBottom();
     }
@@ -748,7 +713,7 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
 
 async function addMessage(content, isUser, imageData = null) {
     addMessageToDOM(content, isUser, imageData, true);
-    
+
     const session = getCurrentSession();
     if (session) {
         session.messages.push({
@@ -757,20 +722,20 @@ async function addMessage(content, isUser, imageData = null) {
             imageData: imageData,
             timestamp: new Date()
         });
-        
+
         session.updatedAt = new Date();
-        
+
         if (isUser && session.messages.filter(m => m.isUser).length === 1) {
             const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
             session.title = titleText + (titleText.length >= 30 ? '...' : '');
         }
-        
+
         try {
             await saveChatSession(session);
         } catch (error) {
             console.error('Failed to save message:', error);
         }
-        
+
         renderSessions();
     }
 }
@@ -778,7 +743,7 @@ async function addMessage(content, isUser, imageData = null) {
 function scrollToBottom() {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
-    
+
     setTimeout(() => {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }, 100);
@@ -787,48 +752,49 @@ function scrollToBottom() {
 function copyMessage(button) {
     const messageContent = button.closest('.message').querySelector('.message-content');
     const textContent = messageContent.innerText || messageContent.textContent;
-    
+
     navigator.clipboard.writeText(textContent).then(() => {
         const originalHTML = button.innerHTML;
         const copiedText = currentLanguage === 'si' ? 'පිටපත් විය!' : 'Copied!';
         button.innerHTML = `<i class="fas fa-check"></i> ${copiedText}`;
-        
+
         setTimeout(() => {
             button.innerHTML = originalHTML;
         }, 2000);
     });
 }
 
-// IMAGE UPLOAD (Rest of your existing image functions remain the same)
+// --- IMAGE UPLOAD & OCR ---
+
 async function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     if (!file.type.startsWith('image/')) {
         showNotification(currentLanguage === 'si' ? 'කරුණාකර පින්තූරයක් උඩුගත කරන්න' : 'Please upload an image', 'error');
         return;
     }
-    
+
     showLoading(getTranslation('processingImage'));
-    
+
     const reader = new FileReader();
     reader.onload = async function(e) {
         currentImage = e.target.result;
-        
+
         const preview = document.getElementById('imagePreview');
         const previewImage = document.getElementById('previewImage');
-        
+
         if (preview && previewImage) {
             previewImage.src = currentImage;
             preview.style.display = 'block';
         }
-        
+
         hideLoading();
         showNotification(getTranslation('imageUploaded'));
-        
+
         await performOCR(currentImage);
     };
-    
+
     reader.readAsDataURL(file);
     event.target.value = '';
 }
@@ -836,7 +802,7 @@ async function handleImageUpload(event) {
 async function performOCR(imageData) {
     try {
         showLoading(getTranslation('extractingText'));
-        
+
         const result = await Tesseract.recognize(
             imageData,
             'eng+sin',
@@ -844,7 +810,7 @@ async function performOCR(imageData) {
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         const progress = Math.round(m.progress * 100);
-                        const text = currentLanguage === 'si' 
+                        const text = currentLanguage === 'si'
                             ? `පෙළ උපුටා ගනිමින්... ${progress}%`
                             : `Extracting text... ${progress}%`;
                         document.getElementById('loadingText').textContent = text;
@@ -852,9 +818,9 @@ async function performOCR(imageData) {
                 }
             }
         );
-        
+
         currentOCRText = result.data.text.trim();
-        
+
         if (currentOCRText) {
             const ocrTextDiv = document.getElementById('ocrText');
             if (ocrTextDiv) {
@@ -864,7 +830,7 @@ async function performOCR(imageData) {
             }
             showNotification(getTranslation('textExtracted'));
         }
-        
+
         hideLoading();
     } catch (error) {
         console.error('OCR error:', error);
@@ -878,35 +844,54 @@ function removeImage() {
     currentOCRText = '';
     const preview = document.getElementById('imagePreview');
     const ocrTextDiv = document.getElementById('ocrText');
-    
+
     if (preview) preview.style.display = 'none';
     if (ocrTextDiv) ocrTextDiv.textContent = '';
 }
 
-// GEMINI AI (Rest of your existing AI functions remain the same)
+// --- GEMINI AI ---
+
 async function getAIResponse(userMessage, imageData = null, ocrText = '') {
     try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-        
+
         let messageText = userMessage;
-        
+
         if (ocrText) {
             if (userMessage) {
                 messageText = currentLanguage === 'si'
-                    ? `ප්‍රශ්නය: ${userMessage}\n\nපින්තූරයේ පෙළ:\n${ocrText}\n\nපින්තූරයේ පෙළ මත පදනම්ව පිළිතුරු දෙන්න.`
-                    : `Question: ${userMessage}\n\nText from image:\n${ocrText}\n\nAnswer based on the image text.`;
+                    ? `ප්‍රශ්නය: ${userMessage}
+
+පින්තූරයේ පෙළ:
+${ocrText}
+
+පින්තූරයේ පෙළ මත පදනම්ව පිළිතුරු දෙන්න.`
+                    : `Question: ${userMessage}
+
+Text from image:
+${ocrText}
+
+Answer based on the image text.`;
             } else {
                 messageText = currentLanguage === 'si'
-                    ? `පින්තූරයේ ඇත්තේ:\n${ocrText}\n\nමෙම පෙළ විශ්ලේෂණය කරන්න.`
-                    : `Image contains:\n${ocrText}\n\nAnalyze this text.`;
+                    ? `පින්තූරයේ ඇත්තේ:
+${ocrText}
+
+මෙම පෙළ විශ්ලේෂණය කරන්න.`
+                    : `Image contains:
+${ocrText}
+
+Analyze this text.`;
             }
         }
-        
+
         // Add language instruction
         if (currentLanguage === 'si') {
-            messageText = `කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න.\n\n${messageText}`;
+            messageText = `කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න.
+
+${messageText}`;
         }
-        
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -924,22 +909,22 @@ async function getAIResponse(userMessage, imageData = null, ocrText = '') {
                 }
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`API Error: ${response.status}`);
         }
-        
+
         const data = await response.json();
         const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
+
         if (!aiResponse) {
             throw new Error('Empty response');
         }
-        
+
         return aiResponse;
     } catch (error) {
         console.error('AI error:', error);
-        return currentLanguage === 'si' 
+        return currentLanguage === 'si'
             ? 'සමාවන්න, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
             : 'Sorry, an error occurred. Please try again.';
     }
@@ -947,35 +932,35 @@ async function getAIResponse(userMessage, imageData = null, ocrText = '') {
 
 async function sendMessage() {
     if (isProcessing) return;
-    
+
     const input = document.getElementById('messageInput');
     const message = input?.value.trim();
-    
+
     if (!message && !currentImage) return;
-    
+
     const messageToSend = message || (currentLanguage === 'si' ? '[පින්තූරය යවන ලදී]' : '[Image sent]');
     const imageToSend = currentImage;
     const ocrTextToSend = currentOCRText;
-    
+
     await addMessage(messageToSend, true, imageToSend);
-    
+
     if (input) input.value = '';
     removeImage();
-    
+
     const sendBtn = document.getElementById('sendButton');
     const typing = document.getElementById('typingIndicator');
-    
+
     isProcessing = true;
     if (sendBtn) sendBtn.disabled = true;
     if (typing) typing.style.display = 'flex';
-    
+
     try {
         const response = await getAIResponse(message, imageToSend, ocrTextToSend);
         if (typing) typing.style.display = 'none';
         await addMessage(response, false);
     } catch (error) {
         if (typing) typing.style.display = 'none';
-        const errorMsg = currentLanguage === 'si' 
+        const errorMsg = currentLanguage === 'si'
             ? 'සමාවන්න, දෝෂයක් ඇතිවිය.'
             : 'Sorry, an error occurred.';
         await addMessage(errorMsg, false);
@@ -994,10 +979,25 @@ function handleKeyPress(event) {
     }
 }
 
-// INITIALIZE
-window.addEventListener('load', initializeFirebase);
+// --- INITIALIZE ---
 
-// GLOBAL FUNCTIONS
+window.addEventListener('load', () => {
+    console.log("🔄 Initializing Firebase v9...");
+    onAuthStateChanged(auth, (user) => {
+        console.log("Auth state changed:", user ? "User logged in" : "No user");
+        if (user) {
+            showChatApp();
+            loadChatSessions(user.uid);
+            updateUserProfile(user);
+        } else {
+            showAuthContainer();
+        }
+    });
+    loadLanguagePreference();
+});
+
+// --- GLOBAL FUNCTIONS ---
+
 window.toggleLanguage = toggleLanguage;
 window.handleLogin = handleLogin;
 window.handleSignup = handleSignup;
