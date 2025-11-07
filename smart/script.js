@@ -1,1037 +1,879 @@
-// Supabase configuration
-const SUPABASE_URL = 'https://bsjszimsmbtpvbtrpyou.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzanN6aW1zbWJ0cHZidHJweW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNjAyNTcsImV4cCI6MjA3NzkzNjI1N30.fooJQG3VnyNar2NxEKXHFXnTW0KDkUVtQ4U3ohg1VZI';
-
-// Initialize Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Language content - ENGLISH ONLY FOR AUTH
-const languageContent = {
-    sinhala: {
-        // Chat content remains in Sinhala
-        logoTitle: "Smart AI",
-        headerSubtitle: "Powered by Gemini AI",
-        username: "පරිශීලක",
-        userStatus: "Online",
-        logoutText: "Logout",
-        welcomeTitle: "නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨",
-        welcomeText: "Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br>ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කරන්න 🚀",
-        typingText: "Smart AI ප්‍රතිචාර සකසමින්",
-        inputPlaceholder: "ඔබගේ ප්‍රශ්නය මෙතැන ටයිප් කරන්න...",
-        themeLabelDark: "අඳුරු",
-        themeLabelLight: "සැහැල්ලු",
-        clearChatText: "සංවාදය හිස් කරන්න",
-        exportChatText: "සංවාදය බාගන්න",
-        suggestionsText: "යෝජනා",
-        copyright: "Copyright © 2025 SPMods. All Rights Reserved.",
-        designCredit: "Developed: Sandun Piumal",
-        userLabel: "ඔබ",
-        aiLabel: "Smart AI",
-        historyTitle: "සංවාද ඉතිහාසය",
-        historyToggleText: "ඉතිහාසය",
-        currentSessionTitle: "වත්මන් සංවාදය",
-        newChatText: "New Chat",
-        importChatText: "Import"
-    },
-    english: {
-        // Auth content in English
-        authTitle: "Smart AI",
-        authSubtitle: "Powered by Gemini AI",
-        emailLabel: "Email",
-        passwordLabel: "Password",
-        nameLabel: "Name",
-        phoneLabel: "Phone Number",
-        birthdayLabel: "Birthday",
-        confirmPasswordLabel: "Confirm Password",
-        loginButton: "Login",
-        signupButton: "Sign Up",
-        noAccount: "Don't have an account?",
-        haveAccount: "Already have an account?",
-        showSignup: "Sign Up",
-        showLogin: "Login",
-        forgotPassword: "Forgot Password?",
-        resetPasswordButton: "Reset Password",
-        backToLogin: "Back to Login",
-        
-        // Chat content in English
-        logoTitle: "Smart AI",
-        headerSubtitle: "Powered by Gemini AI",
-        username: "User",
-        userStatus: "Online",
-        logoutText: "Logout",
-        welcomeTitle: "New Model Successfully Updated! ✨",
-        welcomeText: "Ready to work with Gemini AI Model!<br>Type your question below 🚀",
-        typingText: "Smart AI is preparing response",
-        inputPlaceholder: "Type your question here...",
-        themeLabelDark: "Dark",
-        themeLabelLight: "Light",
-        clearChatText: "Clear Chat",
-        exportChatText: "Export Chat",
-        suggestionsText: "Suggestions",
-        copyright: "Copyright © 2025 SPMods. All Rights Reserved.",
-        designCredit: "Developed: Sandun Piumal",
-        userLabel: "You",
-        aiLabel: "Smart AI",
-        historyTitle: "Chat History",
-        historyToggleText: "History",
-        currentSessionTitle: "Current Session",
-        newChatText: "New Chat",
-        importChatText: "Import"
-    }
+// FIREBASE CONFIG
+const firebaseConfig = {
+    apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
+    authDomain: "smart-ai-chat-app.firebaseapp.com",
+    projectId: "smart-ai-chat-app",
+    databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com"
 };
 
-// Current state
-let currentLanguage = 'sinhala';
-let currentTheme = 'dark';
-let chatHistory = [];
+// GEMINI API KEY
+const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
+
+// STATE VARIABLES
+let auth = null;
+let database = null;
+let isProcessing = false;
 let chatSessions = [];
 let currentSessionId = null;
-let isProcessing = false;
-let currentUser = null;
+let currentImage = null;
+let currentOCRText = '';
+let currentLanguage = 'en';
 
-// Gemini API Key
-const GOOGLE_AI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
-
-// DOM Elements Cache
-const elements = {
-    authContainer: document.getElementById('authContainer'),
-    chatApp: document.getElementById('chatApp'),
-    loginForm: document.getElementById('loginForm'),
-    signupForm: document.getElementById('signupForm'),
-    forgotPasswordForm: document.getElementById('forgotPasswordForm'),
-    loginError: document.getElementById('loginError'),
-    signupError: document.getElementById('signupError'),
-    signupSuccess: document.getElementById('signupSuccess'),
-    forgotError: document.getElementById('forgotError'),
-    forgotSuccess: document.getElementById('forgotSuccess'),
-    chatMessages: document.getElementById('chatMessages'),
-    messageInput: document.getElementById('messageInput'),
-    sendButton: document.getElementById('sendButton'),
-    typingIndicator: document.getElementById('typingIndicator'),
-    themeToggle: document.getElementById('themeToggle'),
-    themeLabel: document.getElementById('themeLabel'),
-    clearChatBtn: document.getElementById('clearChatBtn'),
-    exportChatBtn: document.getElementById('exportChatBtn'),
-    suggestionsBtn: document.getElementById('suggestionsBtn'),
-    notification: document.getElementById('notification'),
-    notificationText: document.getElementById('notificationText'),
-    chatSidebar: document.getElementById('chatSidebar'),
-    chatSessionsContainer: document.getElementById('chatSessions'),
-    historySearch: document.getElementById('historySearch'),
-    newChatBtn: document.getElementById('newChatBtn')
-};
-
-// Performance optimized functions
-const utils = {
-    // Debounce function for performance
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
+// TRANSLATIONS
+const translations = {
+    en: {
+        appTitle: "Smart AI",
+        appSubtitle: "Powered by Gemini AI",
+        email: "Email",
+        password: "Password",
+        name: "Name",
+        login: "Login",
+        signUp: "Sign Up",
+        noAccount: "Don't have an account?",
+        haveAccount: "Already have an account?",
+        enterEmail: "Enter your email",
+        enterPassword: "Enter your password",
+        enterName: "Enter your name",
+        createPassword: "Create a password (min 6 characters)",
+        createAccount: "Create Your Account",
+        newChat: "New chat",
+        welcomeTitle: "Hi, I'm Smart AI.",
+        welcomeSubtitle: "How can I help you today?",
+        messagePlaceholder: "Message Smart AI",
+        uploadImage: "Upload Image",
+        moreOptions: "More options",
+        deepThink: "DeepThink",
+        search: "Search",
+        logout: "Logout",
+        processing: "Processing...",
+        imageUploaded: "Image uploaded!",
+        textExtracted: "Text extracted!",
+        chatCleared: "Chat cleared!",
+        loginSuccess: "Login successful!",
+        logoutSuccess: "Logged out successfully!",
+        chatDeleted: "Chat deleted!",
+        deleteConfirm: "Delete this chat?",
+        extractingText: "Extracting text...",
+        processingImage: "Processing image...",
+        analyzingImage: "Analyzing image content...",
+        imageAnalyzed: "Image analyzed!"
     },
-
-    // Throttle function for performance
-    throttle(func, limit) {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    },
-
-    // Safe DOM element getter
-    getElement(id) {
-        return document.getElementById(id);
-    },
-
-    // Safe text content setter
-    setText(id, text) {
-        const element = this.getElement(id);
-        if (element) element.textContent = text;
-    },
-
-    // Safe innerHTML setter
-    setHTML(id, html) {
-        const element = this.getElement(id);
-        if (element) element.innerHTML = html;
+    si: {
+        appTitle: "Smart AI",
+        appSubtitle: "Gemini AI මගින් බලගන්වා ඇත",
+        email: "විද්‍යුත් ලිපිනය",
+        password: "මුරපදය",
+        name: "නම",
+        login: "ඇතුල් වන්න",
+        signUp: "ලියාපදිංචි වන්න",
+        noAccount: "ගිණුමක් නැද්ද?",
+        haveAccount: "දැනටමත් ගිණුමක් තිබේද?",
+        enterEmail: "ඔබගේ විද්‍යුත් ලිපිනය ඇතුළත් කරන්න",
+        enterPassword: "ඔබගේ මුරපදය ඇතුළත් කරන්න",
+        enterName: "ඔබගේ නම ඇතුළත් කරන්න",
+        createPassword: "මුරපදයක් සාදන්න (අවම අක්ෂර 6ක්)",
+        createAccount: "ඔබගේ ගිණුම සාදන්න",
+        newChat: "නව සංවාදය",
+        welcomeTitle: "හායි, මම Smart AI.",
+        welcomeSubtitle: "අද මට ඔබට උදව් කරන්නේ කෙසේද?",
+        messagePlaceholder: "Smart AI වෙත පණිවිඩයක්",
+        uploadImage: "පින්තූරය උඩුගත කරන්න",
+        moreOptions: "තවත් විකල්ප",
+        deepThink: "ගැඹුරු චින්තනය",
+        search: "සොයන්න",
+        logout: "ඉවත් වන්න",
+        processing: "සැකසෙමින්...",
+        imageUploaded: "පින්තූරය උඩුගත විය!",
+        textExtracted: "පෙළ උපුටා ගන්නා ලදී!",
+        chatCleared: "සංවාදය මකා දමන ලදී!",
+        loginSuccess: "පිවිසුම සාර්ථකයි!",
+        logoutSuccess: "සාර්ථකව ඉවත් විය!",
+        chatDeleted: "සංවාදය මකා දමන ලදී!",
+        deleteConfirm: "මෙම සංවාදය මකන්න ද?",
+        extractingText: "පෙළ උපුටා ගනිමින්...",
+        processingImage: "පින්තූරය සකසමින්...",
+        analyzingImage: "පින්තූරය විශ්ලේෂණය කරමින්...",
+        imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!"
     }
 };
 
-// User-specific data handling
-function getUserId() {
-    return currentUser ? currentUser.id : 'anonymous';
+// LANGUAGE FUNCTIONS
+function getTranslation(key) {
+    return translations[currentLanguage][key] || translations.en[key] || key;
 }
 
-function getStorageKey() {
-    return `smartai-${getUserId()}-sessions`;
+function updateLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        element.textContent = getTranslation(key);
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        element.placeholder = getTranslation(key);
+    });
+
+    document.querySelectorAll('[data-i18n-title]').forEach(element => {
+        const key = element.getAttribute('data-i18n-title');
+        element.title = getTranslation(key);
+    });
+
+    localStorage.setItem('smartai-language', currentLanguage);
 }
 
-function generateSessionId() {
-    return 'session_' + Date.now();
+function toggleLanguage() {
+    currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
+    updateLanguage();
+    showNotification(currentLanguage === 'en' ? 'Language changed to English' : 'භාෂාව සිංහලට වෙනස් විය');
 }
 
-function createNewSession() {
+function loadLanguagePreference() {
+    const savedLang = localStorage.getItem('smartai-language');
+    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
+        currentLanguage = savedLang;
+        updateLanguage();
+    }
+}
+
+// FIREBASE INITIALIZATION
+function initializeFirebase() {
+    try {
+        console.log("🔄 Initializing Firebase...");
+        
+        if (typeof firebase === 'undefined') {
+            console.error('❌ Firebase SDK not loaded');
+            showNotification('Please check your internet connection', 'error');
+            return;
+        }
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        auth = firebase.auth();
+        database = firebase.database();
+        
+        console.log("✅ Firebase initialized successfully");
+
+        auth.onAuthStateChanged((user) => {
+            console.log("🔐 Auth state changed:", user ? user.email : "No user");
+            if (user) {
+                showChatApp();
+                loadChatSessions();
+                updateUserProfile(user);
+            } else {
+                showAuthContainer();
+            }
+        });
+
+        loadLanguagePreference();
+        
+    } catch (error) {
+        console.error("❌ Firebase init error:", error);
+        showNotification("Failed to initialize app", "error");
+    }
+}
+
+// UI FUNCTIONS
+function showLogin() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('signupForm').style.display = 'none';
+    hideMessages();
+}
+
+function showSignup() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('signupForm').style.display = 'block';
+    hideMessages();
+}
+
+function showAuthContainer() {
+    document.getElementById('authContainer').style.display = 'flex';
+    document.getElementById('chatApp').style.display = 'none';
+}
+
+function showChatApp() {
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('chatApp').style.display = 'block';
+}
+
+function hideMessages() {
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('signupError').style.display = 'none';
+    document.getElementById('signupSuccess').style.display = 'none';
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    const text = document.getElementById('notificationText');
+    const icon = notification.querySelector('i');
+    
+    notification.className = `notification ${type}`;
+    text.textContent = message;
+    
+    if (type === 'success') {
+        icon.className = 'fas fa-check-circle';
+    } else {
+        icon.className = 'fas fa-exclamation-circle';
+    }
+    
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+function showLoading(text) {
+    const overlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    loadingText.textContent = text;
+    overlay.classList.add('show');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('chatSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('chatSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+}
+
+function updateUserProfile(user) {
+    const userName = user.displayName || user.email.split('@')[0];
+    const userEmail = user.email;
+    
+    document.getElementById('userName').textContent = userName;
+    document.getElementById('userEmail').textContent = userEmail;
+}
+
+// AUTH HANDLERS
+async function handleLogin(event) {
+    if (event) event.preventDefault();
     if (isProcessing) return;
+    
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+    
+    if (!email || !password) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
+    
     isProcessing = true;
+    btn.disabled = true;
+    btn.querySelector('.loader').style.display = 'block';
+    btn.querySelector('#loginText').textContent = 'Logging in...';
+    hideMessages();
+    
+    try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        showNotification(getTranslation('loginSuccess'));
+        document.getElementById('loginForm').reset();
+    } catch (error) {
+        console.error("Login error:", error);
+        const errorMsg = document.getElementById('loginError');
+        errorMsg.textContent = 'Login failed. Please check your credentials.';
+        errorMsg.style.display = 'block';
+    } finally {
+        isProcessing = false;
+        btn.disabled = false;
+        btn.querySelector('.loader').style.display = 'none';
+        btn.querySelector('#loginText').textContent = getTranslation('login');
+    }
+}
 
-    const sessionId = generateSessionId();
-    const session = {
+async function handleSignup(event) {
+    if (event) event.preventDefault();
+    if (isProcessing) return;
+    
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const btn = document.getElementById('signupBtn');
+    
+    if (!name || !email || !password) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    isProcessing = true;
+    btn.disabled = true;
+    btn.querySelector('.loader').style.display = 'block';
+    btn.querySelector('#signupText').textContent = 'Creating account...';
+    hideMessages();
+    
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await userCredential.user.updateProfile({ displayName: name });
+        
+        const successMsg = document.getElementById('signupSuccess');
+        successMsg.textContent = 'Registration successful! Redirecting...';
+        successMsg.style.display = 'block';
+        
+        document.getElementById('signupForm').reset();
+        
+        setTimeout(() => {
+            showLogin();
+        }, 2000);
+        
+    } catch (error) {
+        console.error("Signup error:", error);
+        const errorMsg = document.getElementById('signupError');
+        errorMsg.textContent = 'Registration failed. Please try again.';
+        errorMsg.style.display = 'block';
+    } finally {
+        isProcessing = false;
+        btn.disabled = false;
+        btn.querySelector('.loader').style.display = 'none';
+        btn.querySelector('#signupText').textContent = getTranslation('signUp');
+    }
+}
+
+async function handleLogout() {
+    try {
+        await auth.signOut();
+        chatSessions = [];
+        currentSessionId = null;
+        showNotification(getTranslation('logoutSuccess'));
+    } catch (error) {
+        console.error("Logout error:", error);
+        showNotification('Logout failed', 'error');
+    }
+}
+
+// GEMINI AI - UNIVERSAL FUNCTION (Text + Images)
+async function getAIResponse(userMessage, imageData = null) {
+    console.log("🤖 Getting AI response...", { userMessage, hasImage: !!imageData });
+    
+    try {
+        // If there's an image, use Gemini Pro Vision
+        if (imageData) {
+            const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const visionBody = {
+                contents: [{
+                    parts: [
+                        { text: userMessage },
+                        {
+                            inline_data: {
+                                mime_type: "image/jpeg",
+                                data: imageData.split(',')[1]
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    temperature: 0.4,
+                    maxOutputTokens: 2048,
+                }
+            };
+            
+            console.log("📤 Sending to Gemini Vision API...");
+            const visionResponse = await fetch(visionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(visionBody)
+            });
+            
+            if (visionResponse.ok) {
+                const visionData = await visionResponse.json();
+                if (visionData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    console.log("✅ Vision API success");
+                    return visionData.candidates[0].content.parts[0].text;
+                }
+            }
+        }
+        
+        // Fallback to text-only Gemini Pro (for text messages or if vision fails)
+        const textUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        
+        const textBody = {
+            contents: [{
+                parts: [{ text: userMessage }]
+            }],
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 1024,
+            }
+        };
+        
+        console.log("📤 Sending to Gemini Text API...");
+        const textResponse = await fetch(textUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(textBody)
+        });
+        
+        if (!textResponse.ok) throw new Error('Text API failed');
+        
+        const textData = await textResponse.json();
+        const aiResponse = textData.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!aiResponse) throw new Error('Empty response');
+        
+        console.log("✅ Text API success");
+        return aiResponse;
+        
+    } catch (error) {
+        console.error('❌ AI Error:', error);
+        
+        // User-friendly error messages
+        if (currentLanguage === 'si') {
+            return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.';
+        } else {
+            return 'I apologize, but I encountered an error. Please try again in a moment.';
+        }
+    }
+}
+
+// CHAT FUNCTIONS
+function createNewChat() {
+    const sessionId = 'session_' + Date.now();
+    
+    const newSession = {
         id: sessionId,
-        title: currentLanguage === 'sinhala' ? 'නව සංවාදය' : 'New Chat',
+        title: getTranslation('newChat'),
         messages: [],
         createdAt: Date.now(),
         updatedAt: Date.now()
     };
     
-    chatSessions.unshift(session);
+    chatSessions.unshift(newSession);
     currentSessionId = sessionId;
-    chatHistory = [];
     
     saveChatSessions();
-    renderChatSessions();
-    clearChatMessages();
-    updateSessionDisplay();
+    renderSessions();
+    clearMessages();
     
-    showNotification(
-        currentLanguage === 'sinhala' ? 'නව සංවාදය ආරම්භ කරන ලදී' : 'New chat started'
-    );
-    
-    setTimeout(() => { isProcessing = false; }, 100);
-}
-
-function loadChatSessions() {
-    const storageKey = getStorageKey();
-    try {
-        const savedSessions = localStorage.getItem(storageKey);
-        chatSessions = savedSessions ? JSON.parse(savedSessions) : [];
-        
-        if (chatSessions.length === 0) {
-            createNewSession();
-        } else {
-            currentSessionId = chatSessions[0].id;
-            chatHistory = chatSessions[0].messages || [];
-            renderChatHistory();
-        }
-        
-        renderChatSessions();
-        updateSessionDisplay();
-    } catch (e) {
-        console.error("Error loading sessions:", e);
-        chatSessions = [];
-        createNewSession();
+    if (window.innerWidth <= 768) {
+        closeSidebar();
     }
+    
+    showNotification('New chat started');
 }
 
-function saveChatSessions() {
-    const storageKey = getStorageKey();
-    try {
-        // Limit sessions to prevent memory issues
-        if (chatSessions.length > 50) {
-            chatSessions = chatSessions.slice(0, 50);
-        }
-        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
-    } catch (e) {
-        console.error("Error saving sessions:", e);
-    }
-}
-
-function renderChatSessions() {
-    if (!elements.chatSessionsContainer) return;
-    
-    const searchTerm = elements.historySearch ? elements.historySearch.value.toLowerCase() : '';
-    const filteredSessions = chatSessions.filter(session => 
-        session.title.toLowerCase().includes(searchTerm)
-    ).slice(0, 20); // Limit displayed sessions
-    
-    elements.chatSessionsContainer.innerHTML = '';
-    
-    filteredSessions.forEach(session => {
-        const sessionElement = document.createElement('div');
-        sessionElement.className = 'chat-session';
-        if (session.id === currentSessionId) {
-            sessionElement.classList.add('active');
-        }
-        
-        const lastMessage = session.messages.length > 0 ? 
-            session.messages[session.messages.length - 1].content : 
-            (currentLanguage === 'sinhala' ? 'සංවාදය ආරම්භ කරන්න' : 'Start conversation');
-        
-        sessionElement.innerHTML = `
-            <div class="session-title">${session.title}</div>
-            <div class="session-preview">${lastMessage.substring(0, 40)}${lastMessage.length > 40 ? '...' : ''}</div>
-            <div class="session-meta">
-                <span>${new Date(session.updatedAt).toLocaleDateString()}</span>
-                <span>${session.messages.length} ${currentLanguage === 'sinhala' ? 'පණිවිඩ' : 'msgs'}</span>
+function clearMessages() {
+    const messagesDiv = document.getElementById('chatMessages');
+    messagesDiv.innerHTML = `
+        <div class="welcome-screen">
+            <div class="ai-logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
+                    <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
+                    <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
+                </svg>
             </div>
-        `;
-        
-        sessionElement.addEventListener('click', () => {
-            if (!isProcessing) {
-                switchToSession(session.id);
-            }
-        });
-        
-        elements.chatSessionsContainer.appendChild(sessionElement);
-    });
+            <h1>${getTranslation('welcomeTitle')}</h1>
+            <p>${getTranslation('welcomeSubtitle')}</p>
+        </div>
+    `;
 }
 
-function switchToSession(sessionId) {
+async function sendMessage() {
     if (isProcessing) return;
+    
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message && !currentImage) {
+        showNotification('Please enter a message or upload an image', 'error');
+        return;
+    }
+    
+    const messageToSend = message || (currentLanguage === 'si' ? 
+        'මෙම පින්තූරය ගැන මට කියන්න' : 
+        'Tell me about this image');
+    
+    // Add user message to chat
+    addMessageToChat(messageToSend, true, currentImage);
+    
+    input.value = '';
+    
+    const sendBtn = document.getElementById('sendButton');
+    const typing = document.getElementById('typingIndicator');
+    
     isProcessing = true;
-
-    const session = chatSessions.find(s => s.id === sessionId);
-    if (session) {
-        currentSessionId = sessionId;
-        chatHistory = session.messages || [];
-        renderChatHistory();
-        renderChatSessions();
-        updateSessionDisplay();
-        
-        if (window.innerWidth <= 768 && elements.chatSidebar) {
-            elements.chatSidebar.classList.remove('active');
-        }
-    }
+    sendBtn.disabled = true;
+    typing.style.display = 'flex';
     
-    setTimeout(() => { isProcessing = false; }, 50);
-}
-
-function updateSessionDisplay() {
-    const currentSession = chatSessions.find(s => s.id === currentSessionId);
-    if (currentSession) {
-        utils.setText('currentSessionTitle', currentSession.title);
-        utils.setText('sessionDate', new Date(currentSession.updatedAt).toLocaleDateString());
-    }
-}
-
-// Authentication state management
-async function checkAuthState() {
     try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("🔄 Getting AI response...");
+        const response = await getAIResponse(messageToSend, currentImage);
         
-        if (error) {
-            console.error('Session error:', error);
-            showAuthContainer();
-            return;
+        typing.style.display = 'none';
+        addMessageToChat(response, false);
+        
+        if (currentImage) {
+            showNotification(getTranslation('imageAnalyzed'));
         }
         
-        if (session?.user) {
-            currentUser = session.user;
-            await updateUserProfile(currentUser);
-            showChatApp();
-            loadChatSessions();
-        } else {
-            showAuthContainer();
-            chatSessions = [];
-            currentSessionId = null;
-            chatHistory = [];
-        }
     } catch (error) {
-        console.error('Auth state check error:', error);
-        showAuthContainer();
-    }
-}
-
-async function updateUserProfile(user) {
-    try {
-        // Get user profile data from database
-        const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-            
-        if (error && error.code !== 'PGRST116') {
-            console.error('Profile fetch error:', error);
-        }
+        console.error("❌ Error in sendMessage:", error);
+        typing.style.display = 'none';
         
-        const username = profile?.name || user.email?.split('@')[0] || 'User';
-        utils.setText('username', username);
-    } catch (error) {
-        console.error('Profile update error:', error);
-        const username = user.email?.split('@')[0] || 'User';
-        utils.setText('username', username);
+        const errorMsg = currentLanguage === 'si' 
+            ? 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
+            : 'Sorry, an error occurred. Please try again.';
+        
+        addMessageToChat(errorMsg, false);
+    } finally {
+        isProcessing = false;
+        sendBtn.disabled = false;
+        currentImage = null;
+        removeImage();
+        input.focus();
     }
 }
 
-// UI Management
-function showAuthContainer() {
-    if (elements.authContainer) elements.authContainer.style.display = 'block';
-    if (elements.chatApp) elements.chatApp.style.display = 'none';
-    showLoginForm();
-}
-
-function showChatApp() {
-    if (elements.authContainer) elements.authContainer.style.display = 'none';
-    if (elements.chatApp) elements.chatApp.style.display = 'flex';
-    if (elements.messageInput) elements.messageInput.focus();
-}
-
-function showLoginForm() {
-    if (elements.loginForm) elements.loginForm.style.display = 'flex';
-    if (elements.signupForm) elements.signupForm.style.display = 'none';
-    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'none';
-    hideAllMessages();
-}
-
-function showSignupForm() {
-    if (elements.loginForm) elements.loginForm.style.display = 'none';
-    if (elements.signupForm) elements.signupForm.style.display = 'flex';
-    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'none';
-    hideAllMessages();
-}
-
-function showForgotPasswordForm() {
-    if (elements.loginForm) elements.loginForm.style.display = 'none';
-    if (elements.signupForm) elements.signupForm.style.display = 'none';
-    if (elements.forgotPasswordForm) elements.forgotPasswordForm.style.display = 'flex';
-    hideAllMessages();
-}
-
-function hideAllMessages() {
-    const messages = [elements.loginError, elements.signupError, elements.signupSuccess, elements.forgotError, elements.forgotSuccess];
-    messages.forEach(msg => {
-        if (msg) msg.style.display = 'none';
-    });
-}
-
-function showNotification(message, type = 'success') {
-    if (!elements.notification || !elements.notificationText) return;
+function addMessageToChat(content, isUser, imageData = null) {
+    const messagesDiv = document.getElementById('chatMessages');
     
-    elements.notification.className = `notification ${type}`;
-    elements.notificationText.textContent = message;
-    elements.notification.classList.add('show');
-    
-    setTimeout(() => {
-        elements.notification.classList.remove('show');
-    }, 2000);
-}
-
-// Authentication handlers - NO EMAIL CONFIRMATION
-function setupAuthHandlers() {
-    // Login
-    if (elements.loginForm) {
-        elements.loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isProcessing) return;
-            
-            const email = utils.getElement('loginEmail').value;
-            const password = utils.getElement('loginPassword').value;
-            const button = utils.getElement('loginButton');
-            const loader = utils.getElement('loginLoader');
-            
-            if (elements.loginError) elements.loginError.style.display = 'none';
-            
-            isProcessing = true;
-            if (button) button.disabled = true;
-            if (loader) loader.style.display = 'block';
-            utils.setText('loginButtonText', 'Logging in...');
-            
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) throw error;
-                
-                elements.loginForm.reset();
-                showNotification('Successfully logged in!');
-            } catch (error) {
-                if (elements.loginError) {
-                    elements.loginError.textContent = 'Login failed. Check your credentials.';
-                    elements.loginError.style.display = 'block';
-                }
-            } finally {
-                isProcessing = false;
-                if (button) button.disabled = false;
-                if (loader) loader.style.display = 'none';
-                utils.setText('loginButtonText', 'Login');
-            }
-        });
-    }
-
-    // Signup - NO EMAIL CONFIRMATION
-    if (elements.signupForm) {
-        elements.signupForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isProcessing) return;
-            
-            const name = utils.getElement('signupName').value;
-            const email = utils.getElement('signupEmail').value;
-            const phone = utils.getElement('signupPhone').value;
-            const birthday = utils.getElement('signupBirthday').value;
-            const password = utils.getElement('signupPassword').value;
-            const confirmPassword = utils.getElement('confirmPassword').value;
-            const button = utils.getElement('signupButton');
-            const loader = utils.getElement('signupLoader');
-            
-            hideAllMessages();
-            
-            if (password !== confirmPassword) {
-                if (elements.signupError) {
-                    elements.signupError.textContent = 'Passwords do not match';
-                    elements.signupError.style.display = 'block';
-                }
-                return;
-            }
-            
-            isProcessing = true;
-            if (button) button.disabled = true;
-            if (loader) loader.style.display = 'block';
-            utils.setText('signupButtonText', 'Creating account...');
-            
-            try {
-                // Create user account - AUTO CONFIRM
-                const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            name: name,
-                            phone: phone,
-                            birthday: birthday
-                        },
-                        // DISABLE EMAIL CONFIRMATION
-                        emailRedirectTo: null
-                    }
-                });
-                
-                if (authError) throw authError;
-                
-                // Auto confirm the user (bypass email verification)
-                if (authData.user) {
-                    // Update user to confirmed status
-                    const { error: updateError } = await supabase.auth.admin.updateUserById(
-                        authData.user.id,
-                        { email_confirm: true }
-                    );
-                    
-                    // Create user profile in database
-                    const { error: profileError } = await supabase
-                        .from('profiles')
-                        .insert([
-                            {
-                                id: authData.user.id,
-                                name: name,
-                                email: email,
-                                phone: phone,
-                                birthday: birthday,
-                                created_at: new Date().toISOString()
-                            }
-                        ]);
-                        
-                    if (profileError) {
-                        console.error('Profile creation error:', profileError);
-                    }
-                    
-                    // Auto login after signup
-                    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-                        email: email,
-                        password: password
-                    });
-                    
-                    if (loginError) throw loginError;
-                }
-                
-                if (elements.signupSuccess) {
-                    elements.signupSuccess.textContent = 'Registration successful!';
-                    elements.signupSuccess.style.display = 'block';
-                }
-                elements.signupForm.reset();
-                showNotification('Registration successful!');
-            } catch (error) {
-                console.error('Signup error:', error);
-                if (elements.signupError) {
-                    elements.signupError.textContent = 'Registration failed. Please try again.';
-                    elements.signupError.style.display = 'block';
-                }
-            } finally {
-                isProcessing = false;
-                if (button) button.disabled = false;
-                if (loader) loader.style.display = 'none';
-                utils.setText('signupButtonText', 'Sign Up');
-            }
-        });
-    }
-
-    // Forgot password - DISABLED
-    if (elements.forgotPasswordForm) {
-        elements.forgotPasswordForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isProcessing) return;
-            
-            const email = utils.getElement('forgotEmail').value;
-            const button = utils.getElement('resetPasswordButton');
-            const loader = utils.getElement('resetLoader');
-            
-            hideAllMessages();
-            
-            isProcessing = true;
-            if (button) button.disabled = true;
-            if (loader) loader.style.display = 'block';
-            utils.setText('resetButtonText', 'Sending...');
-            
-            try {
-                // Password reset disabled
-                if (elements.forgotSuccess) {
-                    elements.forgotSuccess.textContent = 'Password reset feature is currently disabled. Please contact support.';
-                    elements.forgotSuccess.style.display = 'block';
-                }
-                elements.forgotPasswordForm.reset();
-            } catch (error) {
-                if (elements.forgotError) {
-                    elements.forgotError.textContent = 'Password reset feature is currently disabled.';
-                    elements.forgotError.style.display = 'block';
-                }
-            } finally {
-                isProcessing = false;
-                if (button) button.disabled = false;
-                if (loader) loader.style.display = 'none';
-                utils.setText('resetButtonText', 'Reset Password');
-            }
-        });
-    }
-}
-
-// Theme and Language
-function switchTheme(theme) {
-    currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('smartai-theme', theme);
-    
-    const content = languageContent[currentLanguage];
-    if (elements.themeLabel) {
-        elements.themeLabel.textContent = theme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
-    }
-}
-
-function switchLanguage(lang) {
-    currentLanguage = lang;
-    const content = languageContent[lang];
-    
-    // Update all text content efficiently
-    Object.keys(content).forEach(key => {
-        if (key === 'welcomeText') {
-            utils.setHTML(key, content[key]);
-        } else {
-            utils.setText(key, content[key]);
-        }
-    });
-    
-    // Update input placeholder
-    if (elements.messageInput) {
-        elements.messageInput.placeholder = content.inputPlaceholder;
+    // Remove welcome screen if present
+    const welcome = messagesDiv.querySelector('.welcome-screen');
+    if (welcome) {
+        welcome.remove();
     }
     
-    // Update buttons
-    if (elements.newChatBtn) {
-        elements.newChatBtn.innerHTML = `<i class="fas fa-plus"></i><span>${content.newChatText}</span>`;
-    }
-    
-    // Update language buttons
-    const sinhalaBtn = utils.getElement('sinhalaBtn');
-    const englishBtn = utils.getElement('englishBtn');
-    if (sinhalaBtn && englishBtn) {
-        sinhalaBtn.classList.toggle('active', lang === 'sinhala');
-        englishBtn.classList.toggle('active', lang === 'english');
-    }
-    
-    localStorage.setItem('smartai-language', lang);
-}
-
-// Chat functionality
-function addMessage(message, isUser) {
-    if (!elements.chatMessages) return;
-    
-    const welcomeMsg = elements.chatMessages.querySelector('.welcome-message');
-    if (welcomeMsg) {
-        welcomeMsg.remove();
-    }
-    
-    const content = languageContent[currentLanguage];
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
     
-    const messageContent = `
-        <div class="message-header">
-            <div class="message-avatar">
-                <i class="fas ${isUser ? 'fa-user' : 'fa-robot'}"></i>
+    const avatarIcon = isUser ? 
+        '<div class="message-avatar"><i class="fas fa-user"></i></div>' : 
+        '<div class="message-avatar"><i class="fas fa-robot"></i></div>';
+    
+    const messageLabel = isUser ? 
+        (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
+        'Smart AI';
+    
+    let imageHTML = '';
+    if (imageData) {
+        imageHTML = `
+            <div class="image-container">
+                <img src="${imageData}" alt="Uploaded image" class="message-image">
+                <div class="image-caption">${currentLanguage === 'si' ? 'ඔබ උඩුගත කළ පින්තූරය' : 'Image you uploaded'}</div>
             </div>
-            ${isUser ? content.userLabel : content.aiLabel}
+        `;
+    }
+    
+    messageDiv.innerHTML = `
+        <div class="message-header">
+            ${avatarIcon}
+            <span>${messageLabel}</span>
         </div>
-        <div class="message-content">${message.replace(/\n/g, '<br>')}</div>
-        <div class="message-time">${new Date().toLocaleTimeString()}</div>
+        <div class="message-content">
+            ${imageHTML}
+            <div class="message-text">${content.replace(/\n/g, '<br>')}</div>
+        </div>
         ${!isUser ? `
             <div class="message-actions">
-                <button class="message-action-btn copy-btn">
-                    <i class="fas fa-copy"></i> ${currentLanguage === 'sinhala' ? 'පිටපත් කරන්න' : 'Copy'}
+                <button class="action-btn copy-btn" onclick="copyMessage(this)">
+                    <i class="fas fa-copy"></i> ${currentLanguage === 'si' ? 'පිටපත්' : 'Copy'}
                 </button>
             </div>
         ` : ''}
     `;
     
-    messageDiv.innerHTML = messageContent;
+    messagesDiv.appendChild(messageDiv);
     
-    // Add copy functionality
-    const copyBtn = messageDiv.querySelector('.copy-btn');
-    if (copyBtn) {
-        copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(message).then(() => {
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'පිළිතුරු පිටපත් කරන ලදී' : 'Response copied'
-                );
-            });
+    // Save to session
+    const session = getCurrentSession();
+    if (session) {
+        session.messages.push({
+            content: content,
+            isUser: isUser,
+            imageData: imageData,
+            timestamp: Date.now()
         });
-    }
-    
-    elements.chatMessages.appendChild(messageDiv);
-    
-    // Add to history
-    chatHistory.push({
-        content: message,
-        isUser: isUser,
-        timestamp: Date.now()
-    });
-    
-    // Update session
-    const currentSession = chatSessions.find(s => s.id === currentSessionId);
-    if (currentSession) {
-        currentSession.messages = chatHistory;
-        currentSession.updatedAt = Date.now();
         
-        // Update title from first message
-        if (isUser && currentSession.messages.filter(m => m.isUser).length === 1) {
-            currentSession.title = message.substring(0, 25) + (message.length > 25 ? '...' : '');
+        session.updatedAt = Date.now();
+        
+        // Update session title with first user message
+        if (isUser && session.messages.filter(m => m.isUser).length === 1) {
+            const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
+            session.title = titleText + (titleText.length >= 30 ? '...' : '');
         }
         
         saveChatSessions();
-        renderChatSessions();
+        renderSessions();
     }
     
     // Scroll to bottom
-    setTimeout(() => {
-        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-    }, 50);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+function copyMessage(button) {
+    const messageContent = button.closest('.message').querySelector('.message-text');
+    const textContent = messageContent.textContent || messageContent.innerText;
+    
+    navigator.clipboard.writeText(textContent).then(() => {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = `<i class="fas fa-check"></i> ${currentLanguage === 'si' ? 'පිටපත් විය!' : 'Copied!'}`;
+        button.style.background = '#10b981';
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.style.background = '';
+        }, 2000);
+    });
+}
+
+// IMAGE UPLOAD
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+        showNotification('Please upload an image file', 'error');
+        return;
+    }
+    
+    showLoading(getTranslation('processingImage'));
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentImage = e.target.result;
+        
+        const preview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        
+        previewImage.src = currentImage;
+        preview.style.display = 'block';
+        
+        hideLoading();
+        showNotification(getTranslation('imageUploaded'));
+        
+        // Auto-focus on message input after image upload
+        document.getElementById('messageInput').focus();
+    };
+    
+    reader.readAsDataURL(file);
+    event.target.value = '';
+}
+
+function removeImage() {
+    currentImage = null;
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('previewImage').src = '';
+}
+
+// SESSION MANAGEMENT
+function getStorageKey() {
+    const userId = auth.currentUser?.uid || 'anonymous';
+    return `smartai-sessions-${userId}`;
+}
+
+function saveChatSessions() {
+    try {
+        const storageKey = getStorageKey();
+        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+    } catch (error) {
+        console.error('Save sessions error:', error);
+    }
+}
+
+function loadChatSessions() {
+    try {
+        const storageKey = getStorageKey();
+        const saved = localStorage.getItem(storageKey);
+        
+        if (saved) {
+            chatSessions = JSON.parse(saved);
+        }
+        
+        if (chatSessions.length === 0) {
+            createNewChat();
+        } else {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        }
+        
+        renderSessions();
+        
+    } catch (error) {
+        console.error('Load sessions error:', error);
+        createNewChat();
+    }
+}
+
+function renderSessions() {
+    const historyContainer = document.getElementById('chatHistory');
+    historyContainer.innerHTML = '';
+    
+    chatSessions.forEach(session => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        if (session.id === currentSessionId) {
+            item.classList.add('active');
+        }
+        
+        const lastMessage = session.messages.length > 0 
+            ? session.messages[session.messages.length - 1].content 
+            : (currentLanguage === 'si' ? 'තවම පණිවිඩ නැත' : 'No messages yet');
+        
+        const timeStr = getTimeString(session.updatedAt);
+        
+        item.innerHTML = `
+            <div class="history-title">${escapeHtml(session.title)}</div>
+            <div class="history-preview">${escapeHtml(lastMessage.substring(0, 40))}${lastMessage.length > 40 ? '...' : ''}</div>
+            <div class="history-time">${timeStr}</div>
+            <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="${currentLanguage === 'si' ? 'මකන්න' : 'Delete'}">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        
+        item.onclick = () => switchToSession(session.id);
+        historyContainer.appendChild(item);
+    });
+}
+
+function getTimeString(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (currentLanguage === 'si') {
+        if (days === 0) return 'අද';
+        if (days === 1) return 'ඊයේ';
+        if (days < 7) return `දින ${days}කට පෙර`;
+        return new Date(timestamp).toLocaleDateString('si-LK');
+    } else {
+        if (days === 0) return 'Today';
+        if (days === 1) return 'Yesterday';
+        if (days < 7) return `${days} days ago`;
+        return new Date(timestamp).toLocaleDateString();
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function switchToSession(sessionId) {
+    if (currentSessionId === sessionId) {
+        closeSidebar();
+        return;
+    }
+    
+    currentSessionId = sessionId;
+    renderChatHistory();
+    renderSessions();
+    closeSidebar();
+}
+
+function deleteChat(sessionId, event) {
+    if (event) event.stopPropagation();
+    
+    const confirmMsg = getTranslation('deleteConfirm');
+    if (!confirm(confirmMsg)) return;
+    
+    const index = chatSessions.findIndex(s => s.id === sessionId);
+    if (index === -1) return;
+    
+    chatSessions.splice(index, 1);
+    
+    if (currentSessionId === sessionId) {
+        if (chatSessions.length > 0) {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        } else {
+            createNewChat();
+        }
+    }
+    
+    saveChatSessions();
+    renderSessions();
+    showNotification(getTranslation('chatDeleted'));
+}
+
+function getCurrentSession() {
+    return chatSessions.find(s => s.id === currentSessionId);
 }
 
 function renderChatHistory() {
-    if (!elements.chatMessages) return;
+    const session = getCurrentSession();
+    if (!session) return;
     
-    elements.chatMessages.innerHTML = '';
+    const messagesDiv = document.getElementById('chatMessages');
+    messagesDiv.innerHTML = '';
     
-    if (chatHistory.length === 0) {
-        const content = languageContent[currentLanguage];
-        elements.chatMessages.innerHTML = `
-            <div class="welcome-message">
-                <div class="welcome-icon">
-                    <i class="fas fa-rocket"></i>
-                </div>
-                <h2>${content.welcomeTitle}</h2>
-                <p>${content.welcomeText}</p>
-                <div class="feature-buttons">
-                    <button class="feature-btn" id="clearChatBtn">
-                        <i class="fas fa-trash"></i>
-                        <span>${content.clearChatText}</span>
-                    </button>
-                    <button class="feature-btn" id="exportChatBtn">
-                        <i class="fas fa-download"></i>
-                        <span>${content.exportChatText}</span>
-                    </button>
-                    <button class="feature-btn" id="suggestionsBtn">
-                        <i class="fas fa-lightbulb"></i>
-                        <span>${content.suggestionsText}</span>
-                    </button>
-                </div>
-            </div>
-        `;
-    } else {
-        chatHistory.forEach(msg => {
-            addMessage(msg.content, msg.isUser);
-        });
-    }
-}
-
-function clearChatMessages() {
-    if (!elements.chatMessages) return;
-    
-    const content = languageContent[currentLanguage];
-    elements.chatMessages.innerHTML = `
-        <div class="welcome-message">
-            <div class="welcome-icon">
-                <i class="fas fa-rocket"></i>
-            </div>
-            <h2>${content.welcomeTitle}</h2>
-            <p>${content.welcomeText}</p>
-            <div class="feature-buttons">
-                <button class="feature-btn" id="clearChatBtn">
-                    <i class="fas fa-trash"></i>
-                    <span>${content.clearChatText}</span>
-                </button>
-                <button class="feature-btn" id="exportChatBtn">
-                    <i class="fas fa-download"></i>
-                    <span>${content.exportChatText}</span>
-                </button>
-                <button class="feature-btn" id="suggestionsBtn">
-                    <i class="fas fa-lightbulb"></i>
-                    <span>${content.suggestionsText}</span>
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// Gemini API
-async function getAIResponse(userMessage) {
-    try {
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`;
-        
-        const languagePrompt = currentLanguage === 'sinhala' ? 
-            "කරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න. පිළිතුර සරල හා පැහැදිලි විය යුතුය." : 
-            "Please respond in English only. Keep the response clear and concise.";
-        
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: `${userMessage}\n\n${languagePrompt}`
-                    }]
-                }],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 800,
-                }
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || 
-            (currentLanguage === 'sinhala' ? 
-                "කණගාටුයි, පිළිතුරු ලබා ගැනීමට නොහැකි විය." : 
-                "Sorry, couldn't get a response.");
-    } catch (error) {
-        console.error("API Error:", error);
-        return currentLanguage === 'sinhala' ? 
-            "කණගාටුයි, දෝෂයක් ඇති විය. පසුව උත්සාහ කරන්න." : 
-            "Sorry, an error occurred. Please try again.";
-    }
-}
-
-async function sendMessage() {
-    if (!elements.messageInput || isProcessing) return;
-    
-    const message = elements.messageInput.value.trim();
-    if (message === '') return;
-    
-    addMessage(message, true);
-    elements.messageInput.value = '';
-    elements.messageInput.style.height = 'auto';
-    
-    isProcessing = true;
-    if (elements.sendButton) elements.sendButton.disabled = true;
-    if (elements.typingIndicator) elements.typingIndicator.style.display = 'block';
-    
-    try {
-        const response = await getAIResponse(message);
-        if (elements.typingIndicator) elements.typingIndicator.style.display = 'none';
-        addMessage(response, false);
-    } catch (error) {
-        if (elements.typingIndicator) elements.typingIndicator.style.display = 'none';
-        const errorMessage = currentLanguage === 'sinhala' ? 
-            "කණගාටුයි, දෝෂයක් ඇති විය." : 
-            "Sorry, an error occurred.";
-        addMessage(errorMessage, false);
-    } finally {
-        isProcessing = false;
-        if (elements.sendButton) elements.sendButton.disabled = false;
-        if (elements.messageInput) elements.messageInput.focus();
-    }
-}
-
-// Event listeners setup
-function setupEventListeners() {
-    // Theme toggle
-    if (elements.themeToggle) {
-        elements.themeToggle.addEventListener('change', function() {
-            switchTheme(this.checked ? 'light' : 'dark');
-        });
-    }
-
-    // Language switchers
-    const sinhalaBtn = utils.getElement('sinhalaBtn');
-    const englishBtn = utils.getElement('englishBtn');
-    if (sinhalaBtn) sinhalaBtn.addEventListener('click', () => switchLanguage('sinhala'));
-    if (englishBtn) englishBtn.addEventListener('click', () => switchLanguage('english'));
-
-    // Form switchers - ENGLISH TEXT
-    const showSignup = utils.getElement('showSignup');
-    const showLogin = utils.getElement('showLogin');
-    const forgotPassword = utils.getElement('forgotPassword');
-    const backToLogin = utils.getElement('backToLogin');
-    
-    // Set English text for auth elements
-    utils.setText('noAccount', 'Don\'t have an account?');
-    utils.setText('haveAccount', 'Already have an account?');
-    utils.setText('forgotPassword', 'Forgot Password?');
-    utils.setText('backToLogin', 'Back to Login');
-    
-    if (showSignup) {
-        showSignup.textContent = 'Sign Up';
-        showSignup.addEventListener('click', showSignupForm);
-    }
-    if (showLogin) {
-        showLogin.textContent = 'Login';
-        showLogin.addEventListener('click', showLoginForm);
-    }
-    if (forgotPassword) forgotPassword.addEventListener('click', showForgotPasswordForm);
-    if (backToLogin) backToLogin.addEventListener('click', showLoginForm);
-
-    // Logout
-    const logoutBtn = utils.getElement('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                
-                showNotification('Successfully logged out!');
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-        });
-    }
-
-    // Chat history
-    const historyToggle = utils.getElement('historyToggle');
-    const sidebarClose = utils.getElement('sidebarClose');
-    
-    if (historyToggle) {
-        historyToggle.addEventListener('click', () => {
-            if (elements.chatSidebar) {
-                elements.chatSidebar.classList.toggle('active');
-            }
-        });
+    if (session.messages.length === 0) {
+        clearMessages();
+        return;
     }
     
-    if (sidebarClose) {
-        sidebarClose.addEventListener('click', () => {
-            if (elements.chatSidebar) {
-                elements.chatSidebar.classList.remove('active');
-            }
-        });
-    }
-
-    // New chat
-    if (elements.newChatBtn) {
-        elements.newChatBtn.addEventListener('click', createNewSession);
-    }
-
-    // Send message
-    if (elements.sendButton) {
-        elements.sendButton.addEventListener('click', sendMessage);
-    }
-
-    if (elements.messageInput) {
-        elements.messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        elements.messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        });
-    }
-
-    // Clear chat
-    if (elements.clearChatBtn) {
-        elements.clearChatBtn.addEventListener('click', function() {
-            if (chatHistory.length > 0) {
-                chatHistory = [];
-                const currentSession = chatSessions.find(s => s.id === currentSessionId);
-                if (currentSession) {
-                    currentSession.messages = [];
-                    currentSession.updatedAt = Date.now();
-                    saveChatSessions();
-                    renderChatSessions();
-                }
-                clearChatMessages();
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'සංවාදය හිස් කරන ලදී' : 'Chat cleared'
-                );
-            }
-        });
-    }
-
-    // Close sidebar on outside click (mobile)
-    document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 768 && 
-            elements.chatSidebar && 
-            elements.chatSidebar.classList.contains('active') &&
-            !elements.chatSidebar.contains(e.target) &&
-            !utils.getElement('historyToggle')?.contains(e.target)) {
-            elements.chatSidebar.classList.remove('active');
-        }
+    session.messages.forEach(msg => {
+        addMessageToChat(msg.content, msg.isUser, msg.imageData);
     });
 }
 
-// Initialize app
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Smart AI App Initialized - No Email Confirmation");
+// INITIALIZE APP
+window.addEventListener('load', function() {
+    console.log("🎯 Page loaded - initializing app");
+    initializeFirebase();
     
-    // Load preferences
-    const savedTheme = localStorage.getItem('smartai-theme') || 'dark';
-    const savedLanguage = localStorage.getItem('smartai-language') || 'sinhala';
+    // Add event listeners
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    document.getElementById('signupForm').addEventListener('submit', handleSignup);
     
-    switchTheme(savedTheme);
-    switchLanguage(savedLanguage);
-    
-    if (elements.themeToggle && savedTheme === 'light') {
-        elements.themeToggle.checked = true;
-    }
-    
-    // Setup all handlers
-    setupAuthHandlers();
-    setupEventListeners();
-    
-    // Check authentication state
-    checkAuthState();
-    
-    // Listen for auth state changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN') {
-            currentUser = session.user;
-            await updateUserProfile(currentUser);
-            showChatApp();
-            loadChatSessions();
-        } else if (event === 'SIGNED_OUT') {
-            currentUser = null;
-            showAuthContainer();
-        }
-    });
-    
-    // Initialize chat input height
-    if (elements.messageInput) {
-        elements.messageInput.style.height = 'auto';
-    }
-    
-    console.log("✅ All systems ready - No email confirmation required!");
+    console.log("✅ All event listeners attached");
 });
+
+// Add CSS for image display
+const style = document.createElement('style');
+style.textContent = `
+    .image-container {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .message-image {
+        max-width: 300px;
+        max-height: 300px;
+        border-radius: 8px;
+        border: 2px solid #4A90E2;
+    }
+    .image-caption {
+        font-size: 12px;
+        color: #888;
+        margin-top: 5px;
+    }
+    .message-text {
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+`;
+document.head.appendChild(style);
