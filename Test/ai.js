@@ -9,6 +9,9 @@ import {
     query, orderBy, limit, Timestamp 
 } from 'firebase/firestore';
 
+// 💥 FIX: Added Tesseract import for Tesseract.recognize function
+import * as Tesseract from 'tesseract.js'; 
+
 // COMPLETE FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
@@ -574,8 +577,12 @@ function getTimeString(timestamp) {
         timestamp = timestamp.getTime();
     } else if (timestamp && typeof timestamp.toDate === 'function') {
         timestamp = timestamp.toDate().getTime();
-    } else if (typeof timestamp !== 'number') {
+    } else if (typeof timestamp === 'string' && !isNaN(new Date(timestamp).getTime())) {
+        // Handle string dates (from localStorage)
         timestamp = new Date(timestamp).getTime();
+    } else if (typeof timestamp !== 'number') {
+        // Fallback for any other unexpected format
+        timestamp = new Date().getTime(); 
     }
 
     const now = Date.now();
@@ -803,7 +810,7 @@ async function performOCR(imageData) {
     try {
         showLoading(getTranslation('extractingText'));
 
-        const result = await Tesseract.recognize(
+        const result = await Tesseract.recognize( // Uses the imported Tesseract object
             imageData,
             'eng+sin',
             {
