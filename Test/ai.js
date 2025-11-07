@@ -367,7 +367,7 @@ async function getAIResponse(userMessage, imageData = null) {
     try {
         // If there's an image, use Gemini Pro Vision
         if (imageData) {
-            const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
+            const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             
             const visionBody = {
                 contents: [{
@@ -404,7 +404,7 @@ async function getAIResponse(userMessage, imageData = null) {
         }
         
         // Fallback to text-only Gemini Pro (for text messages or if vision fails)
-        const textUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+        const textUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         
         const textBody = {
             contents: [{
