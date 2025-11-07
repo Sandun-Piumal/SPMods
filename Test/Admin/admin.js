@@ -3,7 +3,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
     authDomain: "smart-ai-chat-app.firebaseapp.com",
     projectId: "smart-ai-chat-app",
-    databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com/"
+    databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com"
 };
 
 let auth, database;
