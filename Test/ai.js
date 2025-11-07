@@ -54,7 +54,9 @@ const translations = {
         chatDeleted: "Chat deleted!",
         deleteConfirm: "Delete this chat?",
         extractingText: "Extracting text...",
-        processingImage: "Processing image..."
+        processingImage: "Processing image...",
+        analyzingImage: "Analyzing image content...",
+        imageAnalyzed: "Image analyzed!"
     },
     si: {
         appTitle: "Smart AI",
@@ -89,11 +91,13 @@ const translations = {
         chatDeleted: "සංවාදය මකා දමන ලදී!",
         deleteConfirm: "මෙම සංවාදය මකන්න ද?",
         extractingText: "පෙළ උපුටා ගනිමින්...",
-        processingImage: "පින්තූරය සකසමින්..."
+        processingImage: "පින්තූරය සකසමින්...",
+        analyzingImage: "පින්තූරය විශ්ලේෂණය කරමින්...",
+        imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!"
     }
 };
 
-// ==================== LANGUAGE FUNCTIONS ====================
+// LANGUAGE FUNCTIONS
 function getTranslation(key) {
     return translations[currentLanguage][key] || translations.en[key] || key;
 }
@@ -131,7 +135,7 @@ function loadLanguagePreference() {
     }
 }
 
-// ==================== FIREBASE INITIALIZATION ====================
+// FIREBASE INITIALIZATION
 function initializeFirebase() {
     try {
         console.log("🔄 Initializing Firebase...");
@@ -170,29 +174,25 @@ function initializeFirebase() {
     }
 }
 
-// ==================== UI FUNCTIONS ====================
+// UI FUNCTIONS
 function showLogin() {
-    console.log("🔹 Showing login form");
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('signupForm').style.display = 'none';
     hideMessages();
 }
 
 function showSignup() {
-    console.log("🔹 Showing signup form");
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('signupForm').style.display = 'block';
     hideMessages();
 }
 
 function showAuthContainer() {
-    console.log("🔹 Showing auth container");
     document.getElementById('authContainer').style.display = 'flex';
     document.getElementById('chatApp').style.display = 'none';
 }
 
 function showChatApp() {
-    console.log("🔹 Showing chat app");
     document.getElementById('authContainer').style.display = 'none';
     document.getElementById('chatApp').style.display = 'block';
 }
@@ -204,7 +204,6 @@ function hideMessages() {
 }
 
 function showNotification(message, type = 'success') {
-    console.log("🔹 Showing notification:", message);
     const notification = document.getElementById('notification');
     const text = document.getElementById('notificationText');
     const icon = notification.querySelector('i');
@@ -226,7 +225,6 @@ function showNotification(message, type = 'success') {
 }
 
 function showLoading(text) {
-    console.log("🔹 Showing loading:", text);
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
     loadingText.textContent = text;
@@ -234,12 +232,10 @@ function showLoading(text) {
 }
 
 function hideLoading() {
-    console.log("🔹 Hiding loading");
     document.getElementById('loadingOverlay').classList.remove('show');
 }
 
 function toggleSidebar() {
-    console.log("🔹 Toggling sidebar");
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
@@ -248,7 +244,6 @@ function toggleSidebar() {
 }
 
 function closeSidebar() {
-    console.log("🔹 Closing sidebar");
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
@@ -257,7 +252,6 @@ function closeSidebar() {
 }
 
 function updateUserProfile(user) {
-    console.log("🔹 Updating user profile:", user.email);
     const userName = user.displayName || user.email.split('@')[0];
     const userEmail = user.email;
     
@@ -265,9 +259,8 @@ function updateUserProfile(user) {
     document.getElementById('userEmail').textContent = userEmail;
 }
 
-// ==================== AUTH HANDLERS ====================
+// AUTH HANDLERS
 async function handleLogin(event) {
-    console.log("🔹 Login function called");
     if (event) event.preventDefault();
     if (isProcessing) return;
     
@@ -287,13 +280,11 @@ async function handleLogin(event) {
     hideMessages();
     
     try {
-        console.log("🔹 Attempting login for:", email);
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        console.log("✅ Login successful");
         showNotification(getTranslation('loginSuccess'));
         document.getElementById('loginForm').reset();
     } catch (error) {
-        console.error("❌ Login error:", error);
+        console.error("Login error:", error);
         const errorMsg = document.getElementById('loginError');
         errorMsg.textContent = 'Login failed. Please check your credentials.';
         errorMsg.style.display = 'block';
@@ -306,7 +297,6 @@ async function handleLogin(event) {
 }
 
 async function handleSignup(event) {
-    console.log("🔹 Signup function called");
     if (event) event.preventDefault();
     if (isProcessing) return;
     
@@ -332,11 +322,9 @@ async function handleSignup(event) {
     hideMessages();
     
     try {
-        console.log("🔹 Attempting signup for:", email);
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await userCredential.user.updateProfile({ displayName: name });
         
-        console.log("✅ Signup successful");
         const successMsg = document.getElementById('signupSuccess');
         successMsg.textContent = 'Registration successful! Redirecting...';
         successMsg.style.display = 'block';
@@ -348,7 +336,7 @@ async function handleSignup(event) {
         }, 2000);
         
     } catch (error) {
-        console.error("❌ Signup error:", error);
+        console.error("Signup error:", error);
         const errorMsg = document.getElementById('signupError');
         errorMsg.textContent = 'Registration failed. Please try again.';
         errorMsg.style.display = 'block';
@@ -361,21 +349,141 @@ async function handleSignup(event) {
 }
 
 async function handleLogout() {
-    console.log("🔹 Logout function called");
     try {
         await auth.signOut();
         chatSessions = [];
         currentSessionId = null;
         showNotification(getTranslation('logoutSuccess'));
     } catch (error) {
-        console.error("❌ Logout error:", error);
+        console.error("Logout error:", error);
         showNotification('Logout failed', 'error');
     }
 }
 
-// ==================== CHAT FUNCTIONS ====================
+// GEMINI AI WITH IMAGE ANALYSIS - FIXED VERSION
+async function getAIResponse(userMessage, imageData = null) {
+    console.log("🤖 Getting AI response with image analysis...");
+    
+    try {
+        // Use Gemini Pro Vision model for image understanding
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
+        
+        const requestBody = {
+            contents: [{
+                parts: [
+                    {
+                        text: userMessage + (currentLanguage === 'si' ? 
+                            "\n\nකරුණාකර පින්තූරය දෙස බලා පින්තූරයේ ඇති තොරතුරු මත පදනම්ව පිළිතුරු දෙන්න." : 
+                            "\n\nPlease look at the image and respond based on the information in the image.")
+                    }
+                ]
+            }],
+            generationConfig: {
+                temperature: 0.4,
+                topK: 32,
+                topP: 1,
+                maxOutputTokens: 2048,
+            }
+        };
+
+        // Add image data if available
+        if (imageData) {
+            // Convert base64 to proper format for Gemini
+            const base64Data = imageData.split(',')[1];
+            requestBody.contents[0].parts.push({
+                inline_data: {
+                    mime_type: "image/jpeg",
+                    data: base64Data
+                }
+            });
+        }
+        
+        console.log("📤 Sending request to Gemini Vision API...");
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ API Response not OK:', response.status, errorText);
+            throw new Error(`API Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("✅ Gemini Vision API response received");
+        
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+            console.error('❌ Invalid response structure:', data);
+            throw new Error('Invalid response from AI');
+        }
+        
+        const aiResponse = data.candidates[0].content.parts[0].text;
+        
+        if (!aiResponse || aiResponse.trim() === '') {
+            throw new Error('Empty response from AI');
+        }
+        
+        console.log("🤖 AI Response:", aiResponse);
+        return aiResponse;
+        
+    } catch (error) {
+        console.error('❌ AI Vision Error:', error);
+        
+        // Fallback to text-only if vision fails
+        return await getTextOnlyAIResponse(userMessage);
+    }
+}
+
+// Fallback text-only AI response
+async function getTextOnlyAIResponse(userMessage) {
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+        
+        const requestBody = {
+            contents: [{
+                parts: [{
+                    text: userMessage + (currentLanguage === 'si' ? 
+                        "\n\nකරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න." : 
+                        "\n\nPlease respond in English.")
+                }]
+            }],
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 1024,
+            }
+        };
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) throw new Error('Text API failed');
+        
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+        
+    } catch (error) {
+        console.error('❌ Text AI Error:', error);
+        
+        if (currentLanguage === 'si') {
+            return 'මට කණගාටුයි, පින්තූරය විශ්ලේෂණය කිරීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.';
+        } else {
+            return 'I apologize, I was unable to analyze the image. Please try again.';
+        }
+    }
+}
+
+// CHAT FUNCTIONS
 function createNewChat() {
-    console.log("🔹 Creating new chat");
     const sessionId = 'session_' + Date.now();
     
     const newSession = {
@@ -401,11 +509,22 @@ function createNewChat() {
 }
 
 function clearMessages() {
-    console.log("🔹 Clearing messages");
     const messagesDiv = document.getElementById('chatMessages');
     messagesDiv.innerHTML = `
         <div class="welcome-screen">
-            <div class="ai-logo">🤖</div>
+            <div class="ai-logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
+                    <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
+                    <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
+                </svg>
+            </div>
             <h1>${getTranslation('welcomeTitle')}</h1>
             <p>${getTranslation('welcomeSubtitle')}</p>
         </div>
@@ -413,44 +532,59 @@ function clearMessages() {
 }
 
 async function sendMessage() {
-    console.log("🔹 Send message function called");
     if (isProcessing) return;
     
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
     
-    if (!message) {
-        showNotification('Please enter a message', 'error');
+    if (!message && !currentImage) {
+        showNotification('Please enter a message or upload an image', 'error');
         return;
     }
     
-    // Add user message
-    addMessage(message, true);
+    const messageToSend = message || (currentLanguage === 'si' ? 
+        'මෙම පින්තූරය විශ්ලේෂණය කරන්න' : 
+        'Analyze this image');
+    
+    // Add user message to chat
+    addMessageToChat(messageToSend, true, currentImage);
+    
     input.value = '';
     
-    // Show typing indicator
+    const sendBtn = document.getElementById('sendButton');
     const typing = document.getElementById('typingIndicator');
-    typing.style.display = 'flex';
+    
     isProcessing = true;
+    sendBtn.disabled = true;
+    typing.style.display = 'flex';
     
     try {
-        // Simulate AI response (replace with actual AI later)
-        setTimeout(() => {
-            typing.style.display = 'none';
-            addMessage("I'm your Smart AI assistant. How can I help you today?", false);
-            isProcessing = false;
-        }, 2000);
+        console.log("🔄 Getting AI response with image analysis...");
+        const response = await getAIResponse(messageToSend, currentImage);
+        
+        typing.style.display = 'none';
+        addMessageToChat(response, false);
+        showNotification(getTranslation('imageAnalyzed'));
         
     } catch (error) {
-        console.error("❌ Send message error:", error);
+        console.error("❌ Error in sendMessage:", error);
         typing.style.display = 'none';
-        addMessage("Sorry, I encountered an error. Please try again.", false);
+        
+        const errorMsg = currentLanguage === 'si' 
+            ? 'මට කණගාටුයි, පින්තූරය විශ්ලේෂණය කිරීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
+            : 'Sorry, I was unable to analyze the image. Please try again.';
+        
+        addMessageToChat(errorMsg, false);
+    } finally {
         isProcessing = false;
+        sendBtn.disabled = false;
+        currentImage = null;
+        removeImage();
+        input.focus();
     }
 }
 
-function addMessage(content, isUser) {
-    console.log("🔹 Adding message:", content.substring(0, 50));
+function addMessageToChat(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
     
     // Remove welcome screen if present
@@ -462,13 +596,65 @@ function addMessage(content, isUser) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
     
+    const avatarIcon = isUser ? 
+        '<div class="message-avatar"><i class="fas fa-user"></i></div>' : 
+        '<div class="message-avatar"><i class="fas fa-robot"></i></div>';
+    
+    const messageLabel = isUser ? 
+        (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
+        'Smart AI';
+    
+    let imageHTML = '';
+    if (imageData) {
+        imageHTML = `
+            <div class="image-container">
+                <img src="${imageData}" alt="Uploaded image" class="message-image">
+                <div class="image-caption">${currentLanguage === 'si' ? 'ඔබ උඩුගත කළ පින්තූරය' : 'Image you uploaded'}</div>
+            </div>
+        `;
+    }
+    
     messageDiv.innerHTML = `
-        <div class="message-content">
-            ${content.replace(/\n/g, '<br>')}
+        <div class="message-header">
+            ${avatarIcon}
+            <span>${messageLabel}</span>
         </div>
+        <div class="message-content">
+            ${imageHTML}
+            <div class="message-text">${content.replace(/\n/g, '<br>')}</div>
+        </div>
+        ${!isUser ? `
+            <div class="message-actions">
+                <button class="action-btn copy-btn" onclick="copyMessage(this)">
+                    <i class="fas fa-copy"></i> ${currentLanguage === 'si' ? 'පිටපත්' : 'Copy'}
+                </button>
+            </div>
+        ` : ''}
     `;
     
     messagesDiv.appendChild(messageDiv);
+    
+    // Save to session
+    const session = getCurrentSession();
+    if (session) {
+        session.messages.push({
+            content: content,
+            isUser: isUser,
+            imageData: imageData,
+            timestamp: Date.now()
+        });
+        
+        session.updatedAt = Date.now();
+        
+        // Update session title with first user message
+        if (isUser && session.messages.filter(m => m.isUser).length === 1) {
+            const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
+            session.title = titleText + (titleText.length >= 30 ? '...' : '');
+        }
+        
+        saveChatSessions();
+        renderSessions();
+    }
     
     // Scroll to bottom
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -481,9 +667,24 @@ function handleKeyPress(event) {
     }
 }
 
-// ==================== IMAGE UPLOAD ====================
+function copyMessage(button) {
+    const messageContent = button.closest('.message').querySelector('.message-text');
+    const textContent = messageContent.textContent || messageContent.innerText;
+    
+    navigator.clipboard.writeText(textContent).then(() => {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = `<i class="fas fa-check"></i> ${currentLanguage === 'si' ? 'පිටපත් විය!' : 'Copied!'}`;
+        button.style.background = '#10b981';
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.style.background = '';
+        }, 2000);
+    });
+}
+
+// IMAGE UPLOAD - SIMPLIFIED (No OCR needed)
 function handleImageUpload(event) {
-    console.log("🔹 Image upload function called");
     const file = event.target.files[0];
     if (!file) return;
     
@@ -492,7 +693,7 @@ function handleImageUpload(event) {
         return;
     }
     
-    showLoading('Uploading image...');
+    showLoading(getTranslation('processingImage'));
     
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -505,7 +706,10 @@ function handleImageUpload(event) {
         preview.style.display = 'block';
         
         hideLoading();
-        showNotification('Image uploaded successfully!');
+        showNotification(getTranslation('imageUploaded'));
+        
+        // Auto-focus on message input after image upload
+        document.getElementById('messageInput').focus();
     };
     
     reader.readAsDataURL(file);
@@ -513,13 +717,12 @@ function handleImageUpload(event) {
 }
 
 function removeImage() {
-    console.log("🔹 Removing image");
     currentImage = null;
     document.getElementById('imagePreview').style.display = 'none';
     document.getElementById('previewImage').src = '';
 }
 
-// ==================== SESSION MANAGEMENT ====================
+// SESSION MANAGEMENT (same as before)
 function getStorageKey() {
     const userId = auth.currentUser?.uid || 'anonymous';
     return `smartai-sessions-${userId}`;
@@ -530,7 +733,7 @@ function saveChatSessions() {
         const storageKey = getStorageKey();
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
     } catch (error) {
-        console.error('❌ Save sessions error:', error);
+        console.error('Save sessions error:', error);
     }
 }
 
@@ -553,13 +756,12 @@ function loadChatSessions() {
         renderSessions();
         
     } catch (error) {
-        console.error('❌ Load sessions error:', error);
+        console.error('Load sessions error:', error);
         createNewChat();
     }
 }
 
 function renderSessions() {
-    console.log("🔹 Rendering sessions");
     const historyContainer = document.getElementById('chatHistory');
     historyContainer.innerHTML = '';
     
@@ -572,12 +774,15 @@ function renderSessions() {
         
         const lastMessage = session.messages.length > 0 
             ? session.messages[session.messages.length - 1].content 
-            : 'No messages yet';
+            : (currentLanguage === 'si' ? 'තවම පණිවිඩ නැත' : 'No messages yet');
+        
+        const timeStr = getTimeString(session.updatedAt);
         
         item.innerHTML = `
-            <div class="history-title">${session.title}</div>
-            <div class="history-preview">${lastMessage.substring(0, 40)}${lastMessage.length > 40 ? '...' : ''}</div>
-            <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="Delete">
+            <div class="history-title">${escapeHtml(session.title)}</div>
+            <div class="history-preview">${escapeHtml(lastMessage.substring(0, 40))}${lastMessage.length > 40 ? '...' : ''}</div>
+            <div class="history-time">${timeStr}</div>
+            <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="${currentLanguage === 'si' ? 'මකන්න' : 'Delete'}">
                 <i class="fas fa-trash"></i>
             </button>
         `;
@@ -587,8 +792,32 @@ function renderSessions() {
     });
 }
 
+function getTimeString(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (currentLanguage === 'si') {
+        if (days === 0) return 'අද';
+        if (days === 1) return 'ඊයේ';
+        if (days < 7) return `දින ${days}කට පෙර`;
+        return new Date(timestamp).toLocaleDateString('si-LK');
+    } else {
+        if (days === 0) return 'Today';
+        if (days === 1) return 'Yesterday';
+        if (days < 7) return `${days} days ago`;
+        return new Date(timestamp).toLocaleDateString();
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function switchToSession(sessionId) {
-    console.log("🔹 Switching to session:", sessionId);
     if (currentSessionId === sessionId) {
         closeSidebar();
         return;
@@ -601,10 +830,10 @@ function switchToSession(sessionId) {
 }
 
 function deleteChat(sessionId, event) {
-    console.log("🔹 Deleting chat:", sessionId);
     if (event) event.stopPropagation();
     
-    if (!confirm(getTranslation('deleteConfirm'))) return;
+    const confirmMsg = getTranslation('deleteConfirm');
+    if (!confirm(confirmMsg)) return;
     
     const index = chatSessions.findIndex(s => s.id === sessionId);
     if (index === -1) return;
@@ -625,9 +854,12 @@ function deleteChat(sessionId, event) {
     showNotification(getTranslation('chatDeleted'));
 }
 
+function getCurrentSession() {
+    return chatSessions.find(s => s.id === currentSessionId);
+}
+
 function renderChatHistory() {
-    console.log("🔹 Rendering chat history");
-    const session = chatSessions.find(s => s.id === currentSessionId);
+    const session = getCurrentSession();
     if (!session) return;
     
     const messagesDiv = document.getElementById('chatMessages');
@@ -639,18 +871,43 @@ function renderChatHistory() {
     }
     
     session.messages.forEach(msg => {
-        addMessage(msg.content, msg.isUser);
+        addMessageToChat(msg.content, msg.isUser, msg.imageData);
     });
 }
 
-// ==================== INITIALIZATION ====================
+// INITIALIZE APP
 window.addEventListener('load', function() {
     console.log("🎯 Page loaded - initializing app");
     initializeFirebase();
     
-    // Add event listeners for form submissions
+    // Add event listeners
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
     document.getElementById('signupForm').addEventListener('submit', handleSignup);
     
     console.log("✅ All event listeners attached");
 });
+
+// Add CSS for image display
+const style = document.createElement('style');
+style.textContent = `
+    .image-container {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .message-image {
+        max-width: 300px;
+        max-height: 300px;
+        border-radius: 8px;
+        border: 2px solid #4A90E2;
+    }
+    .image-caption {
+        font-size: 12px;
+        color: #888;
+        margin-top: 5px;
+    }
+    .message-text {
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+`;
+document.head.appendChild(style);
