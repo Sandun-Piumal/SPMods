@@ -21,7 +21,7 @@ let currentImage = null;
 let currentOCRText = '';
 let currentLanguage = 'en';
 
-// TRANSLATIONS
+// TRANSLATIONS (සම්පූර්ණ translations object එක තියන්න)
 const translations = {
     en: {
         appTitle: "Smart AI",
@@ -133,22 +133,26 @@ function loadLanguagePreference() {
     }
 }
 
-// INITIALIZE FIREBASE
+// SIMPLE FIREBASE INITIALIZATION
 function initializeFirebase() {
     try {
+        // Check if Firebase is loaded
         if (typeof firebase === 'undefined') {
-            setTimeout(initializeFirebase, 100);
+            console.error('Firebase SDK not loaded');
+            showNotification('Firebase not loaded. Please check internet connection.', 'error');
             return;
         }
-        
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
         auth = firebase.auth();
         db = firebase.firestore();
         
+        console.log("✅ Firebase initialized successfully");
+
+        // Auth state listener
         auth.onAuthStateChanged((user) => {
+            console.log("Auth state changed:", user ? "User logged in" : "No user");
             if (user) {
                 showChatApp();
                 loadChatSessions(user.uid);
@@ -157,12 +161,12 @@ function initializeFirebase() {
                 showAuthContainer();
             }
         });
-        
+
         loadLanguagePreference();
-        console.log("✅ Firebase initialized");
+        
     } catch (error) {
-        console.error("Firebase error:", error);
-        showNotification("System error occurred", "error");
+        console.error("Firebase initialization error:", error);
+        showNotification("Firebase initialization failed: " + error.message, "error");
     }
 }
 
@@ -171,42 +175,67 @@ function updateUserProfile(user) {
     const userName = user.displayName || user.email.split('@')[0];
     const userEmail = user.email;
     
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('userEmail').textContent = userEmail;
+    const userNameElement = document.getElementById('userName');
+    const userEmailElement = document.getElementById('userEmail');
+    
+    if (userNameElement) userNameElement.textContent = userName;
+    if (userEmailElement) userEmailElement.textContent = userEmail;
 }
 
 // UI FUNCTIONS
 function showLogin() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('signupForm').style.display = 'none';
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    
+    if (loginForm) loginForm.style.display = 'block';
+    if (signupForm) signupForm.style.display = 'none';
     hideMessages();
 }
 
 function showSignup() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('signupForm').style.display = 'block';
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    
+    if (loginForm) loginForm.style.display = 'none';
+    if (signupForm) signupForm.style.display = 'block';
     hideMessages();
 }
 
 function showAuthContainer() {
-    document.getElementById('authContainer').style.display = 'flex';
-    document.getElementById('chatApp').style.display = 'none';
+    const authContainer = document.getElementById('authContainer');
+    const chatApp = document.getElementById('chatApp');
+    
+    if (authContainer) authContainer.style.display = 'flex';
+    if (chatApp) chatApp.style.display = 'none';
 }
 
 function showChatApp() {
-    document.getElementById('authContainer').style.display = 'none';
-    document.getElementById('chatApp').style.display = 'block';
+    const authContainer = document.getElementById('authContainer');
+    const chatApp = document.getElementById('chatApp');
+    
+    if (authContainer) authContainer.style.display = 'none';
+    if (chatApp) chatApp.style.display = 'block';
 }
 
 function hideMessages() {
-    document.getElementById('loginError').style.display = 'none';
-    document.getElementById('signupError').style.display = 'none';
-    document.getElementById('signupSuccess').style.display = 'none';
+    const loginError = document.getElementById('loginError');
+    const signupError = document.getElementById('signupError');
+    const signupSuccess = document.getElementById('signupSuccess');
+    
+    if (loginError) loginError.style.display = 'none';
+    if (signupError) signupError.style.display = 'none';
+    if (signupSuccess) signupSuccess.style.display = 'none';
 }
 
 function showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');
     const text = document.getElementById('notificationText');
+    
+    if (!notification || !text) {
+        console.log("Notification:", message);
+        return;
+    }
+    
     const icon = notification.querySelector('i');
     
     notification.className = `notification ${type}`;
@@ -228,118 +257,133 @@ function showNotification(message, type = 'success') {
 function showLoading(text) {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
-    loadingText.textContent = text;
-    overlay.classList.add('show');
+    
+    if (overlay && loadingText) {
+        loadingText.textContent = text;
+        overlay.classList.add('show');
+    }
 }
 
 function hideLoading() {
-    document.getElementById('loadingOverlay').classList.remove('show');
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
 }
 
 function toggleSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
+    if (sidebar) sidebar.classList.toggle('active');
+    if (overlay) overlay.classList.toggle('active');
 }
 
 function closeSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    sidebar.classList.remove('active');
-    overlay.classList.remove('active');
+    if (sidebar) sidebar.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
 }
 
-// AUTH HANDLERS
+// AUTH HANDLERS - SIMPLIFIED
 async function handleLogin(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     if (isProcessing) return;
     
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const btn = document.getElementById('loginBtn');
-    const loader = document.getElementById('loginLoader');
-    const text = document.getElementById('loginText');
+    const email = document.getElementById('loginEmail')?.value;
+    const password = document.getElementById('loginPassword')?.value;
+    
+    if (!email || !password) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
     
     isProcessing = true;
-    btn.disabled = true;
-    loader.style.display = 'block';
-    text.textContent = currentLanguage === 'si' ? 'ඇතුල් වෙමින්...' : 'Logging in...';
+    showLoading('Logging in...');
     hideMessages();
     
     try {
         await auth.signInWithEmailAndPassword(email, password);
         showNotification(getTranslation('loginSuccess'));
-        document.getElementById('loginForm').reset();
+        
+        // Clear form
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) loginForm.reset();
+        
     } catch (error) {
-        const errorMsg = document.getElementById('loginError');
-        errorMsg.textContent = currentLanguage === 'si' 
-            ? 'පිවිසුම අසාර්ථකයි. ඔබගේ තොරතුරු පරීක්ෂා කරන්න.'
-            : 'Login failed. Please check your credentials.';
-        errorMsg.style.display = 'block';
+        console.error('Login error:', error);
+        let errorMessage = 'Login failed. Please try again.';
+        
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = 'User not found. Please check your email.';
+        } else if (error.code === 'auth/wrong-password') {
+            errorMessage = 'Incorrect password. Please try again.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Invalid email address.';
+        }
+        
+        showNotification(errorMessage, 'error');
     } finally {
         isProcessing = false;
-        btn.disabled = false;
-        loader.style.display = 'none';
-        text.textContent = getTranslation('login');
+        hideLoading();
     }
 }
 
 async function handleSignup(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     if (isProcessing) return;
     
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-    const btn = document.getElementById('signupBtn');
-    const loader = document.getElementById('signupLoader');
-    const text = document.getElementById('signupText');
+    const name = document.getElementById('signupName')?.value;
+    const email = document.getElementById('signupEmail')?.value;
+    const password = document.getElementById('signupPassword')?.value;
+    
+    if (!name || !email || !password) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification('Password must be at least 6 characters', 'error');
+        return;
+    }
     
     isProcessing = true;
-    btn.disabled = true;
-    loader.style.display = 'block';
-    text.textContent = currentLanguage === 'si' ? 'ගිණුම සාදමින්...' : 'Creating account...';
+    showLoading('Creating account...');
     hideMessages();
     
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await userCredential.user.updateProfile({ displayName: name });
         
-        const successMsg = document.getElementById('signupSuccess');
-        successMsg.textContent = currentLanguage === 'si' 
-            ? 'ලියාපදිංචිය සාර්ථකයි! හරවනු ලැබේ...'
-            : 'Registration successful! Redirecting...';
-        successMsg.style.display = 'block';
+        showNotification('Registration successful! Redirecting...');
         
-        document.getElementById('signupForm').reset();
+        // Clear form
+        const signupForm = document.getElementById('signupForm');
+        if (signupForm) signupForm.reset();
         
+        // Auto login after signup
         setTimeout(() => {
             showLogin();
         }, 2000);
+        
     } catch (error) {
-        const errorMsg = document.getElementById('signupError');
+        console.error('Signup error:', error);
+        let errorMessage = 'Registration failed. Please try again.';
+        
         if (error.code === 'auth/email-already-in-use') {
-            errorMsg.textContent = currentLanguage === 'si' 
-                ? 'මෙම විද්‍යුත් ලිපිනය දැනටමත් ලියාපදිංචි වී ඇත.'
-                : 'This email is already registered.';
+            errorMessage = 'Email already registered. Please use a different email.';
         } else if (error.code === 'auth/weak-password') {
-            errorMsg.textContent = currentLanguage === 'si' 
-                ? 'මුරපදය දුර්වලයි. අවම අක්ෂර 6ක් භාවිතා කරන්න.'
-                : 'Password too weak. Use at least 6 characters.';
-        } else {
-            errorMsg.textContent = currentLanguage === 'si' 
-                ? 'ලියාපදිංචිය අසාර්ථකයි. නැවත උත්සාහ කරන්න.'
-                : 'Registration failed. Try again.';
+            errorMessage = 'Password is too weak. Use at least 6 characters.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Invalid email address.';
         }
-        errorMsg.style.display = 'block';
+        
+        showNotification(errorMessage, 'error');
     } finally {
         isProcessing = false;
-        btn.disabled = false;
-        loader.style.display = 'none';
-        text.textContent = getTranslation('signUp');
+        hideLoading();
     }
 }
 
@@ -348,34 +392,58 @@ async function handleLogout() {
         await auth.signOut();
         chatSessions = [];
         currentSessionId = null;
-        currentImage = null;
-        currentOCRText = '';
         showNotification(getTranslation('logoutSuccess'));
     } catch (error) {
-        showNotification(currentLanguage === 'si' ? 'ඉවත්වීම අසාර්ථකයි' : 'Logout failed', 'error');
+        console.error('Logout error:', error);
+        showNotification('Logout failed', 'error');
     }
 }
 
-// FIRESTORE SESSION MANAGEMENT
+// SIMPLE SESSION MANAGEMENT (LocalStorage First)
 function generateSessionId() {
     return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
+function getStorageKey(userId) {
+    return `smartai-sessions-${userId}`;
+}
+
 async function loadChatSessions(userId) {
     try {
-        if (!userId) return;
+        // Try localStorage first (immediate fallback)
+        const storageKey = getStorageKey(userId);
+        const saved = localStorage.getItem(storageKey);
         
-        const sessionsRef = db.collection('users').doc(userId).collection('chatSessions');
-        const snapshot = await sessionsRef.orderBy('updatedAt', 'desc').limit(50).get();
+        if (saved) {
+            chatSessions = JSON.parse(saved);
+            console.log("✅ Loaded from localStorage:", chatSessions.length, "sessions");
+        }
         
-        chatSessions = [];
-        snapshot.forEach(doc => {
-            const sessionData = doc.data();
-            chatSessions.push({
-                id: doc.id,
-                ...sessionData
-            });
-        });
+        // Then try Firestore in background
+        if (db) {
+            try {
+                const sessionsRef = db.collection('users').doc(userId).collection('chatSessions');
+                const snapshot = await sessionsRef.orderBy('updatedAt', 'desc').limit(50).get();
+                
+                const firestoreSessions = [];
+                snapshot.forEach(doc => {
+                    const sessionData = doc.data();
+                    firestoreSessions.push({
+                        id: doc.id,
+                        ...sessionData
+                    });
+                });
+                
+                if (firestoreSessions.length > 0) {
+                    chatSessions = firestoreSessions;
+                    console.log("✅ Loaded from Firestore:", chatSessions.length, "sessions");
+                    // Sync back to localStorage
+                    localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+                }
+            } catch (firestoreError) {
+                console.log("ℹ️ Firestore not available, using localStorage");
+            }
+        }
         
         if (chatSessions.length === 0) {
             await createNewChat();
@@ -385,9 +453,9 @@ async function loadChatSessions(userId) {
         }
         
         renderSessions();
+        
     } catch (error) {
-        console.error('Firestore load error:', error);
-        showNotification('Failed to load chats', 'error');
+        console.error('Load sessions error:', error);
         await createNewChat();
     }
 }
@@ -397,17 +465,27 @@ async function saveChatSession(session) {
         const userId = auth.currentUser?.uid;
         if (!userId) return;
 
-        const sessionData = {
-            title: session.title,
-            messages: session.messages,
-            createdAt: session.createdAt,
-            updatedAt: session.updatedAt
-        };
+        // Save to localStorage immediately
+        const storageKey = getStorageKey(userId);
+        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
 
-        await db.collection('users').doc(userId).collection('chatSessions').doc(session.id).set(sessionData);
+        // Try to save to Firestore in background
+        if (db) {
+            try {
+                const sessionData = {
+                    title: session.title,
+                    messages: session.messages,
+                    createdAt: session.createdAt,
+                    updatedAt: session.updatedAt
+                };
+
+                await db.collection('users').doc(userId).collection('chatSessions').doc(session.id).set(sessionData);
+            } catch (firestoreError) {
+                console.log("ℹ️ Firestore save failed, using localStorage only");
+            }
+        }
     } catch (error) {
-        console.error('Firestore save error:', error);
-        throw error;
+        console.error('Save session error:', error);
     }
 }
 
@@ -416,10 +494,16 @@ async function deleteChatSession(sessionId) {
         const userId = auth.currentUser?.uid;
         if (!userId) return;
         
-        await db.collection('users').doc(userId).collection('chatSessions').doc(sessionId).delete();
+        // Delete from Firestore if available
+        if (db) {
+            try {
+                await db.collection('users').doc(userId).collection('chatSessions').doc(sessionId).delete();
+            } catch (firestoreError) {
+                console.log("ℹ️ Firestore delete failed");
+            }
+        }
     } catch (error) {
-        console.error('Firestore delete error:', error);
-        throw error;
+        console.error('Delete session error:', error);
     }
 }
 
@@ -438,12 +522,7 @@ async function createNewChat() {
     chatSessions.unshift(newSession);
     currentSessionId = sessionId;
     
-    try {
-        await saveChatSession(newSession);
-    } catch (error) {
-        console.error('Failed to save new chat:', error);
-    }
-    
+    await saveChatSession(newSession);
     renderSessions();
     clearMessages();
     
@@ -473,25 +552,27 @@ async function deleteChat(sessionId, event) {
     const index = chatSessions.findIndex(s => s.id === sessionId);
     if (index === -1) return;
     
-    try {
-        await deleteChatSession(sessionId);
-        chatSessions.splice(index, 1);
-        
-        if (currentSessionId === sessionId) {
-            if (chatSessions.length > 0) {
-                currentSessionId = chatSessions[0].id;
-                renderChatHistory();
-            } else {
-                await createNewChat();
-            }
+    await deleteChatSession(sessionId);
+    chatSessions.splice(index, 1);
+    
+    if (currentSessionId === sessionId) {
+        if (chatSessions.length > 0) {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        } else {
+            await createNewChat();
         }
-        
-        renderSessions();
-        showNotification(getTranslation('chatDeleted'));
-    } catch (error) {
-        console.error('Delete failed:', error);
-        showNotification('Failed to delete chat', 'error');
     }
+    
+    // Save the updated sessions list
+    const userId = auth.currentUser?.uid;
+    if (userId) {
+        const storageKey = getStorageKey(userId);
+        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+    }
+    
+    renderSessions();
+    showNotification(getTranslation('chatDeleted'));
 }
 
 function getCurrentSession() {
@@ -564,7 +645,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// CHAT MESSAGES
+// CHAT MESSAGES (Rest of your existing chat functions remain the same)
 function clearMessages() {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
@@ -690,12 +771,7 @@ async function addMessage(content, isUser, imageData = null) {
             session.title = titleText + (titleText.length >= 30 ? '...' : '');
         }
         
-        try {
-            await saveChatSession(session);
-        } catch (error) {
-            console.error('Failed to save message:', error);
-        }
-        
+        await saveChatSession(session);
         renderSessions();
     }
 }
@@ -724,7 +800,7 @@ function copyMessage(button) {
     });
 }
 
-// IMAGE UPLOAD
+// IMAGE UPLOAD (Rest of your existing image functions remain the same)
 async function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -808,7 +884,7 @@ function removeImage() {
     if (ocrTextDiv) ocrTextDiv.textContent = '';
 }
 
-// GEMINI AI
+// GEMINI AI (Rest of your existing AI functions remain the same)
 async function getAIResponse(userMessage, imageData = null, ocrText = '') {
     try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
@@ -874,7 +950,7 @@ async function sendMessage() {
     if (isProcessing) return;
     
     const input = document.getElementById('messageInput');
-    const message = input.value.trim();
+    const message = input?.value.trim();
     
     if (!message && !currentImage) return;
     
