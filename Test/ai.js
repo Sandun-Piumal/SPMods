@@ -360,97 +360,55 @@ async function handleLogout() {
     }
 }
 
-// GEMINI AI WITH IMAGE ANALYSIS - FIXED VERSION
+// GEMINI AI - UNIVERSAL FUNCTION (Text + Images)
 async function getAIResponse(userMessage, imageData = null) {
-    console.log("🤖 Getting AI response with image analysis...");
+    console.log("🤖 Getting AI response...", { userMessage, hasImage: !!imageData });
     
     try {
-        // Use Gemini Pro Vision model for image understanding
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
-        
-        const requestBody = {
-            contents: [{
-                parts: [
-                    {
-                        text: userMessage + (currentLanguage === 'si' ? 
-                            "\n\nකරුණාකර පින්තූරය දෙස බලා පින්තූරයේ ඇති තොරතුරු මත පදනම්ව පිළිතුරු දෙන්න." : 
-                            "\n\nPlease look at the image and respond based on the information in the image.")
-                    }
-                ]
-            }],
-            generationConfig: {
-                temperature: 0.4,
-                topK: 32,
-                topP: 1,
-                maxOutputTokens: 2048,
-            }
-        };
-
-        // Add image data if available
+        // If there's an image, use Gemini Pro Vision
         if (imageData) {
-            // Convert base64 to proper format for Gemini
-            const base64Data = imageData.split(',')[1];
-            requestBody.contents[0].parts.push({
-                inline_data: {
-                    mime_type: "image/jpeg",
-                    data: base64Data
+            const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const visionBody = {
+                contents: [{
+                    parts: [
+                        { text: userMessage },
+                        {
+                            inline_data: {
+                                mime_type: "image/jpeg",
+                                data: imageData.split(',')[1]
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    temperature: 0.4,
+                    maxOutputTokens: 2048,
                 }
+            };
+            
+            console.log("📤 Sending to Gemini Vision API...");
+            const visionResponse = await fetch(visionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(visionBody)
             });
+            
+            if (visionResponse.ok) {
+                const visionData = await visionResponse.json();
+                if (visionData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    console.log("✅ Vision API success");
+                    return visionData.candidates[0].content.parts[0].text;
+                }
+            }
         }
         
-        console.log("📤 Sending request to Gemini Vision API...");
+        // Fallback to text-only Gemini Pro (for text messages or if vision fails)
+        const textUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
         
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ API Response not OK:', response.status, errorText);
-            throw new Error(`API Error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log("✅ Gemini Vision API response received");
-        
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-            console.error('❌ Invalid response structure:', data);
-            throw new Error('Invalid response from AI');
-        }
-        
-        const aiResponse = data.candidates[0].content.parts[0].text;
-        
-        if (!aiResponse || aiResponse.trim() === '') {
-            throw new Error('Empty response from AI');
-        }
-        
-        console.log("🤖 AI Response:", aiResponse);
-        return aiResponse;
-        
-    } catch (error) {
-        console.error('❌ AI Vision Error:', error);
-        
-        // Fallback to text-only if vision fails
-        return await getTextOnlyAIResponse(userMessage);
-    }
-}
-
-// Fallback text-only AI response
-async function getTextOnlyAIResponse(userMessage) {
-    try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
-        
-        const requestBody = {
+        const textBody = {
             contents: [{
-                parts: [{
-                    text: userMessage + (currentLanguage === 'si' ? 
-                        "\n\nකරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න." : 
-                        "\n\nPlease respond in English.")
-                }]
+                parts: [{ text: userMessage }]
             }],
             generationConfig: {
                 temperature: 0.7,
@@ -458,26 +416,31 @@ async function getTextOnlyAIResponse(userMessage) {
             }
         };
         
-        const response = await fetch(url, {
+        console.log("📤 Sending to Gemini Text API...");
+        const textResponse = await fetch(textUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(textBody)
         });
         
-        if (!response.ok) throw new Error('Text API failed');
+        if (!textResponse.ok) throw new Error('Text API failed');
         
-        const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
+        const textData = await textResponse.json();
+        const aiResponse = textData.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!aiResponse) throw new Error('Empty response');
+        
+        console.log("✅ Text API success");
+        return aiResponse;
         
     } catch (error) {
-        console.error('❌ Text AI Error:', error);
+        console.error('❌ AI Error:', error);
         
+        // User-friendly error messages
         if (currentLanguage === 'si') {
-            return 'මට කණගාටුයි, පින්තූරය විශ්ලේෂණය කිරීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.';
+            return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.';
         } else {
-            return 'I apologize, I was unable to analyze the image. Please try again.';
+            return 'I apologize, but I encountered an error. Please try again in a moment.';
         }
     }
 }
@@ -543,8 +506,8 @@ async function sendMessage() {
     }
     
     const messageToSend = message || (currentLanguage === 'si' ? 
-        'මෙම පින්තූරය විශ්ලේෂණය කරන්න' : 
-        'Analyze this image');
+        'මෙම පින්තූරය ගැන මට කියන්න' : 
+        'Tell me about this image');
     
     // Add user message to chat
     addMessageToChat(messageToSend, true, currentImage);
@@ -559,20 +522,23 @@ async function sendMessage() {
     typing.style.display = 'flex';
     
     try {
-        console.log("🔄 Getting AI response with image analysis...");
+        console.log("🔄 Getting AI response...");
         const response = await getAIResponse(messageToSend, currentImage);
         
         typing.style.display = 'none';
         addMessageToChat(response, false);
-        showNotification(getTranslation('imageAnalyzed'));
+        
+        if (currentImage) {
+            showNotification(getTranslation('imageAnalyzed'));
+        }
         
     } catch (error) {
         console.error("❌ Error in sendMessage:", error);
         typing.style.display = 'none';
         
         const errorMsg = currentLanguage === 'si' 
-            ? 'මට කණගාටුයි, පින්තූරය විශ්ලේෂණය කිරීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
-            : 'Sorry, I was unable to analyze the image. Please try again.';
+            ? 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
+            : 'Sorry, an error occurred. Please try again.';
         
         addMessageToChat(errorMsg, false);
     } finally {
@@ -683,7 +649,7 @@ function copyMessage(button) {
     });
 }
 
-// IMAGE UPLOAD - SIMPLIFIED (No OCR needed)
+// IMAGE UPLOAD
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -722,7 +688,7 @@ function removeImage() {
     document.getElementById('previewImage').src = '';
 }
 
-// SESSION MANAGEMENT (same as before)
+// SESSION MANAGEMENT
 function getStorageKey() {
     const userId = auth.currentUser?.uid || 'anonymous';
     return `smartai-sessions-${userId}`;
