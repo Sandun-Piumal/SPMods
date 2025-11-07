@@ -19,7 +19,7 @@
         .admin-container { max-width: 1200px; margin: 0 auto; }
         .header { 
             display: flex; 
-            justify-content: between; 
+            justify-content: space-between; 
             align-items: center;
             margin-bottom: 30px;
             padding-bottom: 15px;
@@ -65,6 +65,48 @@
         .btn:hover { background: #357ABD; }
         .logout-btn { background: #ef4444; }
         .logout-btn:hover { background: #dc2626; }
+        .message { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #4A90E2; 
+            color: white; 
+            padding: 15px; 
+            border-radius: 5px; 
+            z-index: 1000;
+            display: none;
+        }
+        .user-selector {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #2a2a2a;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+        .chat-details {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 5px;
+        }
+        .message-user {
+            background: #1a3a5f;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #4A90E2;
+        }
+        .message-ai {
+            background: #1a5f3a;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #10b981;
+        }
     </style>
 </head>
 <body>
@@ -96,13 +138,420 @@
 
         <div class="chats-section">
             <h2><i class="fas fa-comments"></i> User Chat Sessions</h2>
-            <select id="userSelector" onchange="loadUserChats(this.value)">
+            <select id="userSelector" class="user-selector" onchange="loadUserChats(this.value)">
                 <option value="">Select User</option>
             </select>
             <div id="chatsList"></div>
         </div>
     </div>
 
-    <script src="admin.js"></script>
+    <div id="message" class="message"></div>
+
+    <script>
+        // FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
+            authDomain: "smart-ai-chat-app.firebaseapp.com",
+            projectId: "smart-ai-chat-app",
+            databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com"
+        };
+
+        let auth, database;
+
+        // Initialize Firebase
+        function initializeFirebase() {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                database = firebase.database();
+                
+                console.log("✅ Admin Firebase initialized");
+                
+                // Show login form
+                showLoginForm();
+                
+            } catch (error) {
+                console.error("❌ Admin Firebase init error:", error);
+                showMessage("Firebase initialization failed: " + error.message);
+            }
+        }
+
+        // Show login form
+        function showLoginForm() {
+            const email = prompt("Enter Admin Email:");
+            const password = prompt("Enter Admin Password:");
+            
+            if (email && password) {
+                loginAdmin(email, password);
+            } else {
+                showMessage("Email and password required");
+                setTimeout(showLoginForm, 1000);
+            }
+        }
+
+        // Admin login
+        async function loginAdmin(email, password) {
+            try {
+                showMessage("Logging in...");
+                
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                console.log("✅ Admin logged in:", userCredential.user.email);
+                
+                showMessage("Login successful! Loading data...");
+                loadAdminData();
+                
+            } catch (error) {
+                console.error("❌ Admin login error:", error);
+                showMessage("Login failed: " + error.message);
+                setTimeout(showLoginForm, 2000);
+            }
+        }
+
+        // Load all admin data
+        async function loadAdminData() {
+            try {
+                showMessage("Loading data...");
+                
+                await loadUserStats();
+                await loadAllUsers();
+                await setupUserSelector();
+                
+                // Set up real-time listeners
+                setupRealTimeListeners();
+                
+                showMessage("Data loaded successfully!");
+                
+                // Hide message after 3 seconds
+                setTimeout(() => {
+                    const messageEl = document.getElementById('message');
+                    if (messageEl) messageEl.style.display = 'none';
+                }, 3000);
+                
+            } catch (error) {
+                console.error("❌ Error loading admin data:", error);
+                showMessage("Error loading data: " + error.message);
+            }
+        }
+
+        // Set up real-time listeners
+        function setupRealTimeListeners() {
+            // Real-time users listener
+            database.ref('users').on('value', (snapshot) => {
+                console.log("🔄 Real-time users update");
+                loadUserStats();
+                loadAllUsers();
+                setupUserSelector();
+            });
+
+            // Real-time chats listener
+            database.ref('userChatSessions').on('value', (snapshot) => {
+                console.log("🔄 Real-time chats update");
+                loadUserStats();
+                
+                // Reload current user's chats if one is selected
+                const selectedUser = document.getElementById('userSelector').value;
+                if (selectedUser) {
+                    loadUserChats(selectedUser);
+                }
+            });
+        }
+
+        // Load user statistics
+        async function loadUserStats() {
+            try {
+                const usersSnapshot = await database.ref('users').once('value');
+                const chatsSnapshot = await database.ref('userChatSessions').once('value');
+                
+                const users = usersSnapshot.val() || {};
+                const chats = chatsSnapshot.val() || {};
+                
+                const totalUsers = Object.keys(users).length;
+                
+                // Calculate total chats
+                let totalChats = 0;
+                Object.values(chats).forEach(userChats => {
+                    if (userChats && userChats.sessions) {
+                        totalChats += userChats.sessions.length;
+                    }
+                });
+                
+                // Calculate active today (last 24 hours)
+                const activeToday = Object.values(users).filter(user => {
+                    if (!user.lastLogin) return false;
+                    return (Date.now() - user.lastLogin) < (24 * 60 * 60 * 1000);
+                }).length;
+                
+                // Update UI
+                document.getElementById('totalUsers').textContent = totalUsers;
+                document.getElementById('totalChats').textContent = totalChats;
+                document.getElementById('activeToday').textContent = activeToday;
+                
+                console.log(`📈 Stats: Users=${totalUsers}, Chats=${totalChats}, Active=${activeToday}`);
+                
+            } catch (error) {
+                console.error("❌ Error loading stats:", error);
+                throw error;
+            }
+        }
+
+        // Load all registered users
+        async function loadAllUsers() {
+            try {
+                const usersSnapshot = await database.ref('users').once('value');
+                const users = usersSnapshot.val() || {};
+                
+                const usersList = document.getElementById('usersList');
+                usersList.innerHTML = '';
+                
+                if (Object.keys(users).length === 0) {
+                    usersList.innerHTML = '<p>No users found in database.</p>';
+                    return;
+                }
+                
+                Object.entries(users).forEach(([userId, userData]) => {
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.innerHTML = `
+                        <strong>👤 ${userData.displayName || 'No Name'}</strong><br>
+                        📧 ${userData.email}<br>
+                        🆔 ${userId.substring(0, 8)}...<br>
+                        📅 Registered: ${userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'Unknown'}<br>
+                        🔐 Last Login: ${userData.lastLogin ? new Date(userData.lastLogin).toLocaleDateString() : 'Never'}<br>
+                        <button class="btn" onclick="viewUserChats('${userId}', '${userData.email}')">
+                            <i class="fas fa-eye"></i> View Chats
+                        </button>
+                    `;
+                    usersList.appendChild(userItem);
+                });
+                
+            } catch (error) {
+                console.error("❌ Error loading users:", error);
+                throw error;
+            }
+        }
+
+        // Setup user selector dropdown
+        async function setupUserSelector() {
+            try {
+                const usersSnapshot = await database.ref('users').once('value');
+                const users = usersSnapshot.val() || {};
+                const selector = document.getElementById('userSelector');
+                
+                selector.innerHTML = '<option value="">Select User</option>';
+                
+                Object.entries(users).forEach(([userId, userData]) => {
+                    const option = document.createElement('option');
+                    option.value = userId;
+                    option.textContent = `${userData.displayName || 'No Name'} (${userData.email})`;
+                    selector.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error("❌ Error setting up selector:", error);
+            }
+        }
+
+        // View user chats
+        async function viewUserChats(userId, userEmail) {
+            try {
+                const chatsSnapshot = await database.ref('userChatSessions/' + userId).once('value');
+                const userChats = chatsSnapshot.val();
+                
+                let chatInfo = `Chats for: ${userEmail}\n\n`;
+                
+                if (userChats && userChats.sessions) {
+                    userChats.sessions.forEach(session => {
+                        chatInfo += `💬 ${session.title}\n`;
+                        chatInfo += `   Messages: ${session.messages.length}\n`;
+                        chatInfo += `   Last: ${new Date(session.updatedAt).toLocaleDateString()}\n\n`;
+                    });
+                } else {
+                    chatInfo += "No chat sessions found.";
+                }
+                
+                alert(chatInfo);
+                
+            } catch (error) {
+                console.error("❌ Error viewing user chats:", error);
+                alert("Error loading chats: " + error.message);
+            }
+        }
+
+        // Load chats for selected user
+        async function loadUserChats(userId) {
+            if (!userId) {
+                document.getElementById('chatsList').innerHTML = '';
+                return;
+            }
+            
+            try {
+                const chatsSnapshot = await database.ref('userChatSessions/' + userId).once('value');
+                const userChats = chatsSnapshot.val();
+                
+                const chatsList = document.getElementById('chatsList');
+                chatsList.innerHTML = '<h3>Chat Sessions</h3>';
+                
+                if (userChats && userChats.sessions) {
+                    userChats.sessions.forEach((session, index) => {
+                        const chatItem = document.createElement('div');
+                        chatItem.className = 'chat-item';
+                        chatItem.innerHTML = `
+                            <strong>💬 ${session.title}</strong><br>
+                            📅 Created: ${new Date(session.createdAt).toLocaleString()}<br>
+                            ✏️ Updated: ${new Date(session.updatedAt).toLocaleString()}<br>
+                            💭 Messages: ${session.messages.length}<br>
+                            <button class="btn" onclick="viewChatDetails('${userId}', ${index})">
+                                <i class="fas fa-search"></i> View Details
+                            </button>
+                        `;
+                        chatsList.appendChild(chatItem);
+                    });
+                } else {
+                    chatsList.innerHTML += '<p>No chat sessions found for this user.</p>';
+                }
+                
+            } catch (error) {
+                console.error("❌ Error loading user chats:", error);
+                document.getElementById('chatsList').innerHTML = '<p>Error loading chats.</p>';
+            }
+        }
+
+        // View chat details
+        async function viewChatDetails(userId, sessionIndex) {
+            try {
+                const chatsSnapshot = await database.ref('userChatSessions/' + userId).once('value');
+                const userChats = chatsSnapshot.val();
+                
+                if (!userChats || !userChats.sessions || !userChats.sessions[sessionIndex]) {
+                    alert("Chat session not found!");
+                    return;
+                }
+                
+                const session = userChats.sessions[sessionIndex];
+                
+                // Create popup window
+                const popup = window.open('', 'Chat Details', 'width=800,height=600,scrollbars=yes');
+                
+                let messagesHTML = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Chat Details - ${session.title}</title>
+                        <style>
+                            body { 
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                                background: #0a0a0a; 
+                                color: white; 
+                                padding: 20px;
+                                margin: 0;
+                            }
+                            .chat-header { 
+                                background: #1a1a1a; 
+                                padding: 15px; 
+                                border-radius: 8px;
+                                margin-bottom: 20px;
+                            }
+                            .message-user {
+                                background: #1a3a5f;
+                                padding: 12px;
+                                margin: 10px 0;
+                                border-radius: 8px;
+                                border-left: 4px solid #4A90E2;
+                            }
+                            .message-ai {
+                                background: #1a5f3a;
+                                padding: 12px;
+                                margin: 10px 0;
+                                border-radius: 8px;
+                                border-left: 4px solid #10b981;
+                            }
+                            .timestamp {
+                                font-size: 0.8em;
+                                color: #ccc;
+                                margin-top: 5px;
+                            }
+                            .close-btn {
+                                background: #ef4444;
+                                color: white;
+                                border: none;
+                                padding: 10px 15px;
+                                border-radius: 5px;
+                                cursor: pointer;
+                                margin-top: 15px;
+                            }
+                            .messages-container {
+                                max-height: 400px;
+                                overflow-y: auto;
+                                padding: 10px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="chat-header">
+                            <h2>💬 ${session.title}</h2>
+                            <p><strong>User ID:</strong> ${userId.substring(0, 12)}...</p>
+                            <p><strong>Created:</strong> ${new Date(session.createdAt).toLocaleString()}</p>
+                            <p><strong>Updated:</strong> ${new Date(session.updatedAt).toLocaleString()}</p>
+                            <p><strong>Total Messages:</strong> ${session.messages.length}</p>
+                        </div>
+                        
+                        <div class="messages-container">
+                            <h3>Messages:</h3>
+                `;
+                
+                session.messages.forEach(msg => {
+                    const messageClass = msg.isUser ? 'message-user' : 'message-ai';
+                    const sender = msg.isUser ? '👤 User' : '🤖 AI';
+                    
+                    messagesHTML += `
+                        <div class="${messageClass}">
+                            <strong>${sender}:</strong>
+                            <div>${msg.content}</div>
+                            <div class="timestamp">🕒 ${new Date(msg.timestamp).toLocaleString()}</div>
+                        </div>
+                    `;
+                });
+                
+                messagesHTML += `
+                        </div>
+                        <button class="close-btn" onclick="window.close()">Close Window</button>
+                    </body>
+                    </html>
+                `;
+                
+                popup.document.write(messagesHTML);
+                popup.document.close();
+                
+            } catch (error) {
+                console.error("❌ Error viewing chat details:", error);
+                alert("Error loading chat details: " + error.message);
+            }
+        }
+
+        // Show message
+        function showMessage(message) {
+            let messageEl = document.getElementById('message');
+            if (!messageEl) {
+                messageEl = document.createElement('div');
+                messageEl.id = 'message';
+                messageEl.className = 'message';
+                document.body.appendChild(messageEl);
+            }
+            messageEl.textContent = message;
+            messageEl.style.display = 'block';
+        }
+
+        // Logout
+        function logout() {
+            if (confirm("Are you sure you want to logout?")) {
+                auth.signOut().then(() => {
+                    window.location.reload();
+                });
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', initializeFirebase);
+    </script>
 </body>
-                                                                                               </html>
+</html>
