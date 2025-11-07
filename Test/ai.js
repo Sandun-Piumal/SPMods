@@ -17,7 +17,7 @@ let chatSessions = [];
 let currentSessionId = null;
 let currentImage = null;
 let currentOCRText = '';
-let currentLanguage = 'en'; // Default language
+let currentLanguage = 'en';
 
 // TRANSLATIONS
 const translations = {
@@ -99,25 +99,21 @@ function getTranslation(key) {
 }
 
 function updateLanguage() {
-    // Update all elements with data-i18n attribute
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
         element.textContent = getTranslation(key);
     });
 
-    // Update placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
         element.placeholder = getTranslation(key);
     });
 
-    // Update titles
     document.querySelectorAll('[data-i18n-title]').forEach(element => {
         const key = element.getAttribute('data-i18n-title');
         element.title = getTranslation(key);
     });
 
-    // Save language preference
     localStorage.setItem('smartai-language', currentLanguage);
 }
 
@@ -135,22 +131,33 @@ function loadLanguagePreference() {
     }
 }
 
-// INITIALIZE FIREBASE
+// INITIALIZE FIREBASE - FIXED VERSION
 function initializeFirebase() {
     try {
+        // Check if Firebase is loaded
         if (typeof firebase === 'undefined') {
-            setTimeout(initializeFirebase, 100);
+            console.error('Firebase not loaded');
+            showNotification('Firebase not loaded. Please check your internet connection.', 'error');
             return;
         }
-        
+
+        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
+            console.log("✅ Firebase initialized");
+        } else {
+            firebase.app(); // if already initialized, use that app
         }
         
+        // Initialize Auth and Database
         auth = firebase.auth();
         database = firebase.database();
         
+        console.log("✅ Auth and Database initialized");
+
+        // Auth state listener
         auth.onAuthStateChanged((user) => {
+            console.log("Auth state changed:", user ? "User logged in" : "No user");
             if (user) {
                 showChatApp();
                 loadChatSessions();
@@ -159,13 +166,16 @@ function initializeFirebase() {
             } else {
                 showAuthContainer();
             }
+        }, (error) => {
+            console.error("Auth state error:", error);
+            showNotification("Authentication error", "error");
         });
         
         loadLanguagePreference();
-        console.log("✅ Firebase initialized with Database");
+        
     } catch (error) {
-        console.error("Firebase error:", error);
-        showNotification("System error occurred", "error");
+        console.error("Firebase initialization error:", error);
+        showNotification("Failed to initialize app. Please refresh the page.", "error");
     }
 }
 
@@ -191,8 +201,10 @@ async function saveUserToDatabase(user, name) {
 
 async function updateUserLoginTime(user) {
     try {
-        await database.ref('users/' + user.uid + '/lastLogin').set(firebase.database.ServerValue.TIMESTAMP);
-        console.log("✅ Login time updated");
+        if (database) {
+            await database.ref('users/' + user.uid + '/lastLogin').set(firebase.database.ServerValue.TIMESTAMP);
+            console.log("✅ Login time updated");
+        }
     } catch (error) {
         console.error("Error updating login time:", error);
     }
@@ -201,7 +213,7 @@ async function updateUserLoginTime(user) {
 async function saveChatSessionsToDatabase() {
     try {
         const user = auth.currentUser;
-        if (!user) return;
+        if (!user || !database) return;
         
         const sessionsData = {
             sessions: chatSessions,
@@ -219,7 +231,7 @@ async function saveChatSessionsToDatabase() {
 async function loadChatSessionsFromDatabase() {
     try {
         const user = auth.currentUser;
-        if (!user) return;
+        if (!user || !database) return false;
         
         const snapshot = await database.ref('userChatSessions/' + user.uid).once('value');
         const data = snapshot.val();
@@ -322,7 +334,7 @@ function closeSidebar() {
     overlay.classList.remove('active');
 }
 
-// AUTH HANDLERS
+// AUTH HANDLERS - FIXED VERSION
 async function handleLogin(event) {
     event.preventDefault();
     if (isProcessing) return;
@@ -345,10 +357,26 @@ async function handleLogin(event) {
         showNotification(getTranslation('loginSuccess'));
         document.getElementById('loginForm').reset();
     } catch (error) {
+        console.error("Login error:", error);
         const errorMsg = document.getElementById('loginError');
-        errorMsg.textContent = currentLanguage === 'si' 
-            ? 'පිවිසුම අසාර්ථකයි. ඔබගේ තොරතුරු පරීක්ෂා කරන්න.'
-            : 'Login failed. Please check your credentials.';
+        
+        if (error.code === 'auth/invalid-email') {
+            errorMsg.textContent = currentLanguage === 'si' 
+                ? 'වලංගු නොවන විද්‍යුත් ලිපිනයකි.'
+                : 'Invalid email address.';
+        } else if (error.code === 'auth/user-not-found') {
+            errorMsg.textContent = currentLanguage === 'si' 
+                ? 'මෙම විද්‍යුත් ලිපිනය සමඟ ගිණුමක් නොමැත.'
+                : 'No account found with this email.';
+        } else if (error.code === 'auth/wrong-password') {
+            errorMsg.textContent = currentLanguage === 'si' 
+                ? 'වැරදි මුරපදය.'
+                : 'Wrong password.';
+        } else {
+            errorMsg.textContent = currentLanguage === 'si' 
+                ? 'පිවිසුම අසාර්ථකයි. ඔබගේ තොරතුරු පරීක්ෂා කරන්න.'
+                : 'Login failed. Please check your credentials.';
+        }
         errorMsg.style.display = 'block';
     } finally {
         isProcessing = false;
@@ -397,6 +425,7 @@ async function handleSignup(event) {
             showLogin();
         }, 2000);
     } catch (error) {
+        console.error("Signup error:", error);
         const errorMsg = document.getElementById('signupError');
         if (error.code === 'auth/email-already-in-use') {
             errorMsg.textContent = currentLanguage === 'si' 
@@ -406,6 +435,10 @@ async function handleSignup(event) {
             errorMsg.textContent = currentLanguage === 'si' 
                 ? 'මුරපදය දුර්වලයි. අවම අක්ෂර 6ක් භාවිතා කරන්න.'
                 : 'Password too weak. Use at least 6 characters.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMsg.textContent = currentLanguage === 'si' 
+                ? 'වලංගු නොවන විද්‍යුත් ලිපිනයකි.'
+                : 'Invalid email address.';
         } else {
             errorMsg.textContent = currentLanguage === 'si' 
                 ? 'ලියාපදිංචිය අසාර්ථකයි. නැවත උත්සාහ කරන්න.'
@@ -429,6 +462,7 @@ async function handleLogout() {
         currentOCRText = '';
         showNotification(getTranslation('logoutSuccess'));
     } catch (error) {
+        console.error("Logout error:", error);
         showNotification(currentLanguage === 'si' ? 'ඉවත්වීම අසාර්ථකයි' : 'Logout failed', 'error');
     }
 }
