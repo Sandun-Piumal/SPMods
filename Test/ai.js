@@ -146,16 +146,12 @@ function initializeFirebase() {
         }
         
         auth = firebase.auth();
-        db = firebase.firestore(); // Add Firestore
         
         auth.onAuthStateChanged((user) => {
             if (user) {
-                // Force reload user to get latest profile
-                user.reload().then(() => {
-                    showChatApp();
-                    loadChatSessions();
-                    updateUserProfile(user);
-                });
+                showChatApp();
+                loadChatSessions();
+                updateUserProfile(user);
             } else {
                 showAuthContainer();
             }
@@ -171,18 +167,11 @@ function initializeFirebase() {
 
 // UPDATE USER PROFILE
 function updateUserProfile(user) {
-    // Force get fresh user data
     const userName = user.displayName || user.email.split('@')[0];
     const userEmail = user.email;
     
     document.getElementById('userName').textContent = userName;
     document.getElementById('userEmail').textContent = userEmail;
-    
-    console.log("User Profile:", {
-        displayName: user.displayName,
-        email: user.email,
-        uid: user.uid
-    });
 }
 
 // UI FUNCTIONS
@@ -315,42 +304,20 @@ async function handleSignup(event) {
     hideMessages();
     
     try {
-        // Create user
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        
-        // Update profile with name - IMPORTANT: Wait for completion
-        await userCredential.user.updateProfile({ 
-            displayName: name 
-        });
-        
-        // Reload user to get updated profile
-        await userCredential.user.reload();
-        
-        // Save to Firestore (optional but recommended)
-        if (db) {
-            await db.collection('users').doc(userCredential.user.uid).set({
-                name: name,
-                email: email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
+        await userCredential.user.updateProfile({ displayName: name });
         
         const successMsg = document.getElementById('signupSuccess');
         successMsg.textContent = currentLanguage === 'si' 
-            ? 'ලියාපදිංචිය සාර්ථකයි! ඇතුල් වෙමින්...'
-            : 'Registration successful! Logging in...';
+            ? 'ලියාපදිංචිය සාර්ථකයි! හරවනු ලැබේ...'
+            : 'Registration successful! Redirecting...';
         successMsg.style.display = 'block';
         
         document.getElementById('signupForm').reset();
         
-        // Auto login after signup
         setTimeout(() => {
-            showChatApp();
-            loadChatSessions();
-            updateUserProfile(userCredential.user);
-            showNotification(currentLanguage === 'si' ? `ආයුබෝවන් ${name}!` : `Welcome ${name}!`);
-        }, 1500);
-        
+            showLogin();
+        }, 2000);
     } catch (error) {
         const errorMsg = document.getElementById('signupError');
         if (error.code === 'auth/email-already-in-use') {
