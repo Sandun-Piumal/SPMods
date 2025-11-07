@@ -1,8 +1,11 @@
-// FIREBASE CONFIG
+// COMPLETE FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
     authDomain: "smart-ai-chat-app.firebaseapp.com",
-    projectId: "smart-ai-chat-app"
+    projectId: "smart-ai-chat-app",
+    storageBucket: "smart-ai-chat-app.appspot.com",
+    messagingSenderId: "105978571931",
+    appId: "1:105978571931:web:3c8d5c7d9d8c8f5c8a5b9f"
 };
 
 // GEMINI API KEY
@@ -10,12 +13,13 @@ const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
 // STATE VARIABLES
 let auth = null;
+let db = null;
 let isProcessing = false;
 let chatSessions = [];
 let currentSessionId = null;
 let currentImage = null;
 let currentOCRText = '';
-let currentLanguage = 'en'; // Default language
+let currentLanguage = 'en';
 
 // TRANSLATIONS
 const translations = {
@@ -97,25 +101,21 @@ function getTranslation(key) {
 }
 
 function updateLanguage() {
-    // Update all elements with data-i18n attribute
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
         element.textContent = getTranslation(key);
     });
 
-    // Update placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
         element.placeholder = getTranslation(key);
     });
 
-    // Update titles
     document.querySelectorAll('[data-i18n-title]').forEach(element => {
         const key = element.getAttribute('data-i18n-title');
         element.title = getTranslation(key);
     });
 
-    // Save language preference
     localStorage.setItem('smartai-language', currentLanguage);
 }
 
@@ -146,11 +146,12 @@ function initializeFirebase() {
         }
         
         auth = firebase.auth();
+        db = firebase.firestore();
         
         auth.onAuthStateChanged((user) => {
             if (user) {
                 showChatApp();
-                loadChatSessions();
+                loadChatSessions(user.uid);
                 updateUserProfile(user);
             } else {
                 showAuthContainer();
@@ -355,27 +356,29 @@ async function handleLogout() {
     }
 }
 
-// SESSION MANAGEMENT
-function getStorageKey() {
-    const userId = auth.currentUser?.uid || 'anonymous';
-    return `smartai-sessions-${userId}`;
-}
-
+// FIRESTORE SESSION MANAGEMENT
 function generateSessionId() {
     return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-function loadChatSessions() {
+async function loadChatSessions(userId) {
     try {
-        const storageKey = getStorageKey();
-        const saved = localStorage.getItem(storageKey);
+        if (!userId) return;
         
-        if (saved) {
-            chatSessions = JSON.parse(saved);
-        }
+        const sessionsRef = db.collection('users').doc(userId).collection('chatSessions');
+        const snapshot = await sessionsRef.orderBy('updatedAt', 'desc').limit(50).get();
+        
+        chatSessions = [];
+        snapshot.forEach(doc => {
+            const sessionData = doc.data();
+            chatSessions.push({
+                id: doc.id,
+                ...sessionData
+            });
+        });
         
         if (chatSessions.length === 0) {
-            createNewChat();
+            await createNewChat();
         } else {
             currentSessionId = chatSessions[0].id;
             renderChatHistory();
@@ -383,38 +386,64 @@ function loadChatSessions() {
         
         renderSessions();
     } catch (error) {
-        console.error('Load error:', error);
-        createNewChat();
+        console.error('Firestore load error:', error);
+        showNotification('Failed to load chats', 'error');
+        await createNewChat();
     }
 }
 
-function saveChatSessions() {
+async function saveChatSession(session) {
     try {
-        const storageKey = getStorageKey();
-        if (chatSessions.length > 50) {
-            chatSessions = chatSessions.slice(0, 50);
-        }
-        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+        const userId = auth.currentUser?.uid;
+        if (!userId) return;
+
+        const sessionData = {
+            title: session.title,
+            messages: session.messages,
+            createdAt: session.createdAt,
+            updatedAt: session.updatedAt
+        };
+
+        await db.collection('users').doc(userId).collection('chatSessions').doc(session.id).set(sessionData);
     } catch (error) {
-        console.error('Save error:', error);
+        console.error('Firestore save error:', error);
+        throw error;
     }
 }
 
-function createNewChat() {
+async function deleteChatSession(sessionId) {
+    try {
+        const userId = auth.currentUser?.uid;
+        if (!userId) return;
+        
+        await db.collection('users').doc(userId).collection('chatSessions').doc(sessionId).delete();
+    } catch (error) {
+        console.error('Firestore delete error:', error);
+        throw error;
+    }
+}
+
+// SESSION OPERATIONS
+async function createNewChat() {
     const sessionId = generateSessionId();
     
     const newSession = {
         id: sessionId,
         title: currentLanguage === 'si' ? 'නව සංවාදය' : 'New Chat',
         messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        createdAt: new Date(),
+        updatedAt: new Date()
     };
     
     chatSessions.unshift(newSession);
     currentSessionId = sessionId;
     
-    saveChatSessions();
+    try {
+        await saveChatSession(newSession);
+    } catch (error) {
+        console.error('Failed to save new chat:', error);
+    }
+    
     renderSessions();
     clearMessages();
     
@@ -423,7 +452,7 @@ function createNewChat() {
     }
 }
 
-function switchToSession(sessionId) {
+async function switchToSession(sessionId) {
     if (currentSessionId === sessionId) {
         closeSidebar();
         return;
@@ -435,8 +464,8 @@ function switchToSession(sessionId) {
     closeSidebar();
 }
 
-function deleteChat(sessionId, event) {
-    event.stopPropagation();
+async function deleteChat(sessionId, event) {
+    if (event) event.stopPropagation();
     
     const confirmMsg = getTranslation('deleteConfirm');
     if (!confirm(confirmMsg)) return;
@@ -444,20 +473,25 @@ function deleteChat(sessionId, event) {
     const index = chatSessions.findIndex(s => s.id === sessionId);
     if (index === -1) return;
     
-    chatSessions.splice(index, 1);
-    
-    if (currentSessionId === sessionId) {
-        if (chatSessions.length > 0) {
-            currentSessionId = chatSessions[0].id;
-            renderChatHistory();
-        } else {
-            createNewChat();
+    try {
+        await deleteChatSession(sessionId);
+        chatSessions.splice(index, 1);
+        
+        if (currentSessionId === sessionId) {
+            if (chatSessions.length > 0) {
+                currentSessionId = chatSessions[0].id;
+                renderChatHistory();
+            } else {
+                await createNewChat();
+            }
         }
+        
+        renderSessions();
+        showNotification(getTranslation('chatDeleted'));
+    } catch (error) {
+        console.error('Delete failed:', error);
+        showNotification('Failed to delete chat', 'error');
     }
-    
-    saveChatSessions();
-    renderSessions();
-    showNotification(getTranslation('chatDeleted'));
 }
 
 function getCurrentSession() {
@@ -466,6 +500,8 @@ function getCurrentSession() {
 
 function renderSessions() {
     const historyContainer = document.getElementById('chatHistory');
+    if (!historyContainer) return;
+    
     historyContainer.innerHTML = '';
     
     chatSessions.forEach(session => {
@@ -496,6 +532,14 @@ function renderSessions() {
 }
 
 function getTimeString(timestamp) {
+    if (timestamp instanceof Date) {
+        timestamp = timestamp.getTime();
+    } else if (timestamp && typeof timestamp.toDate === 'function') {
+        timestamp = timestamp.toDate().getTime();
+    } else if (typeof timestamp !== 'number') {
+        timestamp = new Date(timestamp).getTime();
+    }
+    
     const now = Date.now();
     const diff = now - timestamp;
     const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -523,6 +567,7 @@ function escapeHtml(text) {
 // CHAT MESSAGES
 function clearMessages() {
     const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
     
     const logoSvg = `<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -552,6 +597,8 @@ function renderChatHistory() {
     if (!session) return;
     
     const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
     messagesDiv.innerHTML = '';
     
     if (session.messages.length === 0) {
@@ -568,6 +615,7 @@ function renderChatHistory() {
 
 function addMessageToDOM(content, isUser, imageData = null, animate = true) {
     const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
     
     const welcome = messagesDiv.querySelector('.welcome-screen');
     if (welcome) {
@@ -623,7 +671,7 @@ function addMessageToDOM(content, isUser, imageData = null, animate = true) {
     }
 }
 
-function addMessage(content, isUser, imageData = null) {
+async function addMessage(content, isUser, imageData = null) {
     addMessageToDOM(content, isUser, imageData, true);
     
     const session = getCurrentSession();
@@ -632,23 +680,30 @@ function addMessage(content, isUser, imageData = null) {
             content: content,
             isUser: isUser,
             imageData: imageData,
-            timestamp: Date.now()
+            timestamp: new Date()
         });
         
-        session.updatedAt = Date.now();
+        session.updatedAt = new Date();
         
         if (isUser && session.messages.filter(m => m.isUser).length === 1) {
             const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
             session.title = titleText + (titleText.length >= 30 ? '...' : '');
         }
         
-        saveChatSessions();
+        try {
+            await saveChatSession(session);
+        } catch (error) {
+            console.error('Failed to save message:', error);
+        }
+        
         renderSessions();
     }
 }
 
 function scrollToBottom() {
     const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
     setTimeout(() => {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }, 100);
@@ -688,8 +743,10 @@ async function handleImageUpload(event) {
         const preview = document.getElementById('imagePreview');
         const previewImage = document.getElementById('previewImage');
         
-        previewImage.src = currentImage;
-        preview.style.display = 'block';
+        if (preview && previewImage) {
+            previewImage.src = currentImage;
+            preview.style.display = 'block';
+        }
         
         hideLoading();
         showNotification(getTranslation('imageUploaded'));
@@ -725,9 +782,11 @@ async function performOCR(imageData) {
         
         if (currentOCRText) {
             const ocrTextDiv = document.getElementById('ocrText');
-            const label = currentLanguage === 'si' ? 'පෙළ:' : 'Text:';
-            ocrTextDiv.textContent = `${label} ${currentOCRText}`;
-            ocrTextDiv.style.display = 'block';
+            if (ocrTextDiv) {
+                const label = currentLanguage === 'si' ? 'පෙළ:' : 'Text:';
+                ocrTextDiv.textContent = `${label} ${currentOCRText}`;
+                ocrTextDiv.style.display = 'block';
+            }
             showNotification(getTranslation('textExtracted'));
         }
         
@@ -742,9 +801,11 @@ async function performOCR(imageData) {
 function removeImage() {
     currentImage = null;
     currentOCRText = '';
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('previewImage').src = '';
-    document.getElementById('ocrText').textContent = '';
+    const preview = document.getElementById('imagePreview');
+    const ocrTextDiv = document.getElementById('ocrText');
+    
+    if (preview) preview.style.display = 'none';
+    if (ocrTextDiv) ocrTextDiv.textContent = '';
 }
 
 // GEMINI AI
@@ -821,33 +882,33 @@ async function sendMessage() {
     const imageToSend = currentImage;
     const ocrTextToSend = currentOCRText;
     
-    addMessage(messageToSend, true, imageToSend);
+    await addMessage(messageToSend, true, imageToSend);
     
-    input.value = '';
+    if (input) input.value = '';
     removeImage();
     
     const sendBtn = document.getElementById('sendButton');
     const typing = document.getElementById('typingIndicator');
     
     isProcessing = true;
-    sendBtn.disabled = true;
-    typing.style.display = 'flex';
+    if (sendBtn) sendBtn.disabled = true;
+    if (typing) typing.style.display = 'flex';
     
     try {
         const response = await getAIResponse(message, imageToSend, ocrTextToSend);
-        typing.style.display = 'none';
-        addMessage(response, false);
+        if (typing) typing.style.display = 'none';
+        await addMessage(response, false);
     } catch (error) {
-        typing.style.display = 'none';
+        if (typing) typing.style.display = 'none';
         const errorMsg = currentLanguage === 'si' 
             ? 'සමාවන්න, දෝෂයක් ඇතිවිය.'
             : 'Sorry, an error occurred.';
-        addMessage(errorMsg, false);
+        await addMessage(errorMsg, false);
     } finally {
         isProcessing = false;
-        sendBtn.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
         currentOCRText = '';
-        input.focus();
+        if (input) input.focus();
     }
 }
 
@@ -860,3 +921,20 @@ function handleKeyPress(event) {
 
 // INITIALIZE
 window.addEventListener('load', initializeFirebase);
+
+// GLOBAL FUNCTIONS
+window.toggleLanguage = toggleLanguage;
+window.handleLogin = handleLogin;
+window.handleSignup = handleSignup;
+window.handleLogout = handleLogout;
+window.showLogin = showLogin;
+window.showSignup = showSignup;
+window.toggleSidebar = toggleSidebar;
+window.closeSidebar = closeSidebar;
+window.createNewChat = createNewChat;
+window.deleteChat = deleteChat;
+window.handleImageUpload = handleImageUpload;
+window.removeImage = removeImage;
+window.sendMessage = sendMessage;
+window.handleKeyPress = handleKeyPress;
+window.copyMessage = copyMessage;
