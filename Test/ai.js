@@ -10,7 +10,7 @@ const firebaseConfig = {
 const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
 // APP VERSION
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 const VERSION_KEY = 'smartai-version';
 
 // STATE VARIABLES
@@ -21,6 +21,8 @@ let chatSessions = [];
 let currentSessionId = null;
 let currentImage = null;
 let currentLanguage = 'en';
+let isGeneratingImage = false;
+let isImageLoading = false;
 
 // TRANSLATIONS
 const translations = {
@@ -62,7 +64,14 @@ const translations = {
         imageAnalyzed: "Image analyzed!",
         checkUpdates: "Check for Updates",
         updatesAvailable: "New version available!",
-        latestVersion: "You have the latest version!"
+        latestVersion: "You have the latest version!",
+        generateImage: "Generate Image",
+        generatingImage: "Generating image...",
+        imageGenerated: "Image generated!",
+        downloadImage: "Download Image",
+        imageDownloaded: "Image downloaded!",
+        describeImage: "Describe the image you want",
+        createImagePrompt: "Example: A sunset over mountains..."
     },
     si: {
         appTitle: "Smart AI",
@@ -102,7 +111,14 @@ const translations = {
         imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!",
         checkUpdates: "යාවත්කාලීන පරීක්ෂා කරන්න",
         updatesAvailable: "නව අනුවාදයක් තිබේ!",
-        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!"
+        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!",
+        generateImage: "පින්තූරය සාදන්න",
+        generatingImage: "පින්තූරය සාදමින්...",
+        imageGenerated: "පින්තූරය සාදන ලදී!",
+        downloadImage: "පින්තූරය බාගන්න",
+        imageDownloaded: "පින්තූරය බාගත විය!",
+        describeImage: "ඔබට අවශ්‍ය පින්තූරය විස්තර කරන්න",
+        createImagePrompt: "උදාහරණය: කඳු මත හිරු බැස යෑම..."
     }
 };
 
@@ -658,6 +674,199 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
     }
 }
 
+// ============================================
+// IMAGE GENERATION FUNCTIONS
+// ============================================
+
+async function generateImageWithAI(prompt) {
+    if (!prompt || !prompt.trim()) {
+        showNotification('Please enter a description', 'error');
+        return null;
+    }
+
+    try {
+        console.log("🎨 Generating image for:", prompt);
+        showLoading(currentLanguage === 'si' ? 'පින්තූරය සාදමින්... මොහොතක් රැඳී සිටින්න' : 'Generating image... Please wait');
+        isGeneratingImage = true;
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${GEMINI_API_KEY}`;
+        
+        const requestBody = {
+            prompt: prompt,
+            number_of_images: 1,
+            aspect_ratio: "1:1",
+            safety_filter_level: "block_some",
+            person_generation: "allow_adult"
+        };
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Image API Error:", errorData);
+            throw new Error(`Image generation failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.generatedImages && data.generatedImages.length > 0) {
+            const imageData = data.generatedImages[0].image.imageBytes;
+            const imageBase64 = `data:image/png;base64,${imageData}`;
+            
+            console.log("✅ Image generated successfully");
+            hideLoading();
+            return imageBase64;
+        } else {
+            throw new Error('No image generated');
+        }
+
+    } catch (error) {
+        console.error('❌ Image generation error:', error);
+        hideLoading();
+        
+        const errorMsg = currentLanguage === 'si' 
+            ? 'පින්තූරය සෑදීමට අසමර්ථ විය. කරුණාකර නැවත උත්සාහ කරන්න.'
+            : 'Failed to generate image. Please try again.';
+        
+        showNotification(errorMsg, 'error');
+        return null;
+    } finally {
+        isGeneratingImage = false;
+    }
+}
+
+function isImageGenerationRequest(message) {
+    const lowerMessage = message.toLowerCase();
+    
+    const englishKeywords = [
+        'create image', 'generate image', 'draw', 'make image', 
+        'design image', 'create picture', 'generate picture',
+        'draw me', 'make me a picture', 'create an image of',
+        'generate an image of', 'paint', 'illustrate', 'sketch'
+    ];
+    
+    const sinhalaKeywords = [
+        'පින්තූරයක් හදන්න', 'පින්තූරයක් සාදන්න', 
+        'පින්තූරයක් ඇඳන්න', 'පින්තූරය සාදන්න'
+    ];
+    
+    const allKeywords = [...englishKeywords, ...sinhalaKeywords];
+    
+    return allKeywords.some(keyword => lowerMessage.includes(keyword));
+}
+
+function downloadGeneratedImage(imageBase64, prompt) {
+    try {
+        const link = document.createElement('a');
+        
+        const sanitizedPrompt = prompt
+            .substring(0, 30)
+            .replace(/[^a-z0-9]/gi, '_')
+            .toLowerCase();
+        
+        const timestamp = Date.now();
+        const filename = `smartai_${sanitizedPrompt}_${timestamp}.png`;
+        
+        link.href = imageBase64;
+        link.download = filename;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification(
+            currentLanguage === 'si' 
+                ? 'පින්තූරය බාගත විය!' 
+                : 'Image downloaded!',
+            'success'
+        );
+        
+        console.log("✅ Image downloaded:", filename);
+        
+    } catch (error) {
+        console.error('❌ Download error:', error);
+        showNotification(
+            currentLanguage === 'si' 
+                ? 'බාගත කිරීමේ දෝෂයක්!' 
+                : 'Download failed!',
+            'error'
+        );
+    }
+}
+
+async function handleImageGenerationFlow(userMessage) {
+    const session = getCurrentSession();
+    if (!session) {
+        createNewChat();
+        return;
+    }
+
+    const input = document.getElementById('messageInput');
+    if (input) input.value = '';
+
+    displayMessage(userMessage, true);
+    
+    session.messages.push({
+        content: userMessage,
+        isUser: true,
+        timestamp: Date.now()
+    });
+
+    if (session.messages.filter(m => m.isUser).length === 1) {
+        const titleText = userMessage.replace(/<[^>]*>/g, '').substring(0, 30);
+        session.title = titleText + (titleText.length >= 30 ? '...' : '');
+    }
+
+    session.updatedAt = Date.now();
+    saveChatSessions();
+    renderSessions();
+
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.style.display = 'flex';
+
+    const generatedImage = await generateImageWithAI(userMessage);
+
+    if (typing) typing.style.display = 'none';
+
+    if (generatedImage) {
+        displayGeneratedImageMessage(generatedImage, userMessage);
+        
+        session.messages.push({
+            content: currentLanguage === 'si' ? 'මෙන්න ඔබගේ පින්තූරය!' : 'Here is your generated image!',
+            isUser: false,
+            imageData: generatedImage,
+            isGeneratedImage: true,
+            imagePrompt: userMessage,
+            timestamp: Date.now()
+        });
+
+        session.updatedAt = Date.now();
+        saveChatSessions();
+        
+        showNotification(getTranslation('imageGenerated'));
+    } else {
+        const errorMsg = currentLanguage === 'si' 
+            ? 'මට කණගාටුයි, පින්තූරය සෑදීමට නොහැකි විය.'
+            : 'Sorry, I could not generate the image.';
+        
+        displayMessage(errorMsg, false);
+        
+        session.messages.push({
+            content: errorMsg,
+            isUser: false,
+            timestamp: Date.now()
+        });
+        
+        saveChatSessions();
+    }
+}
+
 // CHAT FUNCTIONS
 function createNewChat() {
     const sessionId = 'session_' + Date.now();
@@ -710,13 +919,19 @@ function clearMessages() {
 }
 
 async function sendMessage() {
-    if (isProcessing || isImageLoading) return;
+    if (isProcessing || isImageLoading || isGeneratingImage) return;
     
     const input = document.getElementById('messageInput');
     const message = input ? input.value.trim() : '';
     
     if (!message && !currentImage) {
         showNotification('Please enter a message or upload an image', 'error');
+        return;
+    }
+    
+    // Check if this is an image generation request
+    if (message && isImageGenerationRequest(message) && !currentImage) {
+        await handleImageGenerationFlow(message);
         return;
     }
     
@@ -918,10 +1133,51 @@ function displayMessage(content, isUser, imageData = null) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
+function displayGeneratedImageMessage(imageBase64, prompt) {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
+    const welcome = messagesDiv.querySelector('.welcome-screen');
+    if (welcome) {
+        welcome.remove();
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ai-message';
+    
+    const messageLabel = 'Smart AI';
+    
+    const downloadBtnText = currentLanguage === 'si' ? 'පින්තූරය බාගන්න' : 'Download Image';
+    
+    messageDiv.innerHTML = `
+        <div class="message-header">
+            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            <span>${messageLabel}</span>
+        </div>
+        <div class="message-content">
+            <div class="image-container generated-image-container">
+                <img src="${imageBase64}" alt="Generated image" class="message-image generated-image">
+                <div class="image-caption">${currentLanguage === 'si' ? 'AI මගින් සාදන ලද පින්තූරය' : 'AI Generated Image'}</div>
+            </div>
+            <div class="message-text">
+                ${currentLanguage === 'si' ? 'මෙන්න ඔබගේ පින්තූරය!' : 'Here is your generated image!'}
+            </div>
+        </div>
+        <div class="message-actions">
+            <button class="action-btn download-btn" onclick="downloadGeneratedImage('${imageBase64}', '${prompt.replace(/'/g, "\\'")}')">
+                <i class="fas fa-download"></i> ${downloadBtnText}
+            </button>
+        </div>
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
 function handleKeyPress(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
-        if (!isProcessing && !isImageLoading) {
+        if (!isProcessing && !isImageLoading && !isGeneratingImage) {
             sendMessage();
         }
     }
@@ -1061,6 +1317,25 @@ markdownStyle.textContent = `
         margin: 20px 0;
     }
     
+    .generated-image-container {
+        position: relative;
+    }
+    
+    .generated-image {
+        border: 3px solid #4A90E2;
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+    }
+    
+    .download-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .download-btn:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px);
+    }
+    
     @media (prefers-color-scheme: dark) {
         .message-text code.inline-code {
             background: #2d2d2d;
@@ -1076,8 +1351,6 @@ markdownStyle.textContent = `
 document.head.appendChild(markdownStyle);
 
 // IMAGE UPLOAD WITH LOADING STATE
-let isImageLoading = false;
-
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1087,7 +1360,6 @@ function handleImageUpload(event) {
         return;
     }
     
-    // Disable send button while loading
     isImageLoading = true;
     updateSendButtonState();
     
@@ -1105,10 +1377,8 @@ function handleImageUpload(event) {
             previewImage.src = currentImage;
             preview.style.display = 'block';
             
-            // Add loading overlay on preview
             preview.classList.add('loading');
             
-            // Wait for image to actually load
             const img = new Image();
             img.onload = function() {
                 isImageLoading = false;
@@ -1162,8 +1432,6 @@ function removeImage() {
     updateSendButtonState();
 }
 
-// Update send button state based on conditions
-// Update send button state based on conditions
 function updateSendButtonState() {
     const sendBtn = document.getElementById('sendButton');
     const input = document.getElementById('messageInput');
@@ -1173,12 +1441,10 @@ function updateSendButtonState() {
     const hasMessage = input && input.value.trim().length > 0;
     const hasImage = currentImage !== null;
     
-    // Enable if: NOT processing AND NOT image loading AND (has message OR has image)
-    const shouldEnable = !isProcessing && !isImageLoading && (hasMessage || hasImage);
+    const shouldEnable = !isProcessing && !isImageLoading && !isGeneratingImage && (hasMessage || hasImage);
     
     sendBtn.disabled = !shouldEnable;
     
-    // Visual feedback
     if (!shouldEnable) {
         sendBtn.style.opacity = '0.5';
         sendBtn.style.cursor = 'not-allowed';
@@ -1188,12 +1454,11 @@ function updateSendButtonState() {
     }
 }
 
-// Call this function when input changes
 function handleInputChange() {
     updateSendButtonState();
 }
 
-// Add image loading styles
+// IMAGE LOADING STYLES
 const imageLoadingStyle = document.createElement('style');
 imageLoadingStyle.textContent = `
     #imagePreview {
@@ -1234,7 +1499,6 @@ imageLoadingStyle.textContent = `
         to { transform: translate(-50%, -50%) rotate(360deg); }
     }
     
-    /* Send button loading state */
     #sendButton:disabled {
         opacity: 0.5;
         cursor: not-allowed;
@@ -1461,7 +1725,11 @@ function renderChatHistory() {
     }
     
     session.messages.forEach(msg => {
-        displayMessage(msg.content, msg.isUser, msg.imageData);
+        if (msg.isGeneratedImage) {
+            displayGeneratedImageMessage(msg.imageData, msg.imagePrompt || 'Generated image');
+        } else {
+            displayMessage(msg.content, msg.isUser, msg.imageData);
+        }
     });
 }
 
@@ -1502,10 +1770,10 @@ window.addEventListener('load', function() {
     
     addUpdateButton();
     
-    console.log("✅ App initialized");
+    console.log("✅ App initialized with image generation support");
 });
 
-// Add CSS for image display
+// ADD CSS FOR IMAGE DISPLAY
 const style = document.createElement('style');
 style.textContent = `
     .image-container {
