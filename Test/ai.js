@@ -10,7 +10,7 @@ const firebaseConfig = {
 const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
 // APP VERSION
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const VERSION_KEY = 'smartai-version';
 
 // STATE VARIABLES
@@ -20,7 +20,6 @@ let isProcessing = false;
 let chatSessions = [];
 let currentSessionId = null;
 let currentImage = null;
-let currentOCRText = '';
 let currentLanguage = 'en';
 
 // TRANSLATIONS
@@ -114,7 +113,6 @@ function checkForUpdates() {
     if (savedVersion !== APP_VERSION) {
         console.log('🔄 New version detected, clearing cache...');
         
-        // Clear old caches
         if ('caches' in window) {
             caches.keys().then(function(cacheNames) {
                 cacheNames.forEach(function(cacheName) {
@@ -123,20 +121,8 @@ function checkForUpdates() {
             });
         }
         
-        // Clear localStorage if needed
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('smartai-')) {
-                keysToRemove.push(key);
-            }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        
-        // Update version
         localStorage.setItem(VERSION_KEY, APP_VERSION);
         
-        // Force reload
         setTimeout(() => {
             window.location.reload();
         }, 1000);
@@ -154,19 +140,6 @@ function checkForAppUpdates() {
     } else {
         showNotification(getTranslation('latestVersion'), 'success');
     }
-}
-
-function setupAutoUpdateCheck() {
-    // Check every 5 minutes for updates
-    setInterval(() => {
-        const currentVersion = localStorage.getItem(VERSION_KEY);
-        if (currentVersion !== APP_VERSION) {
-            showNotification(getTranslation('updatesAvailable'), 'info');
-            setTimeout(() => {
-                window.location.reload();
-            }, 3000);
-        }
-    }, 5 * 60 * 1000);
 }
 
 // LANGUAGE FUNCTIONS
@@ -227,7 +200,6 @@ function initializeFirebase() {
             return;
         }
 
-        // Initialize Firebase app
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         } else {
@@ -239,7 +211,6 @@ function initializeFirebase() {
         
         console.log("✅ Firebase initialized successfully");
 
-        // Auth state listener
         auth.onAuthStateChanged((user) => {
             console.log("🔐 Auth state changed:", user ? user.email : "No user");
             
@@ -382,8 +353,7 @@ async function saveUserToDatabase(userId, name, email) {
             name: name,
             email: email,
             createdAt: Date.now(),
-            lastLogin: Date.now(),
-            chatSessions: []
+            lastLogin: Date.now()
         };
         
         const userRef = database.ref('users/' + userId);
@@ -569,46 +539,89 @@ async function handleLogout() {
     }
 }
 
-// GEMINI AI FUNCTIONS
-async function getAIResponse(userMessage, imageData = null) {
+// GEMINI AI FUNCTIONS - REAL AI RESPONSE
+async function getAIResponse(userMessage, imageData = null, conversationHistory = []) {
     console.log("🤖 Getting AI response...", { userMessage, hasImage: !!imageData });
     
     try {
         let apiUrl, requestBody;
 
         if (imageData) {
-            // Vision API
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            requestBody = {
-                contents: [{
-                    parts: [
-                        { text: userMessage },
-                        {
-                            inline_data: {
-                                mime_type: "image/jpeg",
-                                data: imageData.split(',')[1]
-                            }
-                        }
-                    ]
-                }],
-                generationConfig: {
-                    temperature: 0.4,
-                    maxOutputTokens: 2048,
+            // Vision API with conversation context
+            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const parts = [];
+            
+            // Add conversation history
+            if (conversationHistory.length > 0) {
+                const historyText = conversationHistory.map(msg => 
+                    `${msg.isUser ? 'User' : 'Assistant'}: ${msg.content}`
+                ).join('\n');
+                parts.push({ text: historyText + '\n\n' });
+            }
+            
+            parts.push({ text: userMessage });
+            parts.push({
+                inline_data: {
+                    mime_type: "image/jpeg",
+                    data: imageData.split(',')[1]
                 }
-            };
-        } else {
-            // Text API
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            });
+            
             requestBody = {
-                contents: [{
-                    parts: [{ text: userMessage }]
-                }],
+                contents: [{ parts: parts }],
                 generationConfig: {
                     temperature: 0.7,
-                    maxOutputTokens: 1024,
-                }
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 8192,
+                },
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
+                ]
+            };
+        } else {
+            // Text API with full conversation history
+            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const contents = [];
+            
+            // Add conversation history
+            for (let i = 0; i < conversationHistory.length; i++) {
+                const msg = conversationHistory[i];
+                contents.push({
+                    role: msg.isUser ? "user" : "model",
+                    parts: [{ text: msg.content }]
+                });
+            }
+            
+            // Add current message
+            contents.push({
+                role: "user",
+                parts: [{ text: userMessage }]
+            });
+            
+            requestBody = {
+                contents: contents,
+                generationConfig: {
+                    temperature: 0.9,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 8192,
+                },
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
+                ]
             };
         }
+        
+        console.log("📤 Sending request to Gemini API...");
         
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -617,17 +630,21 @@ async function getAIResponse(userMessage, imageData = null) {
         });
         
         if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error("API Error:", errorData);
             throw new Error(`API request failed with status ${response.status}`);
         }
         
         const data = await response.json();
+        console.log("📥 Received response from API");
+        
         const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (!aiResponse) {
             throw new Error('Empty response from AI');
         }
         
-        console.log("✅ AI API success");
+        console.log("✅ AI response successful");
         return aiResponse;
         
     } catch (error) {
@@ -707,7 +724,33 @@ async function sendMessage() {
         'මෙම පින්තූරය ගැන මට කියන්න' : 
         'Tell me about this image');
     
-    addMessageToChat(messageToSend, true, currentImage);
+    // Add user message to UI and session FIRST
+    const session = getCurrentSession();
+    if (!session) {
+        createNewChat();
+        return;
+    }
+    
+    // Add to UI
+    displayMessage(messageToSend, true, currentImage);
+    
+    // Add to session data
+    session.messages.push({
+        content: messageToSend,
+        isUser: true,
+        imageData: currentImage,
+        timestamp: Date.now()
+    });
+    
+    // Update session title if first message
+    if (session.messages.filter(m => m.isUser).length === 1) {
+        const titleText = messageToSend.replace(/<[^>]*>/g, '').substring(0, 30);
+        session.title = titleText + (titleText.length >= 30 ? '...' : '');
+    }
+    
+    session.updatedAt = Date.now();
+    saveChatSessions();
+    renderSessions();
     
     if (input) input.value = '';
     
@@ -718,14 +761,35 @@ async function sendMessage() {
     if (sendBtn) sendBtn.disabled = true;
     if (typing) typing.style.display = 'flex';
     
+    const imageToSend = currentImage;
+    currentImage = null;
+    removeImage();
+    
     try {
-        console.log("🔄 Getting AI response...");
-        const response = await getAIResponse(messageToSend, currentImage);
+        console.log("🔄 Getting AI response with history...");
+        
+        // Get last 10 messages for context
+        const historyForAI = session.messages.slice(-11, -1); // Exclude current message
+        
+        const response = await getAIResponse(messageToSend, imageToSend, historyForAI);
         
         if (typing) typing.style.display = 'none';
-        addMessageToChat(response, false);
         
-        if (currentImage) {
+        // Add AI response to UI
+        displayMessage(response, false);
+        
+        // Add AI response to session
+        session.messages.push({
+            content: response,
+            isUser: false,
+            timestamp: Date.now()
+        });
+        
+        session.updatedAt = Date.now();
+        saveChatSessions();
+        renderSessions();
+        
+        if (imageToSend) {
             showNotification(getTranslation('imageAnalyzed'));
         }
         
@@ -737,17 +801,82 @@ async function sendMessage() {
             ? 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
             : 'Sorry, an error occurred. Please try again.';
         
-        addMessageToChat(errorMsg, false);
+        displayMessage(errorMsg, false);
+        
+        session.messages.push({
+            content: errorMsg,
+            isUser: false,
+            timestamp: Date.now()
+        });
+        
+        saveChatSessions();
     } finally {
         isProcessing = false;
         if (sendBtn) sendBtn.disabled = false;
-        currentImage = null;
-        removeImage();
         if (input) input.focus();
     }
 }
 
-function addMessageToChat(content, isUser, imageData = null) {
+// MARKDOWN FORMATTING FOR AI RESPONSES
+function formatAIResponse(text) {
+    if (!text) return '';
+    
+    // Escape HTML first
+    text = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    // Code blocks (```code```)
+    text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+        return `<pre><code class="code-block">${code.trim()}</code></pre>`;
+    });
+    
+    // Inline code (`code`)
+    text = text.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+    
+    // Bold (**text** or __text__)
+    text = text.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    
+    // Italic (*text* or _text_)
+    text = text.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
+    text = text.replace(/_([^_]+)_/g, '<em>$1</em>');
+    
+    // Strikethrough (~~text~~)
+    text = text.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+    
+    // Headers
+    text = text.replace(/^### (.*$)/gm, '<h3 class="md-h3">$1</h3>');
+    text = text.replace(/^## (.*$)/gm, '<h2 class="md-h2">$1</h2>');
+    text = text.replace(/^# (.*$)/gm, '<h1 class="md-h1">$1</h1>');
+    
+    // Unordered lists
+    text = text.replace(/^\* (.*$)/gm, '<li class="md-li">$1</li>');
+    text = text.replace(/^- (.*$)/gm, '<li class="md-li">$1</li>');
+    
+    // Ordered lists
+    text = text.replace(/^\d+\. (.*$)/gm, '<li class="md-li-ordered">$1</li>');
+    
+    // Wrap consecutive <li> in <ul> or <ol>
+    text = text.replace(/(<li class="md-li">.*<\/li>\n?)+/g, '<ul class="md-ul">$&</ul>');
+    text = text.replace(/(<li class="md-li-ordered">.*<\/li>\n?)+/g, '<ol class="md-ol">$&</ol>');
+    
+    // Links [text](url)
+    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" class="md-link">$1</a>');
+    
+    // Blockquotes
+    text = text.replace(/^&gt; (.*$)/gm, '<blockquote class="md-blockquote">$1</blockquote>');
+    
+    // Horizontal rules
+    text = text.replace(/^---$/gm, '<hr class="md-hr">');
+    text = text.replace(/^\*\*\*$/gm, '<hr class="md-hr">');
+    
+    // Line breaks
+    text = text.replace(/\n/g, '<br>');
+    
+    return text;
+}
+
+// DISPLAY MESSAGE WITH MARKDOWN SUPPORT
+function displayMessage(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
     
@@ -777,6 +906,9 @@ function addMessageToChat(content, isUser, imageData = null) {
         `;
     }
     
+    // Format AI responses with markdown, keep user messages simple
+    const formattedContent = isUser ? content.replace(/\n/g, '<br>') : formatAIResponse(content);
+    
     messageDiv.innerHTML = `
         <div class="message-header">
             ${avatarIcon}
@@ -784,7 +916,7 @@ function addMessageToChat(content, isUser, imageData = null) {
         </div>
         <div class="message-content">
             ${imageHTML}
-            <div class="message-text">${content.replace(/\n/g, '<br>')}</div>
+            <div class="message-text">${formattedContent}</div>
         </div>
         ${!isUser ? `
             <div class="message-actions">
@@ -796,27 +928,6 @@ function addMessageToChat(content, isUser, imageData = null) {
     `;
     
     messagesDiv.appendChild(messageDiv);
-    
-    const session = getCurrentSession();
-    if (session) {
-        session.messages.push({
-            content: content,
-            isUser: isUser,
-            imageData: imageData,
-            timestamp: Date.now()
-        });
-        
-        session.updatedAt = Date.now();
-        
-        if (isUser && session.messages.filter(m => m.isUser).length === 1) {
-            const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
-            session.title = titleText + (titleText.length >= 30 ? '...' : '');
-        }
-        
-        saveChatSessions();
-        renderSessions();
-    }
-    
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
@@ -849,6 +960,132 @@ function copyMessage(button) {
         console.error('Copy failed:', err);
     });
 }
+
+// ADD MARKDOWN STYLES
+const markdownStyle = document.createElement('style');
+markdownStyle.textContent = `
+    /* Markdown Formatting Styles */
+    .message-text strong {
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+    
+    .message-text em {
+        font-style: italic;
+    }
+    
+    .message-text del {
+        text-decoration: line-through;
+        opacity: 0.7;
+    }
+    
+    .message-text code.inline-code {
+        background: #f4f4f4;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+        color: #e83e8c;
+        border: 1px solid #e1e1e1;
+    }
+    
+    .message-text pre {
+        background: #1e1e1e;
+        padding: 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin: 10px 0;
+    }
+    
+    .message-text code.code-block {
+        color: #d4d4d4;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+        display: block;
+        white-space: pre;
+        line-height: 1.5;
+    }
+    
+    .message-text .md-h1 {
+        font-size: 1.8em;
+        font-weight: 700;
+        margin: 16px 0 8px 0;
+        color: #2c3e50;
+    }
+    
+    .message-text .md-h2 {
+        font-size: 1.5em;
+        font-weight: 600;
+        margin: 14px 0 7px 0;
+        color: #34495e;
+    }
+    
+    .message-text .md-h3 {
+        font-size: 1.3em;
+        font-weight: 600;
+        margin: 12px 0 6px 0;
+        color: #4A90E2;
+    }
+    
+    .message-text .md-ul,
+    .message-text .md-ol {
+        margin: 10px 0;
+        padding-left: 25px;
+    }
+    
+    .message-text .md-li,
+    .message-text .md-li-ordered {
+        margin: 5px 0;
+        line-height: 1.6;
+    }
+    
+    .message-text .md-ul .md-li {
+        list-style-type: disc;
+    }
+    
+    .message-text .md-ol .md-li-ordered {
+        list-style-type: decimal;
+    }
+    
+    .message-text .md-link {
+        color: #4A90E2;
+        text-decoration: none;
+        border-bottom: 1px solid #4A90E2;
+        transition: all 0.2s;
+    }
+    
+    .message-text .md-link:hover {
+        color: #357ABD;
+        border-bottom-color: #357ABD;
+    }
+    
+    .message-text .md-blockquote {
+        border-left: 4px solid #4A90E2;
+        padding-left: 15px;
+        margin: 10px 0;
+        color: #666;
+        font-style: italic;
+    }
+    
+    .message-text .md-hr {
+        border: none;
+        border-top: 2px solid #e1e1e1;
+        margin: 20px 0;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .message-text code.inline-code {
+            background: #2d2d2d;
+            color: #ff79c6;
+            border-color: #3d3d3d;
+        }
+        
+        .message-text pre {
+            background: #0d1117;
+        }
+    }
+`;
+document.head.appendChild(markdownStyle);
 
 // IMAGE UPLOAD
 function handleImageUpload(event) {
@@ -913,8 +1150,13 @@ async function saveChatSessions() {
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
         
         if (userId && database) {
+            const sessionsArray = chatSessions.map((session, index) => ({
+                ...session,
+                index: index
+            }));
+            
             const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
-            await userSessionsRef.set(chatSessions);
+            await userSessionsRef.set(sessionsArray);
             console.log("✅ Data saved to both localStorage and Firebase");
         }
         
@@ -930,14 +1172,14 @@ async function loadChatSessions() {
         
         let sessions = [];
 
-        // Try to load from Firebase first
         if (userId && database) {
             try {
                 const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
                 const snapshot = await userSessionsRef.once('value');
                 
                 if (snapshot.exists()) {
-                    sessions = snapshot.val();
+                    const data = snapshot.val();
+                    sessions = Array.isArray(data) ? data : Object.values(data);
                     console.log("✅ Loaded from Firebase");
                 }
             } catch (firebaseError) {
@@ -945,7 +1187,6 @@ async function loadChatSessions() {
             }
         }
 
-        // Fallback to localStorage
         if (!sessions || sessions.length === 0) {
             const saved = localStorage.getItem(storageKey);
             if (saved) {
@@ -1091,11 +1332,10 @@ function renderChatHistory() {
     }
     
     session.messages.forEach(msg => {
-        addMessageToChat(msg.content, msg.isUser, msg.imageData);
+        displayMessage(msg.content, msg.isUser, msg.imageData);
     });
 }
 
-// SETTINGS MENU
 function toggleSettings() {
     const settingsMenu = document.querySelector('.settings-menu');
     if (settingsMenu) {
@@ -1159,7 +1399,6 @@ style.textContent = `
         word-wrap: break-word;
     }
     
-    /* Settings menu update button */
     .settings-menu .action-btn {
         width: 100%;
         margin: 5px 0;
