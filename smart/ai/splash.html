@@ -21,7 +21,6 @@
             justify-content: center;
             overflow: hidden;
             position: relative;
-            padding: 20px;
         }
 
         /* Animated background particles */
@@ -30,9 +29,6 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            top: 0;
-            left: 0;
-            z-index: 1;
         }
 
         .particle {
@@ -65,9 +61,6 @@
             text-align: center;
             z-index: 10;
             animation: fadeIn 1s ease-in;
-            width: 100%;
-            max-width: 600px;
-            padding: 0 20px;
         }
 
         @keyframes fadeIn {
@@ -196,8 +189,6 @@
             color: rgba(255, 255, 255, 0.8);
             font-size: 14px;
             line-height: 1.8;
-            width: 100%;
-            padding: 0 20px;
         }
 
         .developer {
@@ -224,7 +215,6 @@
             background: white;
             border-radius: 50%;
             animation: sparkle 3s infinite;
-            z-index: 2;
         }
 
         @keyframes sparkle {
@@ -242,119 +232,6 @@
         .sparkle:nth-child(2) { top: 25%; right: 15%; animation-delay: 0.5s; }
         .sparkle:nth-child(3) { bottom: 30%; left: 25%; animation-delay: 1s; }
         .sparkle:nth-child(4) { bottom: 20%; right: 20%; animation-delay: 1.5s; }
-
-        /* Media Queries for Responsiveness */
-        @media (max-width: 768px) {
-            .ai-icon {
-                width: 140px;
-                height: 140px;
-            }
-            
-            .ai-icon::before {
-                width: 160px;
-                height: 160px;
-            }
-            
-            .ai-text {
-                font-size: 60px;
-            }
-            
-            .app-name {
-                font-size: 36px;
-            }
-            
-            .tagline {
-                font-size: 16px;
-            }
-            
-            .loading-bar {
-                width: 180px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .ai-icon {
-                width: 120px;
-                height: 120px;
-            }
-            
-            .ai-icon::before {
-                width: 140px;
-                height: 140px;
-            }
-            
-            .ai-text {
-                font-size: 50px;
-            }
-            
-            .app-name {
-                font-size: 28px;
-            }
-            
-            .tagline {
-                font-size: 14px;
-                margin-bottom: 40px;
-            }
-            
-            .loading-bar {
-                width: 160px;
-                margin-bottom: 50px;
-            }
-            
-            .footer {
-                bottom: 20px;
-            }
-            
-            .developer {
-                font-size: 14px;
-            }
-            
-            .copyright {
-                font-size: 12px;
-            }
-        }
-
-        @media (max-width: 320px) {
-            .ai-icon {
-                width: 100px;
-                height: 100px;
-            }
-            
-            .ai-icon::before {
-                width: 120px;
-                height: 120px;
-            }
-            
-            .ai-text {
-                font-size: 40px;
-            }
-            
-            .app-name {
-                font-size: 24px;
-            }
-            
-            .tagline {
-                font-size: 13px;
-            }
-            
-            .loading-bar {
-                width: 140px;
-            }
-        }
-
-        /* Ensure compatibility with older browsers */
-        @supports not (display: flex) {
-            body {
-                display: block;
-                text-align: center;
-                padding-top: 20vh;
-            }
-            
-            .splash-container {
-                display: inline-block;
-                text-align: center;
-            }
-        }
     </style>
 </head>
 <body>
@@ -398,9 +275,9 @@
         }
 
         // Auto redirect after 3 seconds (optional)
-        // setTimeout(() => {
-        //     window.location.href = 'your-app-url.html';
-        // }, 3000);
+         setTimeout(() => {
+             window.location.href = 'https://www.spmods.download/Test/ai.html';
+         }, 3000);
     </script>
 </body>
 </html>
