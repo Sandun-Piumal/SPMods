@@ -68,6 +68,92 @@ body {
     color: var(--text-gray);
 }
 
+/* ============================================
+   TEXT ART STYLES
+   Add this CSS to your existing <style> section in HTML
+   ============================================ */
+
+.text-art-message {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border-left: 4px solid #667eea;
+}
+
+.text-art-container {
+    width: 100%;
+    margin: 10px 0;
+}
+
+.text-art-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #667eea;
+    display: inline-block;
+}
+
+.text-art-display {
+    background: #1a1a1a;
+    color: #00ff00;
+    padding: 20px;
+    border-radius: 12px;
+    overflow-x: auto;
+    font-family: 'Courier New', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre;
+    border: 3px solid #667eea;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Scrollbar for text art display */
+.text-art-display::-webkit-scrollbar {
+    height: 8px;
+}
+
+.text-art-display::-webkit-scrollbar-track {
+    background: #2a2a2a;
+    border-radius: 4px;
+}
+
+.text-art-display::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+}
+
+.text-art-display::-webkit-scrollbar-thumb:hover {
+    background: #5568d3;
+}
+
+/* Download button special style for text art */
+.text-art-message .download-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.text-art-message .download-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    transform: translateY(-2px);
+}
+
+/* Responsive text art */
+@media (max-width: 768px) {
+    .text-art-display {
+        font-size: 10px;
+        padding: 15px;
+    }
+    
+    .text-art-title {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}
+
 /* AUTH STYLES - MOBILE OPTIMIZED */
 #authContainer {
     display: flex;
