@@ -618,22 +618,22 @@ async function handleLogout() {
 }
 
 // ============================================
-// SMART AI CHAT APP - PART 4/5
-// AI Functions & Image Generation - FIXED VERSION
+// SMART AI CHAT APP - PART 4/5 - FINAL FIXED
+// AI Functions & Alternative Image Solution
+// මේ විකල්පය Imagen API එපා වැඩ කරනවා!
 // ============================================
 
 // ============================================
-// IMAGE GENERATION DETECTION - IMPROVED
+// IMAGE GENERATION DETECTION
 // ============================================
 function isImageGenerationRequest(message) {
     const lowerMessage = message.toLowerCase().trim();
     
-    // Remove common prefixes
     const cleaned = lowerMessage
         .replace(/^(can you|could you|please|i want to|i need to|help me)\s+/i, '')
         .trim();
     
-    // English patterns - more specific
+    // English patterns
     const englishPatterns = [
         /^create\s+(an?\s+)?(image|picture|photo|illustration)/i,
         /^generate\s+(an?\s+)?(image|picture|photo|illustration)/i,
@@ -642,8 +642,7 @@ function isImageGenerationRequest(message) {
         /^design\s+(an?\s+)?(image|picture)/i,
         /^paint\s+(an?\s+)?(image|picture)/i,
         /^illustrate/i,
-        /^sketch\s+(an?\s+)?(image|picture)/i,
-        /image\s+of\s+.*\s+(for\s+me|please)$/i
+        /^sketch\s+(an?\s+)?(image|picture)/i
     ];
     
     // Sinhala patterns
@@ -653,7 +652,6 @@ function isImageGenerationRequest(message) {
         /(හදන්න|සාදන්න)\s+පින්තූරයක්/i
     ];
     
-    // Check patterns
     const matchesEnglish = englishPatterns.some(pattern => pattern.test(cleaned));
     const matchesSinhala = sinhalaPatterns.some(pattern => pattern.test(lowerMessage));
     
@@ -661,97 +659,107 @@ function isImageGenerationRequest(message) {
 }
 
 // ============================================
-// IMAGE GENERATION API CALL - FIXED
+// GENERATE DETAILED IMAGE DESCRIPTION
+// විකල්පය - AI භාවිතා කරමින් විස්තරය සාදනවා
 // ============================================
-async function generateImageWithAI(prompt) {
-    if (!prompt || !prompt.trim()) {
-        showNotification('Please enter a description', 'error');
-        return null;
-    }
-
+async function generateDetailedImageDescription(prompt) {
     try {
-        console.log("🎨 Generating image for:", prompt);
+        console.log("🎨 Generating detailed image description for:", prompt);
         
         const loadingMsg = currentLanguage === 'si' 
-            ? 'පින්තූරය සාදමින්... කරුණාකර රැඳී සිටින්න (මිනිත්තු 1-2ක් ගත විය හැක)' 
-            : 'Generating image... Please wait (may take 1-2 minutes)';
+            ? 'AI භාවිතයෙන් පින්තූරයේ විස්තරය සාදමින්...' 
+            : 'Creating detailed image description with AI...';
         
         showLoading(loadingMsg);
         isGeneratingImage = true;
 
-        // Enhanced prompt for better results
-        const enhancedPrompt = `High quality, detailed image: ${prompt}`;
+        const enhancedPrompt = `You are an expert artist and visual designer. The user wants an image of: "${prompt}"
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${GEMINI_API_KEY}`;
+Please provide a comprehensive description including:
+
+**🎨 Visual Description:**
+- Main subject and composition
+- Colors and color palette
+- Mood and atmosphere
+- Lighting conditions
+- Style (realistic, cartoon, abstract, etc.)
+- Key visual elements and details
+
+**📐 Technical Details:**
+- Recommended composition layout
+- Perspective and angle
+- Background elements
+- Foreground elements
+
+**🔗 Where to Find Similar Images:**
+Provide direct search links to these free image sources:
+- Unsplash: https://unsplash.com/s/photos/${encodeURIComponent(prompt.replace(/\s+/g, '-'))}
+- Pexels: https://www.pexels.com/search/${encodeURIComponent(prompt.replace(/\s+/g, '%20'))}
+- Pixabay: https://pixabay.com/images/search/${encodeURIComponent(prompt.replace(/\s+/g, '-'))}
+
+**💡 Design Tips:**
+Give 3-4 creative suggestions to enhance this image concept.
+
+Format your response beautifully using markdown with emojis for visual appeal.`;
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
         
         const requestBody = {
-            prompt: enhancedPrompt,
-            number_of_images: 1,
-            aspect_ratio: "1:1",
-            safety_filter_level: "block_some",
-            person_generation: "allow_adult"
+            contents: [{
+                role: "user",
+                parts: [{ text: enhancedPrompt }]
+            }],
+            generationConfig: {
+                temperature: 0.9,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 8192,
+            }
         };
 
-        console.log("📤 Sending image generation request...");
+        console.log("📤 Sending description request to Gemini...");
 
         const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error("❌ Image API Error:", errorData);
-            
-            // Better error messages
-            if (response.status === 400) {
-                throw new Error('Invalid request - please try a different description');
-            } else if (response.status === 403) {
-                throw new Error('API access denied - please check API key');
-            } else if (response.status === 429) {
-                throw new Error('Too many requests - please wait a moment');
-            }
-            
-            throw new Error(`Image generation failed: ${response.status}`);
+            console.error("❌ API Error:", errorData);
+            throw new Error('Failed to generate description');
         }
 
         const data = await response.json();
-        console.log("📥 Received response from Image API");
+        const description = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        hideLoading();
+        isGeneratingImage = false;
         
-        if (data.generatedImages && data.generatedImages.length > 0) {
-            const imageData = data.generatedImages[0].image.imageBytes;
-            const imageBase64 = `data:image/png;base64,${imageData}`;
-            
-            console.log("✅ Image generated successfully!");
-            hideLoading();
-            return imageBase64;
+        if (description) {
+            console.log("✅ Description generated successfully!");
+            return description;
         } else {
-            throw new Error('No image data in response');
+            throw new Error('Empty response from AI');
         }
 
     } catch (error) {
-        console.error('❌ Image generation error:', error);
+        console.error('❌ Description generation error:', error);
         hideLoading();
+        isGeneratingImage = false;
         
-        let errorMsg;
-        if (currentLanguage === 'si') {
-            errorMsg = 'පින්තූරය සෑදීමට අසමර්ථ විය. කරුණාකර විස්තරය වෙනස් කර නැවත උත්සාහ කරන්න.';
-        } else {
-            errorMsg = `Failed to generate image: ${error.message}. Please try with a different description.`;
-        }
+        const errorMsg = currentLanguage === 'si'
+            ? 'මට කණගාටුයි, විස්තරය සෑදීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
+            : 'Sorry, I could not generate the description. Please try again.';
         
         showNotification(errorMsg, 'error');
         return null;
-    } finally {
-        isGeneratingImage = false;
     }
 }
 
 // ============================================
-// IMAGE GENERATION FLOW - IMPROVED
+// IMAGE GENERATION FLOW - ALTERNATIVE VERSION
 // ============================================
 async function handleImageGenerationFlow(userMessage) {
     const session = getCurrentSession();
@@ -786,10 +794,9 @@ async function handleImageGenerationFlow(userMessage) {
     const typing = document.getElementById('typingIndicator');
     if (typing) typing.style.display = 'flex';
 
-    // Extract the actual image description
+    // Extract image description from command
     let imagePrompt = userMessage;
     
-    // Remove command words
     const commandPatterns = [
         /^(create|generate|draw|make|design|paint|sketch)\s+(an?\s+)?(image|picture|photo)\s+(of\s+)?/i,
         /^(හදන්න|සාදන්න|ඇඳන්න)\s+පින්තූරයක්\s+/i,
@@ -800,37 +807,44 @@ async function handleImageGenerationFlow(userMessage) {
         imagePrompt = imagePrompt.replace(pattern, '').trim();
     }
 
-    console.log("🎨 Extracted prompt:", imagePrompt);
+    console.log("🎨 Extracted image prompt:", imagePrompt);
 
-    // Generate image
-    const generatedImage = await generateImageWithAI(imagePrompt);
+    // Generate detailed description
+    const description = await generateDetailedImageDescription(imagePrompt);
 
     if (typing) typing.style.display = 'none';
 
-    if (generatedImage) {
-        displayGeneratedImageMessage(generatedImage, imagePrompt);
+    if (description) {
+        // Add helpful header
+        const headerNote = currentLanguage === 'si'
+            ? `## 📝 පින්තූරයේ සවිස්තරාත්මක විස්තරය\n\n> **සටහන:** මට සැබෑ පින්තූරය සෑදීමට Imagen API access නැත. ඒ වෙනුවට මම ඔබට:\n> - සවිස්තරාත්මක විස්තරයක් 🎨\n> - නොමිලේ පින්තූර සොයාගත හැකි සබැඳි 🔗\n> - නිර්මාණාත්මක යෝජනා 💡\n\n---\n\n`
+            : `## 📝 Detailed Image Description\n\n> **Note:** I don't have access to Imagen API to generate actual images. Instead, I'm providing:\n> - Detailed visual description 🎨\n> - Links to free image sources 🔗\n> - Creative design suggestions 💡\n\n---\n\n`;
         
-        const responseMsg = currentLanguage === 'si' 
-            ? 'මෙන්න ඔබගේ පින්තූරය! ඔබට එය බාගත කළ හැක.' 
-            : 'Here is your generated image! You can download it.';
+        const fullResponse = headerNote + description;
+        
+        displayMessage(fullResponse, false);
         
         session.messages.push({
-            content: responseMsg,
+            content: fullResponse,
             isUser: false,
-            imageData: generatedImage,
-            isGeneratedImage: true,
-            imagePrompt: imagePrompt,
+            isImageDescription: true,
+            originalPrompt: imagePrompt,
             timestamp: Date.now()
         });
 
         session.updatedAt = Date.now();
         saveChatSessions();
         
-        showNotification(getTranslation('imageGenerated'));
+        showNotification(
+            currentLanguage === 'si' 
+                ? 'විස්තරය සාදන ලදී! Links මගින් නොමිලේ පින්තූර සොයන්න.' 
+                : 'Description created! Use the links to find free images.',
+            'success'
+        );
     } else {
         const errorMsg = currentLanguage === 'si' 
-            ? 'මට කණගාටුයි, පින්තූරය සෑදීමට නොහැකි විය. කරුණාකර වෙනත් විස්තරයක් උත්සාහ කරන්න.'
-            : 'Sorry, I could not generate the image. Please try a different description.';
+            ? 'මට කණගාටුයි, විස්තරය සෑදීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
+            : 'Sorry, I could not generate the description. Please try again.';
         
         displayMessage(errorMsg, false);
         
@@ -845,59 +859,44 @@ async function handleImageGenerationFlow(userMessage) {
 }
 
 // ============================================
-// DOWNLOAD GENERATED IMAGE
+// DOWNLOAD FUNCTION (Kept for compatibility)
 // ============================================
 function downloadGeneratedImage(imageBase64, prompt) {
-    try {
-        const link = document.createElement('a');
-        
-        const sanitizedPrompt = prompt
-            .substring(0, 30)
-            .replace(/[^a-z0-9]/gi, '_')
-            .toLowerCase();
-        
-        const timestamp = Date.now();
-        const filename = `smartai_${sanitizedPrompt}_${timestamp}.png`;
-        
-        link.href = imageBase64;
-        link.download = filename;
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showNotification(getTranslation('imageDownloaded'), 'success');
-        
-        console.log("✅ Image downloaded:", filename);
-        
-    } catch (error) {
-        console.error('❌ Download error:', error);
-        showNotification(
-            currentLanguage === 'si' ? 'බාගත කිරීමේ දෝෂයක්!' : 'Download failed!',
-            'error'
-        );
-    }
+    // This function is kept for compatibility with Part 5
+    // but won't be actively used in text-based version
+    showNotification(
+        currentLanguage === 'si' 
+            ? 'විස්තර සඳහා බාගත කිරීම් නොමැත' 
+            : 'Downloads not available for text descriptions',
+        'info'
+    );
 }
 
 // ============================================
-// GEMINI AI TEXT RESPONSE
+// GEMINI AI TEXT RESPONSE - Main Chat Function
 // ============================================
 async function getAIResponse(userMessage, imageData = null, conversationHistory = []) {
-    console.log("🤖 Getting AI response...", { userMessage, hasImage: !!imageData });
+    console.log("🤖 Getting AI response...", { 
+        userMessage: userMessage.substring(0, 50), 
+        hasImage: !!imageData,
+        historyLength: conversationHistory.length 
+    });
     
     try {
         let apiUrl, requestBody;
 
         if (imageData) {
+            // Image analysis mode
             apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
             
             const parts = [];
             
+            // Add conversation history as context
             if (conversationHistory.length > 0) {
                 const historyText = conversationHistory.map(msg => 
                     `${msg.isUser ? 'User' : 'Assistant'}: ${msg.content}`
                 ).join('\n');
-                parts.push({ text: historyText + '\n\n' });
+                parts.push({ text: historyText + '\n\nCurrent question:\n' });
             }
             
             parts.push({ text: userMessage });
@@ -918,10 +917,12 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
                 }
             };
         } else {
+            // Text conversation mode
             apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
             
             const contents = [];
             
+            // Build conversation history
             for (let i = 0; i < conversationHistory.length; i++) {
                 const msg = conversationHistory[i];
                 contents.push({
@@ -930,6 +931,7 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
                 });
             }
             
+            // Add current message
             contents.push({
                 role: "user",
                 parts: [{ text: userMessage }]
@@ -956,12 +958,12 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error("API Error:", errorData);
+            console.error("❌ API Error:", errorData);
             throw new Error(`API request failed with status ${response.status}`);
         }
         
         const data = await response.json();
-        console.log("📥 Received response from API");
+        console.log("📥 Received response from Gemini API");
         
         const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
@@ -982,6 +984,9 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
         }
     }
 }
+
+console.log("✅ Part 4 loaded - Alternative text-based image description (No Imagen API required!)");
+console.log("💡 Type: 'create image of [description]' to get detailed image descriptions with free image links");
 
 // ============================================
 // SMART AI CHAT APP - PART 5/5
