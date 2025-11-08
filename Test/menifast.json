@@ -1,42 +1,30 @@
 {
-  "name": "Smart AI Chat",
+  "name": "Smart AI",
   "short_name": "Smart AI",
-  "description": "Intelligent AI Chat Assistant",
-  "start_url": "/Test/ai.html",
+  "description": "ඔබේ බුද්ධිමත් AI සහායක - Offline සහ Online ක්‍රියාත්මක",
+  "start_url": "https://www.spmods.download/Test/ai.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#667eea",
-  "theme_color": "#667eea",
+  "theme_color": "#6366f1",
   "orientation": "any",
-  "scope": "/Test/",
+  "dir": "ltr",
   "lang": "si",
   "icons": [
     {
-      "src": "/Test/icon.svg",
+      "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/Test/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/Test/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png", 
-      "purpose": "any maskable"
     }
   ],
-  "screenshots": [
+  "categories": ["productivity", "education", "utilities"],
+  "shortcuts": [
     {
-      "src": "/Test/screenshots/mobile.png",
-      "sizes": "720x1280",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Smart AI Mobile Chat"
+      "name": "Smart AI විවෘත කරන්න",
+      "short_name": "Open AI",
+      "url": "https://www.spmods.download/Test/ai.html",
+      "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
-  ],
-  "categories": ["productivity", "utilities"]
+  ]
 }
