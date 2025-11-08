@@ -9,21 +9,13 @@
       <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
     </linearGradient>
-    
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
   </defs>
   
   <!-- Background -->
   <rect width="192" height="192" rx="42" fill="url(#bgGrad)"/>
   
   <!-- AI Symbol -->
-  <g transform="translate(96, 96)" filter="url(#glow)">
+  <g transform="translate(96, 96)">
     <!-- Central Brain -->
     <circle cx="0" cy="0" r="32" fill="url(#brainGrad)" opacity="0.9"/>
     
@@ -44,13 +36,5 @@
     
     <!-- AI Text -->
     <text x="0" y="8" font-family="Arial" font-size="30" font-weight="bold" fill="#ffffff" text-anchor="middle">AI</text>
-  </g>
-  
-  <!-- Sparkles -->
-  <g fill="#ffffff" opacity="0.8">
-    <circle cx="45" cy="45" r="2.5"/>
-    <circle cx="145" cy="52" r="3"/>
-    <circle cx="160" cy="138" r="2.5"/>
-    <circle cx="38" cy="142" r="2.8"/>
   </g>
 </svg>
