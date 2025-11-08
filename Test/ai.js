@@ -1163,6 +1163,7 @@ function removeImage() {
 }
 
 // Update send button state based on conditions
+// Update send button state based on conditions
 function updateSendButtonState() {
     const sendBtn = document.getElementById('sendButton');
     const input = document.getElementById('messageInput');
@@ -1172,16 +1173,13 @@ function updateSendButtonState() {
     const hasMessage = input && input.value.trim().length > 0;
     const hasImage = currentImage !== null;
     
-    // Disable if: processing OR image is loading OR (no message AND no image)
-    const shouldDisable = isProcessing || isImageLoading || (!hasMessage && !hasImage);
+    // Enable if: NOT processing AND NOT image loading AND (has message OR has image)
+    const shouldEnable = !isProcessing && !isImageLoading && (hasMessage || hasImage);
     
-    sendBtn.disabled = shouldDisable;
+    sendBtn.disabled = !shouldEnable;
     
     // Visual feedback
-    if (isImageLoading) {
-        sendBtn.style.opacity = '0.5';
-        sendBtn.style.cursor = 'not-allowed';
-    } else if (shouldDisable) {
+    if (!shouldEnable) {
         sendBtn.style.opacity = '0.5';
         sendBtn.style.cursor = 'not-allowed';
     } else {
