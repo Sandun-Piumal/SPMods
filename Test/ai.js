@@ -1284,47 +1284,76 @@ async function loadChatSessions() {
         const storageKey = getStorageKey();
         
         let sessions = [];
+        let loadedFromLocalStorage = false;
 
         // 🚀 PRIORITY 1: Load from localStorage FIRST (instant)
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             try {
                 sessions = JSON.parse(saved);
-                console.log("⚡ Loaded from localStorage instantly");
+                loadedFromLocalStorage = true;
+                console.log("⚡ Loaded from localStorage instantly:", sessions.length, "chats");
             } catch (parseError) {
                 console.error("❌ Failed to parse localStorage:", parseError);
                 sessions = [];
             }
         }
 
-        // 🔄 PRIORITY 2: Then check Firebase in background (for sync across devices)
+        // 🔄 PRIORITY 2: Check Firebase (for first load or sync across devices)
         if (userId && database) {
-            database.ref('users/' + userId + '/chatSessions')
-                .once('value')
-                .then(snapshot => {
+            // If no localStorage data, wait for Firebase
+            if (!loadedFromLocalStorage) {
+                console.log("📥 No localStorage, loading from Firebase...");
+                try {
+                    const snapshot = await database.ref('users/' + userId + '/chatSessions').once('value');
+                    
                     if (snapshot.exists()) {
                         const firebaseData = snapshot.val();
-                        const firebaseSessions = Array.isArray(firebaseData) ? firebaseData : Object.values(firebaseData);
-                        
-                        // Only update if Firebase has newer data
-                        const firebaseLatest = Math.max(...firebaseSessions.map(s => s.updatedAt || 0));
-                        const localLatest = Math.max(...sessions.map(s => s.updatedAt || 0));
-                        
-                        if (firebaseLatest > localLatest) {
-                            console.log("☁️ Firebase has newer data, syncing...");
-                            chatSessions = firebaseSessions;
-                            localStorage.setItem(storageKey, JSON.stringify(firebaseSessions));
-                            renderSessions();
-                            renderChatHistory();
-                        } else {
-                            console.log("✅ localStorage is up to date");
-                        }
+                        sessions = Array.isArray(firebaseData) ? firebaseData : Object.values(firebaseData);
+                        localStorage.setItem(storageKey, JSON.stringify(sessions));
+                        console.log("☁️ Loaded from Firebase:", sessions.length, "chats");
                     }
-                })
-                .catch(err => console.log("⚠️ Firebase load failed (localStorage working):", err));
+                } catch (firebaseError) {
+                    console.log("⚠️ Firebase load failed:", firebaseError);
+                }
+            } else {
+                // Background sync if localStorage exists
+                database.ref('users/' + userId + '/chatSessions')
+                    .once('value')
+                    .then(snapshot => {
+                        if (snapshot.exists()) {
+                            const firebaseData = snapshot.val();
+                            const firebaseSessions = Array.isArray(firebaseData) ? firebaseData : Object.values(firebaseData);
+                            
+                            // Only update if Firebase has newer data
+                            if (firebaseSessions.length > 0 && sessions.length > 0) {
+                                const firebaseLatest = Math.max(...firebaseSessions.map(s => s.updatedAt || 0));
+                                const localLatest = Math.max(...sessions.map(s => s.updatedAt || 0));
+                                
+                                if (firebaseLatest > localLatest) {
+                                    console.log("☁️ Firebase has newer data, syncing...");
+                                    chatSessions = firebaseSessions;
+                                    localStorage.setItem(storageKey, JSON.stringify(firebaseSessions));
+                                    renderSessions();
+                                    renderChatHistory();
+                                } else {
+                                    console.log("✅ localStorage is up to date");
+                                }
+                            } else if (firebaseSessions.length > sessions.length) {
+                                // Firebase has more chats
+                                console.log("☁️ Firebase has more chats, syncing...");
+                                chatSessions = firebaseSessions;
+                                localStorage.setItem(storageKey, JSON.stringify(firebaseSessions));
+                                renderSessions();
+                                renderChatHistory();
+                            }
+                        }
+                    })
+                    .catch(err => console.log("⚠️ Background Firebase sync failed:", err));
+            }
         }
 
-        // 🎯 Use localStorage data immediately (no waiting)
+        // 🎯 Use data immediately
         chatSessions = Array.isArray(sessions) ? sessions : [];
 
         if (chatSessions.length === 0) {
