@@ -1,25 +1,41 @@
 {
-  "name": "Smart AI Assistant",
+  "name": "Smart AI - Your Intelligent Assistant",
   "short_name": "Smart AI",
-  "description": "Your Intelligent AI Assistant by SPMods",
+  "description": "Your Intelligent Assistant powered by advanced AI technology",
   "start_url": "https://www.spmods.download/Test/index.html",
-  "scope": "/",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#1E1B2E",
-  "theme_color": "#1E1B2E",
-  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "dir": "ltr",
+  "lang": "en",
+  "categories": ["productivity", "utilities", "ai"],
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ]
 }
