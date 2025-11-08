@@ -1,0 +1,89 @@
+{
+  "name": "Smart AI - Intelligent Chat Assistant",
+  "short_name": "Smart AI",
+  "description": "Your intelligent AI chat assistant with advanced capabilities for Sinhala and English conversations",
+  "start_url": "/Test/ai.html",
+  "display": "standalone",
+  "background_color": "#DE000000",
+  "theme_color": "#DE000000",
+  "orientation": "any",
+  "scope": "/Test/",
+  "lang": "si",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "education"],
+  "icons": [
+    {
+      "src": "/Test/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Test/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Test/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/Test/screenshots/mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Smart AI Mobile Chat Interface"
+    },
+    {
+      "src": "/Test/screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Smart AI Desktop Experience"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Chat",
+      "short_name": "Chat",
+      "description": "Start a new conversation with AI",
+      "url": "/Test/?new-chat=true",
+      "icons": [
+        {
+          "src": "/Test/icons/chat.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Chat History",
+      "short_name": "History",
+      "description": "View your previous conversations",
+      "url": "/Test/?history=true",
+      "icons": [
+        {
+          "src": "/Test/icons/history.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "display_override": [
+    "window-controls-overlay",
+    "minimal-ui"
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "prefer_related_applications": false
+}

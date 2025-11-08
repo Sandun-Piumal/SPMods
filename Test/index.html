@@ -1,263 +1,757 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart AI Chat</title>
+    <title>Smart AI - Intelligent Chat Assistant</title>
     
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#DE000000" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#764ba2" media="(prefers-color-scheme: dark)">
+    <meta name="msapplication-navbutton-color" content="#DE000000">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Smart AI">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-orientations" content="any">
     
-    <!-- Tesseract.js for OCR -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="ai.css">
+    <!-- CSS -->
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    
+        :root {
+            --primary-color: #DE000000;
+            --secondary-color: #764ba2;
+            --accent-color: #ec4899;
+            --text-dark: #333;
+            --text-light: #666;
+            --background: #f8f9fa;
+            --white: #ffffff;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --radius: 15px;
+        }
 
+        [data-theme="dark"] {
+            --primary-color: #764ba2;
+            --secondary-color: #DE000000;
+            --text-dark: #f3f4f6;
+            --text-light: #d1d5db;
+            --background: #1f2937;
+            --white: #374151;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .logo h1 {
+            font-size: 2.5rem;
+            color: var(--white);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .logo p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+
+        /* Download Section */
+        .download-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .download-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: var(--radius);
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .download-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-color: var(--primary-color);
+        }
+
+        .device-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .download-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        .download-card p {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--white);
+            background: var(--primary-color);
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .ios-btn { background: #007aff; }
+        .android-btn { background: #34a853; }
+        .desktop-btn { background: #ff6b35; }
+
+        .ios-btn:hover { background: #0056cc; }
+        .android-btn:hover { background: #2d9249; }
+        .desktop-btn:hover { background: #e55a2b; }
+
+        /* Instructions */
+        .instructions {
+            background: var(--white);
+            padding: 35px;
+            border-radius: var(--radius);
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+        }
+
+        .instructions h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .instruction-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 20px;
+            background: var(--background);
+            border-radius: var(--radius);
+            transition: transform 0.3s ease;
+        }
+
+        .step:hover {
+            transform: translateY(-3px);
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: var(--white);
+            border-radius: 50%;
+            line-height: 40px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .step p {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        /* Features */
+        .features {
+            background: var(--white);
+            padding: 35px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .features h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 25px;
+            background: var(--background);
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .feature span {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .feature h4 {
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            font-size: 1.2rem;
+        }
+
+        .feature p {
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* Messages */
+        .message {
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #a7f3d0;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fecaca;
+        }
+
+        .message.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #bfdbfe;
+        }
+
+        .unsupported-message {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 2px solid #fcd34d;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--white);
+            margin-top: auto;
+        }
+
+        .footer p {
+            opacity: 0.9;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .logo h1 {
+                font-size: 2rem;
+            }
+            
+            .download-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .instruction-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .download-card {
+                padding: 20px;
+            }
+            
+            .instructions, .features {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .logo h1 {
+                font-size: 1.8rem;
+            }
+            
+            .instructions, .features {
+                padding: 20px;
+            }
+            
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+        🌙
+    </button>
 
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">AI</div>
+                <div>
+                    <h1>Smart AI</h1>
+                    <p>Intelligent Chat Assistant</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="download-section">
+            <!-- iOS Card -->
+            <div class="download-card">
+                <span class="device-icon">📱</span>
+                <h3>iOS Devices</h3>
+                <p>iPhone & iPad සඳහා සූදානම්</p>
+                <button id="iosInstall" class="download-btn ios-btn">
+                    iOS Install කරන්න
+                </button>
+            </div>
+
+            <!-- Android Card -->
+            <div class="download-card">
+                <span class="device-icon">🤖</span>
+                <h3>Android Devices</h3>
+                <p>Android Phones & Tablets සඳහා</p>
+                <button id="androidInstall" class="download-btn android-btn">
+                    Android Install කරන්න
+                </button>
+            </div>
+
+            <!-- Desktop Card -->
+            <div class="download-card">
+                <span class="device-icon">💻</span>
+                <h3>Desktop & Laptop</h3>
+                <p>PC, Mac & Linux සඳහා</p>
+                <button id="desktopInstall" class="download-btn desktop-btn">
+                    Desktop Install කරන්න
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>📋 Install කිරීමේ සුලු මාර්ගෝපදේශය</h3>
+            <div class="instruction-steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <p>ඔබගේ device එකට ගැලපෙන button එක ඔබන්න</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <p>Browser එකේ install prompt එක follow කරන්න</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <p>App එක home screen එකට add වන තෙක් රැඳී සිටින්න</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="installMessage" class="message hidden"></div>
+        
+        <!-- Unsupported Browser -->
+        <div id="unsupported" class="unsupported-message hidden">
+            <p>⚠️ ඔබගේ browser එක PWA install කිරීම support නොකරයි. Chrome, Edge හෝ Safari භාවිතා කරන්න.</p>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+            <h3>✨ Smart AI විශේෂතා</h3>
+            <div class="feature-grid">
+                <div class="feature">
+                    <span>🧠</span>
+                    <h4>දක්ෂ AI</h4>
+                    <p>උසස් බුද්ධිමත් කතාබහ කිරීමේ හැකියාව</p>
+                </div>
+                <div class="feature">
+                    <span>⚡</span>
+                    <h4>වේගවත්</h4>
+                    <p>තත්පර කිහිපයකින් පිළිතුරු ලබාගන්න</p>
+                </div>
+                <div class="feature">
+                    <span>🔒</span>
+                    <h4>සුරක්ෂිත</h4>
+                    <p>ඔබගේ දත්ත සුරක්ෂිතව ගබඩා කරයි</p>
+                </div>
+                <div class="feature">
+                    <span>📱</span>
+                    <h4>ඕනෑම උපකරණයක</h4>
+                    <p>සියලුම devices සඳහා සකස් කර ඇත</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2024 Smart AI. සියලුම හිමිකම් ඇවිරිණි.</p>
+        </div>
+    </div>
+
+    <script>
+// DOM Elements
+const iosBtn = document.getElementById('iosInstall');
+const androidBtn = document.getElementById('androidInstall');
+const desktopBtn = document.getElementById('desktopInstall');
+const installMessage = document.getElementById('installMessage');
+const unsupportedMsg = document.getElementById('unsupported');
+const themeToggle = document.getElementById('themeToggle');
+
+// PWA Install Event
+let deferredPrompt;
+
+// Check if PWA is already installed
+function isPWAInstalled() {
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           window.navigator.standalone === true;
+}
+
+// Show message function
+function showMessage(message, type = 'info') {
+    installMessage.textContent = message;
+    installMessage.className = `message ${type}`;
+    installMessage.classList.remove('hidden');
     
-    <!-- NOTIFICATION -->
-    <div id="notification" class="notification">
-        <i class="fas fa-check-circle"></i>
-        <span id="notificationText"></span>
-    </div>
+    setTimeout(() => {
+        installMessage.classList.add('hidden');
+    }, 6000);
+}
 
-    <!-- LOADING OVERLAY -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-spinner">
-            <div class="spinner-icon"></div>
-            <p id="loadingText">Processing...</p>
-        </div>
-    </div>
+// Detect device type
+function detectDevice() {
+    const userAgent = navigator.userAgent;
+    
+    if (/iPad|iPhone|iPod/.test(userAgent)) {
+        return 'ios';
+    } else if (/Android/.test(userAgent)) {
+        return 'android';
+    } else {
+        return 'desktop';
+    }
+}
 
-    <!-- AUTH CONTAINER -->
-    <div id="authContainer">
-        <div class="auth-box">
-            <!-- LOGIN FORM -->
-            <div id="loginForm">
-                <div class="auth-header">
-                    <div class="auth-logo">
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
-                                </linearGradient>
-                            </defs>
-                            <circle cx="30" cy="30" r="28" fill="url(#logoGrad)"/>
-                            <path d="M20 25 L30 15 L40 25 L35 25 L35 40 L25 40 L25 25 Z" fill="white" opacity="0.9"/>
-                            <circle cx="30" cy="44" r="3" fill="white" opacity="0.9"/>
-                            <path d="M15 30 Q15 20, 25 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
-                            <path d="M45 30 Q45 20, 35 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
-                        </svg>
-                    </div>
-                    <h1 data-i18n="appTitle">Smart AI</h1>
-                    <p data-i18n="appSubtitle">Powered by Gemini AI</p>
-                </div>
-                
-                <div id="loginError" class="error-message"></div>
-                
-                <form onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> <span data-i18n="email">Email</span></label>
-                        <input type="email" id="loginEmail" data-i18n-placeholder="enterEmail" placeholder="Enter your email" required autocomplete="email">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-lock"></i> <span data-i18n="password">Password</span></label>
-                        <input type="password" id="loginPassword" data-i18n-placeholder="enterPassword" placeholder="Enter your password" required autocomplete="current-password">
-                    </div>
-                    <button type="submit" class="btn btn-primary" id="loginBtn">
-                        <span id="loginLoader" class="loader"></span>
-                        <span id="loginText" data-i18n="login">Login</span>
-                    </button>
-                </form>
-                
-                <div class="toggle-link">
-                    <span data-i18n="noAccount">Don't have an account?</span> <a onclick="showSignup()" data-i18n="signUp">Sign Up</a>
-                </div>
-            </div>
+// Theme Toggle
+themeToggle.addEventListener('click', () => {
+    const currentTheme = document.body.getAttribute('data-theme');
+    if (currentTheme === 'dark') {
+        document.body.removeAttribute('data-theme');
+        themeToggle.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+    } else {
+        document.body.setAttribute('data-theme', 'dark');
+        themeToggle.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+    }
+});
 
-            <!-- SIGNUP FORM -->
-            <div id="signupForm" style="display: none;">
-                <div class="auth-header">
-                    <div class="auth-logo">
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
-                                </linearGradient>
-                            </defs>
-                            <circle cx="30" cy="30" r="28" fill="url(#logoGrad2)"/>
-                            <path d="M20 25 L30 15 L40 25 L35 25 L35 40 L25 40 L25 25 Z" fill="white" opacity="0.9"/>
-                            <circle cx="30" cy="44" r="3" fill="white" opacity="0.9"/>
-                            <path d="M15 30 Q15 20, 25 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
-                            <path d="M45 30 Q45 20, 35 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
-                        </svg>
-                    </div>
-                    <h1 data-i18n="appTitle">Smart AI</h1>
-                    <p data-i18n="createAccount">Create Your Account</p>
-                </div>
-                
-                <div id="signupError" class="error-message"></div>
-                <div id="signupSuccess" class="success-message"></div>
-                
-                <form onsubmit="handleSignup(event)">
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> <span data-i18n="name">Name</span></label>
-                        <input type="text" id="signupName" data-i18n-placeholder="enterName" placeholder="Enter your name" required autocomplete="name">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> <span data-i18n="email">Email</span></label>
-                        <input type="email" id="signupEmail" data-i18n-placeholder="enterEmail" placeholder="Enter your email" required autocomplete="email">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-lock"></i> <span data-i18n="password">Password</span></label>
-                        <input type="password" id="signupPassword" data-i18n-placeholder="createPassword" placeholder="Create a password (min 6 characters)" required minlength="6" autocomplete="new-password">
-                    </div>
-                    <button type="submit" class="btn btn-primary" id="signupBtn">
-                        <span id="signupLoader" class="loader"></span>
-                        <span id="signupText" data-i18n="signUp">Sign Up</span>
-                    </button>
-                </form>
-                
-                <div class="toggle-link">
-                    <span data-i18n="haveAccount">Already have an account?</span> <a onclick="showLogin()" data-i18n="login">Login</a>
-                </div>
-            </div>
-        </div>
-    </div>
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+    document.body.setAttribute('data-theme', 'dark');
+    themeToggle.textContent = '☀️';
+}
 
-    <!-- CHAT APP -->
-    <div id="chatApp">
-        <!-- Sidebar Overlay for Mobile -->
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+// Before Install Prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('✅ PWA install prompt available');
+    unsupportedMsg.classList.add('hidden');
+});
 
-        <div class="chat-container">
-            <!-- SIDEBAR -->
-            <div class="chat-sidebar" id="chatSidebar">
-                <div class="sidebar-header">
-                    <button class="close-sidebar-btn" onclick="closeSidebar()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="chat-history" id="chatHistory">
-                    <!-- History items will be inserted here -->
-                </div>
+// iOS Install
+iosBtn.addEventListener('click', () => {
+    if (isPWAInstalled()) {
+        showMessage('✅ Smart AI App එක දැනටමත් install කර ඇත! Home screen එකේ බලන්න.', 'success');
+        return;
+    }
+    
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    
+    if (isIOS && isSafari) {
+        showMessage(`📱 iOS Install කිරීමේ විදිහ:
 
-                <div class="sidebar-footer">
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-details">
-                            <div class="user-name" id="userName">User</div>
-                            <div class="user-email" id="userEmail">user@email.com</div>
-                        </div>
-                    </div>
-                    <button class="sidebar-action-btn" onclick="handleLogout()" data-i18n-title="logout" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </div>
-            </div>
+1. Safari browser එකේ share button එක ඔබන්න (පහළ මැද)
+2. "Add to Home Screen" තෝරන්න  
+3. "Add" button එක ඔබන්න
+4. App එක home screen එකට add වනු ඇත
 
-            <!-- MAIN CHAT -->
-            <div class="chat-main">
-                <div class="chat-header">
-                    <button class="menu-btn" onclick="toggleSidebar()">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <div class="header-title" data-i18n="newChat">New chat</div>
-                    <button class="header-action-btn language-btn" onclick="toggleLanguage()" title="Change Language">
-                        <i class="fas fa-language"></i>
-                    </button>
-                    <button class="header-action-btn" onclick="createNewChat()" data-i18n-title="newChat" title="New Chat">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
+ඉක්මනින් Smart AI app එක භාවිතා කිරීමට මෙම විදිහ අනුගමනය කරන්න.`, 'info');
+    } else if (isIOS) {
+        showMessage('iOS device සඳහා PWA install කිරීමට Safari browser එක භාවිතා කරන්න.', 'info');
+    } else {
+        showMessage('මෙම feature එක iOS devices (iPhone, iPad) සඳහා පමණයි.', 'error');
+    }
+});
 
-                <div id="chatMessages" class="chat-messages">
-                    <div class="welcome-screen">
-                        <div class="ai-logo">
-                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
-                                        <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
-                                    </linearGradient>
-                                </defs>
-                                <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
-                                <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
-                                <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
-                                <path d="M18 40 Q18 28, 32 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
-                                <path d="M62 40 Q62 28, 48 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
-                            </svg>
-                        </div>
-                        <h1 id="welcomeTitle" data-i18n="welcomeTitle">Hi, I'm Smart AI.</h1>
-                        <p id="welcomeSubtitle" data-i18n="welcomeSubtitle">How can I help you today?</p>
-                    </div>
-                </div>
+// Android Install
+androidBtn.addEventListener('click', async () => {
+    if (isPWAInstalled()) {
+        showMessage('✅ Smart AI App එක දැනටමත් install කර ඇත! Home screen එකේ බලන්න.', 'success');
+        return;
+    }
+    
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    if (isAndroid && deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+            showMessage('🎉 Smart AI App එක සාර්ථකව install කරන ලදී! දැන් ඔබට home screen එකෙන් app එක open කළ හැකිය.', 'success');
+        } else {
+            showMessage('❌ App install කිරීම අවලංගු කරන ලදී. නැවත උත්සාහ කරන්න.', 'error');
+        }
+        deferredPrompt = null;
+    } else if (isAndroid) {
+        showMessage(`🤖 Android Install කිරීමේ විදිහ:
 
-                <div id="typingIndicator" class="typing-indicator">
-                    <div class="typing-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
+1. Browser menu එක open කරන්න (ඉහළ දකුණු කෙලවරේ)
+2. "Install App" හෝ "Add to Home Screen" තෝරන්න
+3. "Install" button එක ඔබන්න
+4. App එක home screen එකට add වනු ඇත
 
-                <div class="chat-input-container">
-                    <!-- Image Preview -->
-                    <div id="imagePreview" class="image-preview" style="display: none;">
-                        <div class="preview-content">
-                            <img id="previewImage" src="" alt="Preview">
-                            <button class="remove-image-btn" onclick="removeImage()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div id="ocrText" class="ocr-text"></div>
-                    </div>
+Chrome browser එක භාවිතා කිරීමෙන් සුමට install කිරීමක් ලබාගත හැකිය.`, 'info');
+    } else {
+        showMessage('මෙම feature එක Android devices සඳහා පමණයි.', 'error');
+    }
+});
 
-                    <div class="input-wrapper">
-                        <input type="text" 
-                            id="messageInput" 
-                            data-i18n-placeholder="messagePlaceholder"
-                            placeholder="Message Smart AI"
-                            onkeydown="handleKeyPress(event)"
-                            oninput="handleInputChange()"
-                        />
-                        
-                        <div class="input-actions">
-                            <button class="input-action-btn" onclick="document.getElementById('imageInput').click()" data-i18n-title="uploadImage" title="Upload Image">
-                                <i class="fas fa-image"></i>
-                            </button>
-                            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-                            
-                            <!--button class="input-action-btn" data-i18n-title="moreOptions" title="More options">
-                                <i class="fas fa-ellipsis-h"></i>
-                        </button-->
-                            
-                            <button id="sendButton" class="send-btn" onclick="sendMessage()">
-                                <i class="fas fa-arrow-up"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+// Desktop Install
+desktopBtn.addEventListener('click', async () => {
+    if (isPWAInstalled()) {
+        showMessage('✅ Smart AI App එක දැනටමත් install කර ඇත! දැන් ඔබට app එකක් විදිහට භාවිතා කළ හැකිය.', 'success');
+        return;
+    }
+    
+    const isDesktop = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isDesktop && deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+            showMessage('🎉 Smart AI App එක සාර්ථකව install කරන ලදී! දැන් ඔබට app එකක් විදිහට භාවිතා කළ හැකිය.', 'success');
+        } else {
+            showMessage('❌ App install කිරීම අවලංගු කරන ලදී. නැවත උත්සාහ කරන්න.', 'error');
+        }
+        deferredPrompt = null;
+    } else if (isDesktop) {
+        showMessage(`💻 Desktop Install කිරීමේ විදිහ:
 
-    <!-- Custom JavaScript -->
-    <script src="ai.js"></script>
+1. Address bar එකේ install icon එක බලන්න (දකුණු පස)
+2. Install icon එක ඔබන්න හෝ browser menu එක check කරන්න
+3. "Install Smart AI" හෝ "Add to Desktop" තෝරන්න
+4. App එක install වනු ඇත
+
+Chrome, Edge, Opera වැනි browser වල මෙම feature එක support කරයි.`, 'info');
+    } else {
+        showMessage('මෙම feature එක Desktop devices (PC, Laptop) සඳහා පමණයි.', 'error');
+    }
+});
+
+// Auto-detect device
+function autoDetectAndSuggest() {
+    const device = detectDevice();
+    
+    switch(device) {
+        case 'ios':
+            showMessage('📱 iOS device එකක් හඳුනාගෙන ඇත. "iOS Install කරන්න" button එක ඔබන්න.', 'info');
+            break;
+        case 'android':
+            showMessage('🤖 Android device එකක් හඳුනාගෙන ඇත. "Android Install කරන්න" button එක ඔබන්න.', 'info');
+            break;
+        case 'desktop':
+            showMessage('💻 Desktop device එකක් හඳුනාගෙන ඇත. "Desktop Install කරන්න" button එක ඔබන්න.', 'info');
+            break;
+    }
+}
+
+// Initialize on load
+window.addEventListener('load', () => {
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/Test/sw.js')
+            .then(() => console.log('✅ Service Worker Registered'))
+            .catch(err => console.log('❌ Service Worker Failed: ', err));
+    }
+    
+    // Check browser support
+    if (!('serviceWorker' in navigator) || !('BeforeInstallPromptEvent' in window)) {
+        unsupportedMsg.classList.remove('hidden');
+    }
+    
+    // Check if already installed
+    if (isPWAInstalled()) {
+        showMessage('🎉 Smart AI App එක දැනටමත් install කර ඇත! දැන් ඔබට app එකක් විදිහට භාවිතා කළ හැකිය.', 'success');
+    } else {
+        setTimeout(autoDetectAndSuggest, 2000);
+    }
+});
+
+// App installed event
+window.addEventListener('appinstalled', () => {
+    showMessage('🎊 Smart AI App එක සාර්ථකව install කරන ලදී! දැන් ඔබට app එක open කළ හැකිය.', 'success');
+    deferredPrompt = null;
+});
+
+// Add button hover effects
+document.querySelectorAll('.download-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.05)';
+    });
+    
+    btn.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+    });
+});
+    </script>
 </body>
 </html>
