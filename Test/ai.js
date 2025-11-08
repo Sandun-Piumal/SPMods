@@ -124,14 +124,21 @@ function checkForUpdates() {
         }
         
         // Clear localStorage if needed
-        localStorage.removeItem('smartai-sessions-anonymous');
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('smartai-')) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
         
         // Update version
         localStorage.setItem(VERSION_KEY, APP_VERSION);
         
         // Force reload
         setTimeout(() => {
-            window.location.reload(true);
+            window.location.reload();
         }, 1000);
     }
 }
@@ -142,7 +149,7 @@ function checkForAppUpdates() {
         showNotification(getTranslation('updatesAvailable'), 'info');
         setTimeout(() => {
             localStorage.setItem(VERSION_KEY, APP_VERSION);
-            window.location.reload(true);
+            window.location.reload();
         }, 2000);
     } else {
         showNotification(getTranslation('latestVersion'), 'success');
@@ -152,26 +159,14 @@ function checkForAppUpdates() {
 function setupAutoUpdateCheck() {
     // Check every 5 minutes for updates
     setInterval(() => {
-        checkForGitHubUpdates();
+        const currentVersion = localStorage.getItem(VERSION_KEY);
+        if (currentVersion !== APP_VERSION) {
+            showNotification(getTranslation('updatesAvailable'), 'info');
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        }
     }, 5 * 60 * 1000);
-}
-
-function checkForGitHubUpdates() {
-    fetch('/?v=' + Date.now())
-        .then(response => response.text())
-        .then(html => {
-            // Simple check - if version changed in localStorage
-            const currentVersion = localStorage.getItem(VERSION_KEY);
-            if (currentVersion !== APP_VERSION) {
-                showNotification(getTranslation('updatesAvailable'), 'info');
-                setTimeout(() => {
-                    window.location.reload(true);
-                }, 3000);
-            }
-        })
-        .catch(error => {
-            console.log('Update check failed:', error);
-        });
 }
 
 // LANGUAGE FUNCTIONS
@@ -182,17 +177,26 @@ function getTranslation(key) {
 function updateLanguage() {
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
-        element.textContent = getTranslation(key);
+        const translation = getTranslation(key);
+        if (translation) {
+            element.textContent = translation;
+        }
     });
 
     document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
-        element.placeholder = getTranslation(key);
+        const translation = getTranslation(key);
+        if (translation) {
+            element.placeholder = translation;
+        }
     });
 
     document.querySelectorAll('[data-i18n-title]').forEach(element => {
         const key = element.getAttribute('data-i18n-title');
-        element.title = getTranslation(key);
+        const translation = getTranslation(key);
+        if (translation) {
+            element.title = translation;
+        }
     });
 
     localStorage.setItem('smartai-language', currentLanguage);
@@ -208,8 +212,8 @@ function loadLanguagePreference() {
     const savedLang = localStorage.getItem('smartai-language');
     if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
         currentLanguage = savedLang;
-        updateLanguage();
     }
+    updateLanguage();
 }
 
 // FIREBASE INITIALIZATION
@@ -223,8 +227,11 @@ function initializeFirebase() {
             return;
         }
 
+        // Initialize Firebase app
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
+        } else {
+            firebase.app();
         }
         
         auth = firebase.auth();
@@ -232,21 +239,20 @@ function initializeFirebase() {
         
         console.log("✅ Firebase initialized successfully");
 
+        // Auth state listener
         auth.onAuthStateChanged((user) => {
             console.log("🔐 Auth state changed:", user ? user.email : "No user");
             
-            // Smooth transitions without refresh
             if (user) {
-                showChatAppSmooth();
+                showChatApp();
                 loadChatSessions();
                 updateUserProfile(user);
             } else {
-                showAuthContainerSmooth();
+                showAuthContainer();
             }
         });
 
         loadLanguagePreference();
-        setupAutoUpdateCheck();
         
     } catch (error) {
         console.error("❌ Firebase init error:", error);
@@ -254,76 +260,67 @@ function initializeFirebase() {
     }
 }
 
-// SMOOTH TRANSITIONS
-function showChatAppSmooth() {
-    const authContainer = document.getElementById('authContainer');
-    const chatApp = document.getElementById('chatApp');
-    
-    authContainer.style.opacity = '0';
-    setTimeout(() => {
-        authContainer.style.display = 'none';
-        chatApp.style.display = 'block';
-        setTimeout(() => {
-            chatApp.style.opacity = '1';
-        }, 50);
-    }, 300);
-}
-
-function showAuthContainerSmooth() {
-    const authContainer = document.getElementById('authContainer');
-    const chatApp = document.getElementById('chatApp');
-    
-    chatApp.style.opacity = '0';
-    setTimeout(() => {
-        chatApp.style.display = 'none';
-        authContainer.style.display = 'flex';
-        setTimeout(() => {
-            authContainer.style.opacity = '1';
-        }, 50);
-    }, 300);
-}
-
 // UI FUNCTIONS
 function showLogin() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('signupForm').style.display = 'none';
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    
+    if (loginForm) loginForm.style.display = 'block';
+    if (signupForm) signupForm.style.display = 'none';
     hideMessages();
 }
 
 function showSignup() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('signupForm').style.display = 'block';
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    
+    if (loginForm) loginForm.style.display = 'none';
+    if (signupForm) signupForm.style.display = 'block';
     hideMessages();
 }
 
 function showAuthContainer() {
-    document.getElementById('authContainer').style.display = 'flex';
-    document.getElementById('chatApp').style.display = 'none';
+    const authContainer = document.getElementById('authContainer');
+    const chatApp = document.getElementById('chatApp');
+    
+    if (authContainer) authContainer.style.display = 'flex';
+    if (chatApp) chatApp.style.display = 'none';
 }
 
 function showChatApp() {
-    document.getElementById('authContainer').style.display = 'none';
-    document.getElementById('chatApp').style.display = 'block';
+    const authContainer = document.getElementById('authContainer');
+    const chatApp = document.getElementById('chatApp');
+    
+    if (authContainer) authContainer.style.display = 'none';
+    if (chatApp) chatApp.style.display = 'block';
 }
 
 function hideMessages() {
-    document.getElementById('loginError').style.display = 'none';
-    document.getElementById('signupError').style.display = 'none';
-    document.getElementById('signupSuccess').style.display = 'none';
+    const loginError = document.getElementById('loginError');
+    const signupError = document.getElementById('signupError');
+    const signupSuccess = document.getElementById('signupSuccess');
+    
+    if (loginError) loginError.style.display = 'none';
+    if (signupError) signupError.style.display = 'none';
+    if (signupSuccess) signupSuccess.style.display = 'none';
 }
 
 function showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');
     const text = document.getElementById('notificationText');
-    const icon = notification.querySelector('i');
     
+    if (!notification || !text) return;
+    
+    const icon = notification.querySelector('i');
     notification.className = `notification ${type}`;
     text.textContent = message;
     
-    if (type === 'success') {
-        icon.className = 'fas fa-check-circle';
-    } else {
-        icon.className = 'fas fa-exclamation-circle';
+    if (icon) {
+        if (type === 'success') {
+            icon.className = 'fas fa-check-circle';
+        } else {
+            icon.className = 'fas fa-exclamation-circle';
+        }
     }
     
     notification.classList.add('show');
@@ -336,36 +333,46 @@ function showNotification(message, type = 'success') {
 function showLoading(text) {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
-    loadingText.textContent = text;
-    overlay.classList.add('show');
+    
+    if (overlay && loadingText) {
+        loadingText.textContent = text;
+        overlay.classList.add('show');
+    }
 }
 
 function hideLoading() {
-    document.getElementById('loadingOverlay').classList.remove('show');
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
 }
 
 function toggleSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
+    if (sidebar) sidebar.classList.toggle('active');
+    if (overlay) overlay.classList.toggle('active');
 }
 
 function closeSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    sidebar.classList.remove('active');
-    overlay.classList.remove('active');
+    if (sidebar) sidebar.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
 }
 
 function updateUserProfile(user) {
-    const userName = user.displayName || user.email.split('@')[0];
-    const userEmail = user.email;
+    const userNameElement = document.getElementById('userName');
+    const userEmailElement = document.getElementById('userEmail');
     
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('userEmail').textContent = userEmail;
+    if (userNameElement) {
+        userNameElement.textContent = user.displayName || user.email.split('@')[0] || 'User';
+    }
+    if (userEmailElement) {
+        userEmailElement.textContent = user.email || '';
+    }
 }
 
 // FIREBASE DATABASE FUNCTIONS
@@ -382,7 +389,7 @@ async function saveUserToDatabase(userId, name, email) {
         const userRef = database.ref('users/' + userId);
         await userRef.set(userData);
         
-        console.log("✅ User data saved to Firebase Database:", userData);
+        console.log("✅ User data saved to Firebase Database");
         return true;
         
     } catch (error) {
@@ -413,49 +420,58 @@ async function handleLogin(event) {
     if (event) event.preventDefault();
     if (isProcessing) return;
     
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+    const email = document.getElementById('loginEmail');
+    const password = document.getElementById('loginPassword');
     const btn = document.getElementById('loginBtn');
     
-    if (!email || !password) {
+    if (!email || !password || !email.value || !password.value) {
         showNotification('Please fill all fields', 'error');
         return;
     }
     
     isProcessing = true;
-    btn.disabled = true;
-    btn.querySelector('.loader').style.display = 'block';
-    btn.querySelector('#loginText').textContent = 'Logging in...';
+    if (btn) {
+        btn.disabled = true;
+        const loader = btn.querySelector('.loader');
+        const loginText = btn.querySelector('#loginText');
+        if (loader) loader.style.display = 'block';
+        if (loginText) loginText.textContent = 'Logging in...';
+    }
+    
     hideMessages();
     
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        
+        const userCredential = await auth.signInWithEmailAndPassword(email.value, password.value);
         await updateUserInDatabase();
-        
         showNotification(getTranslation('loginSuccess'));
-        document.getElementById('loginForm').reset();
+        if (email) email.value = '';
+        if (password) password.value = '';
         
     } catch (error) {
         console.error("Login error:", error);
         const errorMsg = document.getElementById('loginError');
         
-        if (error.code === 'auth/user-not-found') {
-            errorMsg.textContent = 'No account found with this email. Please sign up.';
-        } else if (error.code === 'auth/wrong-password') {
-            errorMsg.textContent = 'Incorrect password. Please try again.';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMsg.textContent = 'Invalid email address.';
-        } else {
-            errorMsg.textContent = 'Login failed. Please check your credentials.';
+        if (errorMsg) {
+            if (error.code === 'auth/user-not-found') {
+                errorMsg.textContent = 'No account found with this email. Please sign up.';
+            } else if (error.code === 'auth/wrong-password') {
+                errorMsg.textContent = 'Incorrect password. Please try again.';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMsg.textContent = 'Invalid email address.';
+            } else {
+                errorMsg.textContent = 'Login failed. Please check your credentials.';
+            }
+            errorMsg.style.display = 'block';
         }
-        
-        errorMsg.style.display = 'block';
     } finally {
         isProcessing = false;
-        btn.disabled = false;
-        btn.querySelector('.loader').style.display = 'none';
-        btn.querySelector('#loginText').textContent = getTranslation('login');
+        if (btn) {
+            btn.disabled = false;
+            const loader = btn.querySelector('.loader');
+            const loginText = btn.querySelector('#loginText');
+            if (loader) loader.style.display = 'none';
+            if (loginText) loginText.textContent = getTranslation('login');
+        }
     }
 }
 
@@ -463,42 +479,51 @@ async function handleSignup(event) {
     if (event) event.preventDefault();
     if (isProcessing) return;
     
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
+    const name = document.getElementById('signupName');
+    const email = document.getElementById('signupEmail');
+    const password = document.getElementById('signupPassword');
     const btn = document.getElementById('signupBtn');
     
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !name.value || !email.value || !password.value) {
         showNotification('Please fill all fields', 'error');
         return;
     }
     
-    if (password.length < 6) {
+    if (password.value.length < 6) {
         showNotification('Password must be at least 6 characters', 'error');
         return;
     }
     
     isProcessing = true;
-    btn.disabled = true;
-    btn.querySelector('.loader').style.display = 'block';
-    btn.querySelector('#signupText').textContent = 'Creating account...';
+    if (btn) {
+        btn.disabled = true;
+        const loader = btn.querySelector('.loader');
+        const signupText = btn.querySelector('#signupText');
+        if (loader) loader.style.display = 'block';
+        if (signupText) signupText.textContent = 'Creating account...';
+    }
+    
     hideMessages();
     
     try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const userCredential = await auth.createUserWithEmailAndPassword(email.value, password.value);
         const user = userCredential.user;
         
         await user.updateProfile({ 
-            displayName: name 
+            displayName: name.value 
         });
         
-        await saveUserToDatabase(user.uid, name, email);
+        await saveUserToDatabase(user.uid, name.value, email.value);
         
         const successMsg = document.getElementById('signupSuccess');
-        successMsg.textContent = 'Registration successful! Redirecting...';
-        successMsg.style.display = 'block';
+        if (successMsg) {
+            successMsg.textContent = 'Registration successful! Redirecting...';
+            successMsg.style.display = 'block';
+        }
         
-        document.getElementById('signupForm').reset();
+        if (name) name.value = '';
+        if (email) email.value = '';
+        if (password) password.value = '';
         
         setTimeout(() => {
             showLogin();
@@ -508,22 +533,27 @@ async function handleSignup(event) {
         console.error("Signup error:", error);
         const errorMsg = document.getElementById('signupError');
         
-        if (error.code === 'auth/email-already-in-use') {
-            errorMsg.textContent = 'This email is already registered. Please login.';
-        } else if (error.code === 'auth/weak-password') {
-            errorMsg.textContent = 'Password is too weak. Please use a stronger password.';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMsg.textContent = 'Invalid email address.';
-        } else {
-            errorMsg.textContent = 'Registration failed. Please try again.';
+        if (errorMsg) {
+            if (error.code === 'auth/email-already-in-use') {
+                errorMsg.textContent = 'This email is already registered. Please login.';
+            } else if (error.code === 'auth/weak-password') {
+                errorMsg.textContent = 'Password is too weak. Please use a stronger password.';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMsg.textContent = 'Invalid email address.';
+            } else {
+                errorMsg.textContent = 'Registration failed. Please try again.';
+            }
+            errorMsg.style.display = 'block';
         }
-        
-        errorMsg.style.display = 'block';
     } finally {
         isProcessing = false;
-        btn.disabled = false;
-        btn.querySelector('.loader').style.display = 'none';
-        btn.querySelector('#signupText').textContent = getTranslation('signUp');
+        if (btn) {
+            btn.disabled = false;
+            const loader = btn.querySelector('.loader');
+            const signupText = btn.querySelector('#signupText');
+            if (loader) loader.style.display = 'none';
+            if (signupText) signupText.textContent = getTranslation('signUp');
+        }
     }
 }
 
@@ -544,10 +574,12 @@ async function getAIResponse(userMessage, imageData = null) {
     console.log("🤖 Getting AI response...", { userMessage, hasImage: !!imageData });
     
     try {
+        let apiUrl, requestBody;
+
         if (imageData) {
-            const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            
-            const visionBody = {
+            // Vision API
+            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
+            requestBody = {
                 contents: [{
                     parts: [
                         { text: userMessage },
@@ -564,50 +596,38 @@ async function getAIResponse(userMessage, imageData = null) {
                     maxOutputTokens: 2048,
                 }
             };
-            
-            console.log("📤 Sending to Gemini Vision API...");
-            const visionResponse = await fetch(visionUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(visionBody)
-            });
-            
-            if (visionResponse.ok) {
-                const visionData = await visionResponse.json();
-                if (visionData.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    console.log("✅ Vision API success");
-                    return visionData.candidates[0].content.parts[0].text;
+        } else {
+            // Text API
+            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+            requestBody = {
+                contents: [{
+                    parts: [{ text: userMessage }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 1024,
                 }
-            }
+            };
         }
         
-        const textUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-        
-        const textBody = {
-            contents: [{
-                parts: [{ text: userMessage }]
-            }],
-            generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 1024,
-            }
-        };
-        
-        console.log("📤 Sending to Gemini Text API...");
-        const textResponse = await fetch(textUrl, {
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(textBody)
+            body: JSON.stringify(requestBody)
         });
         
-        if (!textResponse.ok) throw new Error('Text API failed');
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
         
-        const textData = await textResponse.json();
-        const aiResponse = textData.candidates?.[0]?.content?.parts?.[0]?.text;
+        const data = await response.json();
+        const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
-        if (!aiResponse) throw new Error('Empty response');
+        if (!aiResponse) {
+            throw new Error('Empty response from AI');
+        }
         
-        console.log("✅ Text API success");
+        console.log("✅ AI API success");
         return aiResponse;
         
     } catch (error) {
@@ -649,6 +669,8 @@ function createNewChat() {
 
 function clearMessages() {
     const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
     messagesDiv.innerHTML = `
         <div class="welcome-screen">
             <div class="ai-logo">
@@ -674,7 +696,7 @@ async function sendMessage() {
     if (isProcessing) return;
     
     const input = document.getElementById('messageInput');
-    const message = input.value.trim();
+    const message = input ? input.value.trim() : '';
     
     if (!message && !currentImage) {
         showNotification('Please enter a message or upload an image', 'error');
@@ -687,20 +709,20 @@ async function sendMessage() {
     
     addMessageToChat(messageToSend, true, currentImage);
     
-    input.value = '';
+    if (input) input.value = '';
     
     const sendBtn = document.getElementById('sendButton');
     const typing = document.getElementById('typingIndicator');
     
     isProcessing = true;
-    sendBtn.disabled = true;
-    typing.style.display = 'flex';
+    if (sendBtn) sendBtn.disabled = true;
+    if (typing) typing.style.display = 'flex';
     
     try {
         console.log("🔄 Getting AI response...");
         const response = await getAIResponse(messageToSend, currentImage);
         
-        typing.style.display = 'none';
+        if (typing) typing.style.display = 'none';
         addMessageToChat(response, false);
         
         if (currentImage) {
@@ -709,7 +731,7 @@ async function sendMessage() {
         
     } catch (error) {
         console.error("❌ Error in sendMessage:", error);
-        typing.style.display = 'none';
+        if (typing) typing.style.display = 'none';
         
         const errorMsg = currentLanguage === 'si' 
             ? 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
@@ -718,15 +740,16 @@ async function sendMessage() {
         addMessageToChat(errorMsg, false);
     } finally {
         isProcessing = false;
-        sendBtn.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
         currentImage = null;
         removeImage();
-        input.focus();
+        if (input) input.focus();
     }
 }
 
 function addMessageToChat(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
     
     const welcome = messagesDiv.querySelector('.welcome-screen');
     if (welcome) {
@@ -805,8 +828,13 @@ function handleKeyPress(event) {
 }
 
 function copyMessage(button) {
-    const messageContent = button.closest('.message').querySelector('.message-text');
-    const textContent = messageContent.textContent || messageContent.innerText;
+    const messageContent = button.closest('.message');
+    if (!messageContent) return;
+    
+    const messageText = messageContent.querySelector('.message-text');
+    if (!messageText) return;
+    
+    const textContent = messageText.textContent || messageText.innerText;
     
     navigator.clipboard.writeText(textContent).then(() => {
         const originalHTML = button.innerHTML;
@@ -817,6 +845,8 @@ function copyMessage(button) {
             button.innerHTML = originalHTML;
             button.style.background = '';
         }, 2000);
+    }).catch(err => {
+        console.error('Copy failed:', err);
     });
 }
 
@@ -839,13 +869,21 @@ function handleImageUpload(event) {
         const preview = document.getElementById('imagePreview');
         const previewImage = document.getElementById('previewImage');
         
-        previewImage.src = currentImage;
-        preview.style.display = 'block';
+        if (preview && previewImage) {
+            previewImage.src = currentImage;
+            preview.style.display = 'block';
+        }
         
         hideLoading();
         showNotification(getTranslation('imageUploaded'));
         
-        document.getElementById('messageInput').focus();
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) messageInput.focus();
+    };
+    
+    reader.onerror = function() {
+        hideLoading();
+        showNotification('Failed to load image', 'error');
     };
     
     reader.readAsDataURL(file);
@@ -854,24 +892,27 @@ function handleImageUpload(event) {
 
 function removeImage() {
     currentImage = null;
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('previewImage').src = '';
+    const preview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    
+    if (preview) preview.style.display = 'none';
+    if (previewImage) previewImage.src = '';
 }
 
 // SESSION MANAGEMENT
 function getStorageKey() {
-    const userId = auth.currentUser?.uid || 'anonymous';
+    const userId = auth && auth.currentUser ? auth.currentUser.uid : 'anonymous';
     return `smartai-sessions-${userId}`;
 }
 
 async function saveChatSessions() {
     try {
-        const userId = auth.currentUser?.uid;
+        const userId = auth && auth.currentUser ? auth.currentUser.uid : null;
         const storageKey = getStorageKey();
         
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
         
-        if (userId) {
+        if (userId && database) {
             const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
             await userSessionsRef.set(chatSessions);
             console.log("✅ Data saved to both localStorage and Firebase");
@@ -884,34 +925,41 @@ async function saveChatSessions() {
 
 async function loadChatSessions() {
     try {
-        const userId = auth.currentUser?.uid;
+        const userId = auth && auth.currentUser ? auth.currentUser.uid : null;
         const storageKey = getStorageKey();
         
         let sessions = [];
 
-        if (userId) {
+        // Try to load from Firebase first
+        if (userId && database) {
             try {
                 const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
                 const snapshot = await userSessionsRef.once('value');
                 
                 if (snapshot.exists()) {
                     sessions = snapshot.val();
-                    console.log("✅ Loaded from Firebase:", sessions);
+                    console.log("✅ Loaded from Firebase");
                 }
             } catch (firebaseError) {
-                console.log("⚠️ Firebase load failed, using localStorage:", firebaseError);
+                console.log("⚠️ Firebase load failed:", firebaseError);
             }
         }
 
-        if (sessions.length === 0) {
+        // Fallback to localStorage
+        if (!sessions || sessions.length === 0) {
             const saved = localStorage.getItem(storageKey);
             if (saved) {
-                sessions = JSON.parse(saved);
-                console.log("✅ Loaded from localStorage:", sessions);
+                try {
+                    sessions = JSON.parse(saved);
+                    console.log("✅ Loaded from localStorage");
+                } catch (parseError) {
+                    console.error("❌ Failed to parse localStorage data:", parseError);
+                    sessions = [];
+                }
             }
         }
 
-        chatSessions = sessions || [];
+        chatSessions = Array.isArray(sessions) ? sessions : [];
 
         if (chatSessions.length === 0) {
             createNewChat();
@@ -930,6 +978,8 @@ async function loadChatSessions() {
 
 function renderSessions() {
     const historyContainer = document.getElementById('chatHistory');
+    if (!historyContainer) return;
+    
     historyContainer.innerHTML = '';
     
     chatSessions.forEach(session => {
@@ -939,15 +989,15 @@ function renderSessions() {
             item.classList.add('active');
         }
         
-        const lastMessage = session.messages.length > 0 
+        const lastMessage = session.messages && session.messages.length > 0 
             ? session.messages[session.messages.length - 1].content 
             : (currentLanguage === 'si' ? 'තවම පණිවිඩ නැත' : 'No messages yet');
         
         const timeStr = getTimeString(session.updatedAt);
         
         item.innerHTML = `
-            <div class="history-title">${escapeHtml(session.title)}</div>
-            <div class="history-preview">${escapeHtml(lastMessage.substring(0, 40))}${lastMessage.length > 40 ? '...' : ''}</div>
+            <div class="history-title">${escapeHtml(session.title || getTranslation('newChat'))}</div>
+            <div class="history-preview">${escapeHtml((lastMessage || '').substring(0, 40))}${(lastMessage || '').length > 40 ? '...' : ''}</div>
             <div class="history-time">${timeStr}</div>
             <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="${currentLanguage === 'si' ? 'මකන්න' : 'Delete'}">
                 <i class="fas fa-trash"></i>
@@ -960,6 +1010,8 @@ function renderSessions() {
 }
 
 function getTimeString(timestamp) {
+    if (!timestamp) return '';
+    
     const now = Date.now();
     const diff = now - timestamp;
     const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -979,6 +1031,7 @@ function getTimeString(timestamp) {
 }
 
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
@@ -1027,12 +1080,12 @@ function getCurrentSession() {
 
 function renderChatHistory() {
     const session = getCurrentSession();
-    if (!session) return;
-    
     const messagesDiv = document.getElementById('chatMessages');
+    
+    if (!messagesDiv) return;
     messagesDiv.innerHTML = '';
     
-    if (session.messages.length === 0) {
+    if (!session || !session.messages || session.messages.length === 0) {
         clearMessages();
         return;
     }
@@ -1045,16 +1098,21 @@ function renderChatHistory() {
 // SETTINGS MENU
 function toggleSettings() {
     const settingsMenu = document.querySelector('.settings-menu');
-    settingsMenu.classList.toggle('active');
+    if (settingsMenu) {
+        settingsMenu.classList.toggle('active');
+    }
 }
 
 function addUpdateButton() {
+    const settingsMenu = document.querySelector('.settings-menu');
+    if (!settingsMenu) return;
+    
     const updateBtn = document.createElement('button');
     updateBtn.className = 'action-btn';
     updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> ' + getTranslation('checkUpdates');
     updateBtn.onclick = checkForAppUpdates;
     
-    document.querySelector('.settings-menu').appendChild(updateBtn);
+    settingsMenu.appendChild(updateBtn);
 }
 
 // INITIALIZE APP
@@ -1063,12 +1121,19 @@ window.addEventListener('load', function() {
     checkForUpdates();
     initializeFirebase();
     
-    document.getElementById('loginForm').addEventListener('submit', handleLogin);
-    document.getElementById('signupForm').addEventListener('submit', handleSignup);
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    if (signupForm) {
+        signupForm.addEventListener('submit', handleSignup);
+    }
     
     addUpdateButton();
     
-    console.log("✅ All event listeners attached");
+    console.log("✅ App initialized");
 });
 
 // Add CSS for image display
@@ -1092,11 +1157,6 @@ style.textContent = `
     .message-text {
         line-height: 1.5;
         word-wrap: break-word;
-    }
-    
-    /* Smooth transitions */
-    #authContainer, #chatApp {
-        transition: opacity 0.3s ease-in-out;
     }
     
     /* Settings menu update button */
