@@ -9,6 +9,10 @@ const firebaseConfig = {
 // GEMINI API KEY
 const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
+// APP VERSION
+const APP_VERSION = '1.0.1';
+const VERSION_KEY = 'smartai-version';
+
 // STATE VARIABLES
 let auth = null;
 let database = null;
@@ -56,7 +60,10 @@ const translations = {
         extractingText: "Extracting text...",
         processingImage: "Processing image...",
         analyzingImage: "Analyzing image content...",
-        imageAnalyzed: "Image analyzed!"
+        imageAnalyzed: "Image analyzed!",
+        checkUpdates: "Check for Updates",
+        updatesAvailable: "New version available!",
+        latestVersion: "You have the latest version!"
     },
     si: {
         appTitle: "Smart AI",
@@ -93,9 +100,79 @@ const translations = {
         extractingText: "පෙළ උපුටා ගනිමින්...",
         processingImage: "පින්තූරය සකසමින්...",
         analyzingImage: "පින්තූරය විශ්ලේෂණය කරමින්...",
-        imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!"
+        imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!",
+        checkUpdates: "යාවත්කාලීන පරීක්ෂා කරන්න",
+        updatesAvailable: "නව අනුවාදයක් තිබේ!",
+        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!"
     }
 };
+
+// VERSION CONTROL
+function checkForUpdates() {
+    const savedVersion = localStorage.getItem(VERSION_KEY);
+    
+    if (savedVersion !== APP_VERSION) {
+        console.log('🔄 New version detected, clearing cache...');
+        
+        // Clear old caches
+        if ('caches' in window) {
+            caches.keys().then(function(cacheNames) {
+                cacheNames.forEach(function(cacheName) {
+                    caches.delete(cacheName);
+                });
+            });
+        }
+        
+        // Clear localStorage if needed
+        localStorage.removeItem('smartai-sessions-anonymous');
+        
+        // Update version
+        localStorage.setItem(VERSION_KEY, APP_VERSION);
+        
+        // Force reload
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 1000);
+    }
+}
+
+function checkForAppUpdates() {
+    const currentVersion = localStorage.getItem(VERSION_KEY);
+    if (currentVersion !== APP_VERSION) {
+        showNotification(getTranslation('updatesAvailable'), 'info');
+        setTimeout(() => {
+            localStorage.setItem(VERSION_KEY, APP_VERSION);
+            window.location.reload(true);
+        }, 2000);
+    } else {
+        showNotification(getTranslation('latestVersion'), 'success');
+    }
+}
+
+function setupAutoUpdateCheck() {
+    // Check every 5 minutes for updates
+    setInterval(() => {
+        checkForGitHubUpdates();
+    }, 5 * 60 * 1000);
+}
+
+function checkForGitHubUpdates() {
+    fetch('/?v=' + Date.now())
+        .then(response => response.text())
+        .then(html => {
+            // Simple check - if version changed in localStorage
+            const currentVersion = localStorage.getItem(VERSION_KEY);
+            if (currentVersion !== APP_VERSION) {
+                showNotification(getTranslation('updatesAvailable'), 'info');
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            console.log('Update check failed:', error);
+        });
+}
 
 // LANGUAGE FUNCTIONS
 function getTranslation(key) {
@@ -157,21 +234,53 @@ function initializeFirebase() {
 
         auth.onAuthStateChanged((user) => {
             console.log("🔐 Auth state changed:", user ? user.email : "No user");
+            
+            // Smooth transitions without refresh
             if (user) {
-                showChatApp();
+                showChatAppSmooth();
                 loadChatSessions();
                 updateUserProfile(user);
             } else {
-                showAuthContainer();
+                showAuthContainerSmooth();
             }
         });
 
         loadLanguagePreference();
+        setupAutoUpdateCheck();
         
     } catch (error) {
         console.error("❌ Firebase init error:", error);
         showNotification("Failed to initialize app", "error");
     }
+}
+
+// SMOOTH TRANSITIONS
+function showChatAppSmooth() {
+    const authContainer = document.getElementById('authContainer');
+    const chatApp = document.getElementById('chatApp');
+    
+    authContainer.style.opacity = '0';
+    setTimeout(() => {
+        authContainer.style.display = 'none';
+        chatApp.style.display = 'block';
+        setTimeout(() => {
+            chatApp.style.opacity = '1';
+        }, 50);
+    }, 300);
+}
+
+function showAuthContainerSmooth() {
+    const authContainer = document.getElementById('authContainer');
+    const chatApp = document.getElementById('chatApp');
+    
+    chatApp.style.opacity = '0';
+    setTimeout(() => {
+        chatApp.style.display = 'none';
+        authContainer.style.display = 'flex';
+        setTimeout(() => {
+            authContainer.style.opacity = '1';
+        }, 50);
+    }, 300);
 }
 
 // UI FUNCTIONS
@@ -259,6 +368,46 @@ function updateUserProfile(user) {
     document.getElementById('userEmail').textContent = userEmail;
 }
 
+// FIREBASE DATABASE FUNCTIONS
+async function saveUserToDatabase(userId, name, email) {
+    try {
+        const userData = {
+            name: name,
+            email: email,
+            createdAt: Date.now(),
+            lastLogin: Date.now(),
+            chatSessions: []
+        };
+        
+        const userRef = database.ref('users/' + userId);
+        await userRef.set(userData);
+        
+        console.log("✅ User data saved to Firebase Database:", userData);
+        return true;
+        
+    } catch (error) {
+        console.error("❌ Error saving user to database:", error);
+        throw error;
+    }
+}
+
+async function updateUserInDatabase() {
+    try {
+        const user = auth.currentUser;
+        if (!user) return;
+        
+        const userRef = database.ref('users/' + user.uid);
+        await userRef.update({
+            lastLogin: Date.now()
+        });
+        
+        console.log("✅ User last login updated");
+        
+    } catch (error) {
+        console.error("❌ Error updating user in database:", error);
+    }
+}
+
 // AUTH HANDLERS
 async function handleLogin(event) {
     if (event) event.preventDefault();
@@ -281,12 +430,26 @@ async function handleLogin(event) {
     
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        
+        await updateUserInDatabase();
+        
         showNotification(getTranslation('loginSuccess'));
         document.getElementById('loginForm').reset();
+        
     } catch (error) {
         console.error("Login error:", error);
         const errorMsg = document.getElementById('loginError');
-        errorMsg.textContent = 'Login failed. Please check your credentials.';
+        
+        if (error.code === 'auth/user-not-found') {
+            errorMsg.textContent = 'No account found with this email. Please sign up.';
+        } else if (error.code === 'auth/wrong-password') {
+            errorMsg.textContent = 'Incorrect password. Please try again.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMsg.textContent = 'Invalid email address.';
+        } else {
+            errorMsg.textContent = 'Login failed. Please check your credentials.';
+        }
+        
         errorMsg.style.display = 'block';
     } finally {
         isProcessing = false;
@@ -323,7 +486,13 @@ async function handleSignup(event) {
     
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await userCredential.user.updateProfile({ displayName: name });
+        const user = userCredential.user;
+        
+        await user.updateProfile({ 
+            displayName: name 
+        });
+        
+        await saveUserToDatabase(user.uid, name, email);
         
         const successMsg = document.getElementById('signupSuccess');
         successMsg.textContent = 'Registration successful! Redirecting...';
@@ -338,7 +507,17 @@ async function handleSignup(event) {
     } catch (error) {
         console.error("Signup error:", error);
         const errorMsg = document.getElementById('signupError');
-        errorMsg.textContent = 'Registration failed. Please try again.';
+        
+        if (error.code === 'auth/email-already-in-use') {
+            errorMsg.textContent = 'This email is already registered. Please login.';
+        } else if (error.code === 'auth/weak-password') {
+            errorMsg.textContent = 'Password is too weak. Please use a stronger password.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMsg.textContent = 'Invalid email address.';
+        } else {
+            errorMsg.textContent = 'Registration failed. Please try again.';
+        }
+        
         errorMsg.style.display = 'block';
     } finally {
         isProcessing = false;
@@ -360,12 +539,11 @@ async function handleLogout() {
     }
 }
 
-// GEMINI AI - UNIVERSAL FUNCTION (Text + Images)
+// GEMINI AI FUNCTIONS
 async function getAIResponse(userMessage, imageData = null) {
     console.log("🤖 Getting AI response...", { userMessage, hasImage: !!imageData });
     
     try {
-        // If there's an image, use Gemini Pro Vision
         if (imageData) {
             const visionUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             
@@ -403,7 +581,6 @@ async function getAIResponse(userMessage, imageData = null) {
             }
         }
         
-        // Fallback to text-only Gemini Pro (for text messages or if vision fails)
         const textUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         
         const textBody = {
@@ -436,7 +613,6 @@ async function getAIResponse(userMessage, imageData = null) {
     } catch (error) {
         console.error('❌ AI Error:', error);
         
-        // User-friendly error messages
         if (currentLanguage === 'si') {
             return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.';
         } else {
@@ -509,7 +685,6 @@ async function sendMessage() {
         'මෙම පින්තූරය ගැන මට කියන්න' : 
         'Tell me about this image');
     
-    // Add user message to chat
     addMessageToChat(messageToSend, true, currentImage);
     
     input.value = '';
@@ -553,7 +728,6 @@ async function sendMessage() {
 function addMessageToChat(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
     
-    // Remove welcome screen if present
     const welcome = messagesDiv.querySelector('.welcome-screen');
     if (welcome) {
         welcome.remove();
@@ -600,7 +774,6 @@ function addMessageToChat(content, isUser, imageData = null) {
     
     messagesDiv.appendChild(messageDiv);
     
-    // Save to session
     const session = getCurrentSession();
     if (session) {
         session.messages.push({
@@ -612,7 +785,6 @@ function addMessageToChat(content, isUser, imageData = null) {
         
         session.updatedAt = Date.now();
         
-        // Update session title with first user message
         if (isUser && session.messages.filter(m => m.isUser).length === 1) {
             const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
             session.title = titleText + (titleText.length >= 30 ? '...' : '');
@@ -622,7 +794,6 @@ function addMessageToChat(content, isUser, imageData = null) {
         renderSessions();
     }
     
-    // Scroll to bottom
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
@@ -674,7 +845,6 @@ function handleImageUpload(event) {
         hideLoading();
         showNotification(getTranslation('imageUploaded'));
         
-        // Auto-focus on message input after image upload
         document.getElementById('messageInput').focus();
     };
     
@@ -694,35 +864,66 @@ function getStorageKey() {
     return `smartai-sessions-${userId}`;
 }
 
-function saveChatSessions() {
+async function saveChatSessions() {
     try {
+        const userId = auth.currentUser?.uid;
         const storageKey = getStorageKey();
+        
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+        
+        if (userId) {
+            const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
+            await userSessionsRef.set(chatSessions);
+            console.log("✅ Data saved to both localStorage and Firebase");
+        }
+        
     } catch (error) {
-        console.error('Save sessions error:', error);
+        console.error('❌ Save sessions error:', error);
     }
 }
 
-function loadChatSessions() {
+async function loadChatSessions() {
     try {
+        const userId = auth.currentUser?.uid;
         const storageKey = getStorageKey();
-        const saved = localStorage.getItem(storageKey);
         
-        if (saved) {
-            chatSessions = JSON.parse(saved);
+        let sessions = [];
+
+        if (userId) {
+            try {
+                const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
+                const snapshot = await userSessionsRef.once('value');
+                
+                if (snapshot.exists()) {
+                    sessions = snapshot.val();
+                    console.log("✅ Loaded from Firebase:", sessions);
+                }
+            } catch (firebaseError) {
+                console.log("⚠️ Firebase load failed, using localStorage:", firebaseError);
+            }
         }
-        
+
+        if (sessions.length === 0) {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                sessions = JSON.parse(saved);
+                console.log("✅ Loaded from localStorage:", sessions);
+            }
+        }
+
+        chatSessions = sessions || [];
+
         if (chatSessions.length === 0) {
             createNewChat();
         } else {
             currentSessionId = chatSessions[0].id;
             renderChatHistory();
         }
-        
+
         renderSessions();
-        
+
     } catch (error) {
-        console.error('Load sessions error:', error);
+        console.error('❌ Load sessions error:', error);
         createNewChat();
     }
 }
@@ -841,14 +1042,31 @@ function renderChatHistory() {
     });
 }
 
+// SETTINGS MENU
+function toggleSettings() {
+    const settingsMenu = document.querySelector('.settings-menu');
+    settingsMenu.classList.toggle('active');
+}
+
+function addUpdateButton() {
+    const updateBtn = document.createElement('button');
+    updateBtn.className = 'action-btn';
+    updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> ' + getTranslation('checkUpdates');
+    updateBtn.onclick = checkForAppUpdates;
+    
+    document.querySelector('.settings-menu').appendChild(updateBtn);
+}
+
 // INITIALIZE APP
 window.addEventListener('load', function() {
     console.log("🎯 Page loaded - initializing app");
+    checkForUpdates();
     initializeFirebase();
     
-    // Add event listeners
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
     document.getElementById('signupForm').addEventListener('submit', handleSignup);
+    
+    addUpdateButton();
     
     console.log("✅ All event listeners attached");
 });
@@ -874,6 +1092,18 @@ style.textContent = `
     .message-text {
         line-height: 1.5;
         word-wrap: break-word;
+    }
+    
+    /* Smooth transitions */
+    #authContainer, #chatApp {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    /* Settings menu update button */
+    .settings-menu .action-btn {
+        width: 100%;
+        margin: 5px 0;
+        text-align: left;
     }
 `;
 document.head.appendChild(style);
