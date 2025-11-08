@@ -11,7 +11,6 @@ const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
 // APP VERSION
 const APP_VERSION = '2.0.0';
-const VERSION_KEY = 'smartai-version';
 
 // STATE VARIABLES
 let auth = null;
@@ -21,6 +20,7 @@ let chatSessions = [];
 let currentSessionId = null;
 let currentImage = null;
 let currentLanguage = 'en';
+let isOnline = navigator.onLine;
 
 // AI MODEL CONFIG
 const AI_CONFIG = {
@@ -125,6 +125,120 @@ const translations = {
     }
 };
 
+// ==================== DUAL STORAGE MANAGER ====================
+
+class DualStorageManager {
+    constructor() {
+        this.localKey = 'smartai-sessions-v2';
+        this.lastSyncKey = 'smartai-last-sync';
+    }
+
+    // INSTANT LOAD - Local storage first
+    async loadSessions() {
+        console.log('📦 Loading from local storage...');
+        
+        // 1. First try local storage (INSTANT - No delay)
+        const localData = this.getFromLocalStorage();
+        if (localData && localData.sessions) {
+            console.log('✅ Loaded from local storage instantly');
+            return localData.sessions;
+        }
+        
+        // 2. If no local data, try Firebase (background process)
+        if (isOnline && auth?.currentUser) {
+            console.log('🌐 Trying Firebase load in background...');
+            this.loadFromFirebaseBackground();
+        }
+        
+        return [];
+    }
+
+    getFromLocalStorage() {
+        try {
+            const storageKey = this.getStorageKey();
+            const saved = localStorage.getItem(storageKey);
+            return saved ? JSON.parse(saved) : null;
+        } catch (error) {
+            console.error('❌ Local storage read error:', error);
+            return null;
+        }
+    }
+
+    async loadFromFirebaseBackground() {
+        try {
+            if (!auth?.currentUser || !database) return;
+            
+            const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
+            const snapshot = await userRef.once('value');
+            
+            if (snapshot.exists()) {
+                const firebaseData = snapshot.val();
+                if (firebaseData && firebaseData.sessions) {
+                    console.log('✅ Background Firebase load successful');
+                    this.saveToLocalStorage(firebaseData);
+                    
+                    // Update UI if needed
+                    if (chatSessions.length === 0) {
+                        chatSessions = firebaseData.sessions;
+                        currentSessionId = chatSessions[0]?.id || null;
+                        renderSessions();
+                        renderChatHistory();
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('⚠️ Background Firebase load failed:', error);
+        }
+    }
+
+    // FAST SAVE - Local storage immediately, Firebase in background
+    async saveSessions(sessions) {
+        const dataToSave = {
+            sessions: sessions,
+            version: APP_VERSION,
+            savedAt: Date.now(),
+            lastModified: Date.now()
+        };
+
+        // 1. Save to local storage INSTANTLY
+        this.saveToLocalStorage(dataToSave);
+        
+        // 2. Sync to Firebase in background (if online)
+        if (isOnline && auth?.currentUser) {
+            this.syncToFirebaseBackground(dataToSave);
+        }
+    }
+
+    saveToLocalStorage(data) {
+        try {
+            const storageKey = this.getStorageKey();
+            localStorage.setItem(storageKey, JSON.stringify(data));
+        } catch (error) {
+            console.error('❌ Local storage save error:', error);
+        }
+    }
+
+    async syncToFirebaseBackground(data) {
+        try {
+            if (!auth?.currentUser || !database) return;
+            
+            const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
+            await userRef.set(data);
+            console.log('✅ Background Firebase sync successful');
+        } catch (error) {
+            console.log('⚠️ Background Firebase sync failed:', error);
+        }
+    }
+
+    getStorageKey() {
+        const userId = auth?.currentUser?.uid || 'anonymous';
+        return `${this.localKey}-${userId}`;
+    }
+}
+
+// Initialize Dual Storage Manager
+const storageManager = new DualStorageManager();
+
 // ==================== SYSTEM INITIALIZATION ====================
 
 function initializeApp() {
@@ -136,11 +250,16 @@ function initializeApp() {
             return;
         }
 
-        // Initialize core systems
-        initializeFirebase();
+        // Initialize UI immediately (NO DELAY)
         initializeUI();
         initializeEventListeners();
         loadUserPreferences();
+        
+        // Initialize Firebase in background (non-blocking)
+        initializeFirebaseBackground();
+        
+        // Load sessions immediately from local storage
+        loadChatSessions();
         
         console.log('✅ Smart AI System initialized successfully');
         
@@ -150,17 +269,57 @@ function initializeApp() {
     }
 }
 
+function initializeFirebaseBackground() {
+    try {
+        if (typeof firebase === 'undefined') {
+            console.log('⚠️ Firebase SDK not available, using offline mode');
+            return;
+        }
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        auth = firebase.auth();
+        database = firebase.database();
+        
+        // Auth state handling (non-blocking)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('🔐 User authenticated:', user.email);
+                showChatApp();
+                updateUserProfile(user);
+                
+                // Background sync with Firebase
+                if (chatSessions.length > 0) {
+                    storageManager.syncToFirebaseBackground({
+                        sessions: chatSessions,
+                        version: APP_VERSION,
+                        savedAt: Date.now()
+                    });
+                } else {
+                    storageManager.loadFromFirebaseBackground();
+                }
+            } else {
+                console.log('🔐 No user authenticated');
+                showAuthContainer();
+            }
+        });
+        
+    } catch (error) {
+        console.log('⚠️ Firebase initialization failed, using offline mode:', error);
+    }
+}
+
 function checkSystemRequirements() {
     const requirements = {
         fetch: typeof fetch === 'function',
         localStorage: typeof localStorage !== 'undefined',
-        firebase: typeof firebase !== 'undefined',
         internet: navigator.onLine
     };
 
     if (!requirements.internet) {
-        showNotification(getTranslation('noInternet'), 'error');
-        return false;
+        showNotification(getTranslation('noInternet'), 'info');
     }
 
     if (!requirements.fetch) {
@@ -194,7 +353,6 @@ class AICoreEngine {
             const response = await this.makeAPIRequest(requestPayload);
             const aiResponse = this.processAIResponse(response);
             
-            // Update conversation history
             this.updateConversationHistory(userMessage, aiResponse);
             
             console.log('✅ AI Engine: Response generated successfully');
@@ -237,7 +395,6 @@ class AICoreEngine {
             ]
         };
 
-        // Add conversation context if available
         if (conversationContext.length > 0) {
             conversationContext.forEach(msg => {
                 payload.contents.push({
@@ -247,12 +404,10 @@ class AICoreEngine {
             });
         }
 
-        // Add current message
         const currentContent = {
             parts: [{ text: userMessage }]
         };
 
-        // Add image data if present
         if (imageData) {
             currentContent.parts.push({
                 inline_data: {
@@ -293,7 +448,6 @@ class AICoreEngine {
 
         const candidate = apiResponse.candidates[0];
         
-        // Check for safety blocks
         if (candidate.finishReason === 'SAFETY') {
             throw new Error('Response blocked due to safety concerns');
         }
@@ -311,7 +465,6 @@ class AICoreEngine {
             { content: aiResponse, isUser: false }
         );
 
-        // Keep only recent history
         if (this.conversationHistory.length > this.maxHistoryLength * 2) {
             this.conversationHistory = this.conversationHistory.slice(-this.maxHistoryLength * 2);
         }
@@ -361,10 +514,9 @@ async function getAIResponse(userMessage, imageData = null) {
     console.log('🤖 Smart AI: Processing request...');
     
     try {
-        // Get conversation context from current session
         const currentSession = getCurrentSession();
         const conversationContext = currentSession ? 
-            currentSession.messages.slice(-4) : []; // Last 2 exchanges
+            currentSession.messages.slice(-4) : [];
         
         showNotification(getTranslation('thinking'), 'info');
         
@@ -383,7 +535,7 @@ async function getAIResponse(userMessage, imageData = null) {
     }
 }
 
-// ==================== ENHANCED CHAT FUNCTIONS ====================
+// ==================== CHAT FUNCTIONS ====================
 
 function createNewChat() {
     const sessionId = 'session_' + Date.now();
@@ -404,7 +556,6 @@ function createNewChat() {
     chatSessions.unshift(newSession);
     currentSessionId = sessionId;
     
-    // Clear AI conversation history for new chat
     aiEngine.clearHistory();
     
     saveChatSessions();
@@ -429,13 +580,10 @@ async function sendMessage() {
         return;
     }
     
-    // Add user message to chat
     addMessageToChat(message, true, currentImage);
     
-    // Clear input
     if (input) input.value = '';
     
-    // Show typing indicator
     const sendBtn = document.getElementById('sendButton');
     const typing = document.getElementById('typingIndicator');
     
@@ -453,10 +601,7 @@ async function sendMessage() {
             currentImage
         );
         
-        // Hide typing indicator
         if (typing) typing.style.display = 'none';
-        
-        // Add AI response to chat
         addMessageToChat(response, false);
         
         if (currentImage) {
@@ -466,8 +611,6 @@ async function sendMessage() {
     } catch (error) {
         console.error('❌ Chat Error:', error);
         if (typing) typing.style.display = 'none';
-        
-        // Add error message to chat
         addMessageToChat(error.message, false);
         
     } finally {
@@ -483,7 +626,6 @@ function addMessageToChat(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
     
-    // Remove welcome screen if present
     const welcome = messagesDiv.querySelector('.welcome-screen');
     if (welcome) {
         welcome.remove();
@@ -536,7 +678,6 @@ function addMessageToChat(content, isUser, imageData = null) {
     
     messagesDiv.appendChild(messageDiv);
     
-    // Save to session
     const session = getCurrentSession();
     if (session) {
         session.messages.push({
@@ -547,12 +688,9 @@ function addMessageToChat(content, isUser, imageData = null) {
         });
         
         session.updatedAt = Date.now();
-        
-        // Update session metadata
         session.metadata.messageCount = session.messages.length;
         session.metadata.hasImages = session.metadata.hasImages || !!imageData;
         
-        // Update session title with first user message
         if (isUser && session.messages.filter(m => m.isUser).length === 1) {
             const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
             session.title = titleText + (titleText.length >= 30 ? '...' : '');
@@ -562,7 +700,6 @@ function addMessageToChat(content, isUser, imageData = null) {
         renderSessions();
     }
     
-    // Smooth scroll to bottom
     messagesDiv.scrollTo({
         top: messagesDiv.scrollHeight,
         behavior: 'smooth'
@@ -572,17 +709,10 @@ function addMessageToChat(content, isUser, imageData = null) {
 function formatMessageContent(content) {
     if (!content) return '';
     
-    // Convert URLs to clickable links
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     content = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
-    
-    // Format code blocks
     content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-    
-    // Format inline code
     content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
-    
-    // Convert line breaks
     content = content.replace(/\n/g, '<br>');
     
     return content;
@@ -592,14 +722,10 @@ async function regenerateLastResponse() {
     const session = getCurrentSession();
     if (!session || session.messages.length < 2) return;
     
-    // Get last user message
     const lastUserMessage = session.messages.filter(msg => msg.isUser).pop();
     if (!lastUserMessage) return;
     
-    // Remove last AI response
     session.messages = session.messages.slice(0, -1);
-    
-    // Regenerate response
     await sendMessage();
 }
 
@@ -725,6 +851,26 @@ function clearMessages() {
         messagesDiv.innerHTML = '';
     }
     showWelcomeScreen();
+}
+
+// ==================== STORAGE FUNCTIONS ====================
+
+async function saveChatSessions() {
+    await storageManager.saveSessions(chatSessions);
+}
+
+async function loadChatSessions() {
+    const sessions = await storageManager.loadSessions();
+    chatSessions = sessions;
+    
+    if (chatSessions.length === 0) {
+        createNewChat();
+    } else {
+        currentSessionId = chatSessions[0].id;
+        renderChatHistory();
+    }
+    
+    renderSessions();
 }
 
 // ==================== IMAGE HANDLING ====================
@@ -886,13 +1032,23 @@ function setupRealTimeFeatures() {
         }
     }, 30000);
     
-    // Check for connectivity
+    // Network status monitoring
     window.addEventListener('online', () => {
+        isOnline = true;
         showNotification('Connection restored', 'success');
+        // Background sync when coming online
+        if (chatSessions.length > 0) {
+            storageManager.syncToFirebaseBackground({
+                sessions: chatSessions,
+                version: APP_VERSION,
+                savedAt: Date.now()
+            });
+        }
     });
     
     window.addEventListener('offline', () => {
-        showNotification('No internet connection', 'error');
+        isOnline = false;
+        showNotification('No internet connection', 'info');
     });
 }
 
@@ -912,7 +1068,6 @@ function updateLanguage() {
         }
     });
     
-    // Update placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
         if (translations[currentLanguage][key]) {
@@ -920,7 +1075,6 @@ function updateLanguage() {
         }
     });
     
-    // Update titles
     document.querySelectorAll('[data-i18n-title]').forEach(element => {
         const key = element.getAttribute('data-i18n-title');
         if (translations[currentLanguage][key]) {
@@ -998,156 +1152,14 @@ function handleKeyPress(event) {
     }
 }
 
-// ==================== FIREBASE FUNCTIONS ====================
-
-function initializeFirebase() {
-    try {
-        if (typeof firebase === 'undefined') {
-            throw new Error('Firebase SDK not loaded');
-        }
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
-        auth = firebase.auth();
-        database = firebase.database();
-        
-        // Enhanced auth state handling
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                console.log('🔐 User authenticated:', user.email);
-                showChatApp();
-                loadChatSessions();
-                updateUserProfile(user);
-                trackUserActivity('login');
-            } else {
-                console.log('🔐 No user authenticated');
-                showAuthContainer();
-                trackUserActivity('logout');
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ Firebase initialization failed:', error);
-        // Continue without Firebase for offline functionality
-        showAuthContainer();
-    }
-}
-
-function trackUserActivity(action) {
-    if (!auth?.currentUser || !database) return;
-    
-    try {
-        const userRef = database.ref('userActivities/' + auth.currentUser.uid);
-        userRef.push({
-            action: action,
-            timestamp: Date.now(),
-            userAgent: navigator.userAgent,
-            language: currentLanguage
-        });
-    } catch (error) {
-        console.log('Activity tracking failed:', error);
-    }
-}
-
-// ==================== STORAGE MANAGEMENT ====================
-
-function getStorageKey() {
-    const userId = auth?.currentUser?.uid || 'anonymous';
-    return `smartai-sessions-${userId}-v2`;
-}
-
-async function saveChatSessions() {
-    try {
-        const storageKey = getStorageKey();
-        const dataToSave = {
-            sessions: chatSessions,
-            version: APP_VERSION,
-            savedAt: Date.now()
-        };
-        
-        // Save to localStorage
-        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-        
-        // Sync to Firebase if available
-        if (auth?.currentUser && database) {
-            const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
-            await userRef.set(dataToSave);
-        }
-        
-    } catch (error) {
-        console.error('❌ Save sessions error:', error);
-    }
-}
-
-async function loadChatSessions() {
-    try {
-        const storageKey = getStorageKey();
-        let sessionsData = null;
-        
-        // Try to load from Firebase first
-        if (auth?.currentUser && database) {
-            try {
-                const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
-                const snapshot = await userRef.once('value');
-                if (snapshot.exists()) {
-                    sessionsData = snapshot.val();
-                }
-            } catch (firebaseError) {
-                console.log('Firebase load failed, trying localStorage...');
-            }
-        }
-        
-        // Fallback to localStorage
-        if (!sessionsData) {
-            const saved = localStorage.getItem(storageKey);
-            if (saved) {
-                sessionsData = JSON.parse(saved);
-            }
-        }
-        
-        if (sessionsData?.sessions) {
-            chatSessions = sessionsData.sessions;
-            
-            // Migrate old session format if needed
-            chatSessions = chatSessions.map(session => {
-                if (!session.metadata) {
-                    session.metadata = {
-                        messageCount: session.messages?.length || 0,
-                        hasImages: session.messages?.some(m => m.imageData) || false,
-                        language: currentLanguage
-                    };
-                }
-                return session;
-            });
-        }
-        
-        if (chatSessions.length === 0) {
-            createNewChat();
-        } else {
-            currentSessionId = chatSessions[0].id;
-            renderChatHistory();
-        }
-        
-        renderSessions();
-        
-    } catch (error) {
-        console.error('❌ Load sessions error:', error);
-        createNewChat();
-    }
-}
-
 // ==================== UTILITY FUNCTIONS ====================
 
 function loadUserPreferences() {
-    // Load language preference
     const savedLang = localStorage.getItem('smartai-language');
     if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
         currentLanguage = savedLang;
     }
     
-    // Load theme preference
     const savedTheme = localStorage.getItem('smartai-theme');
     if (savedTheme) {
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -1157,7 +1169,6 @@ function loadUserPreferences() {
 }
 
 function initializeEventListeners() {
-    // Message input handling
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
         messageInput.addEventListener('input', function() {
@@ -1166,19 +1177,16 @@ function initializeEventListeners() {
         });
     }
     
-    // Image upload handling
     const imageInput = document.getElementById('imageInput');
     if (imageInput) {
         imageInput.addEventListener('change', handleImageUpload);
     }
     
-    // Language toggle
     const languageBtn = document.querySelector('.language-btn');
     if (languageBtn) {
         languageBtn.addEventListener('click', toggleLanguage);
     }
     
-    // Auth form submissions
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
     
@@ -1203,11 +1211,10 @@ function formatDate(timestamp) {
 }
 
 function checkForUpdates() {
-    const savedVersion = localStorage.getItem(VERSION_KEY);
+    const savedVersion = localStorage.getItem('smartai-version');
     if (savedVersion !== APP_VERSION) {
-        console.log('🔄 New version detected, clearing old data...');
-        // Clear old data and migrate if needed
-        localStorage.setItem(VERSION_KEY, APP_VERSION);
+        console.log('🔄 New version detected');
+        localStorage.setItem('smartai-version', APP_VERSION);
     }
 }
 
