@@ -710,7 +710,7 @@ function clearMessages() {
 }
 
 async function sendMessage() {
-    if (isProcessing) return;
+    if (isProcessing || isImageLoading) return;
     
     const input = document.getElementById('messageInput');
     const message = input ? input.value.trim() : '';
@@ -724,7 +724,6 @@ async function sendMessage() {
         'මෙම පින්තූරය ගැන මට කියන්න' : 
         'Tell me about this image');
     
-    // Add user message to UI and session FIRST
     const session = getCurrentSession();
     if (!session) {
         createNewChat();
@@ -757,8 +756,12 @@ async function sendMessage() {
     const sendBtn = document.getElementById('sendButton');
     const typing = document.getElementById('typingIndicator');
     
+    // Set processing state
     isProcessing = true;
-    if (sendBtn) sendBtn.disabled = true;
+    if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.classList.add('processing');
+    }
     if (typing) typing.style.display = 'flex';
     
     const imageToSend = currentImage;
@@ -768,17 +771,14 @@ async function sendMessage() {
     try {
         console.log("🔄 Getting AI response with history...");
         
-        // Get last 10 messages for context
-        const historyForAI = session.messages.slice(-11, -1); // Exclude current message
+        const historyForAI = session.messages.slice(-11, -1);
         
         const response = await getAIResponse(messageToSend, imageToSend, historyForAI);
         
         if (typing) typing.style.display = 'none';
         
-        // Add AI response to UI
         displayMessage(response, false);
         
-        // Add AI response to session
         session.messages.push({
             content: response,
             isUser: false,
@@ -812,7 +812,10 @@ async function sendMessage() {
         saveChatSessions();
     } finally {
         isProcessing = false;
-        if (sendBtn) sendBtn.disabled = false;
+        if (sendBtn) {
+            sendBtn.classList.remove('processing');
+        }
+        updateSendButtonState();
         if (input) input.focus();
     }
 }
@@ -821,61 +824,46 @@ async function sendMessage() {
 function formatAIResponse(text) {
     if (!text) return '';
     
-    // Escape HTML first
     text = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     
-    // Code blocks (```code```)
     text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
         return `<pre><code class="code-block">${code.trim()}</code></pre>`;
     });
     
-    // Inline code (`code`)
     text = text.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
     
-    // Bold (**text** or __text__)
     text = text.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/__([^_]+)__/g, '<strong>$1</strong>');
     
-    // Italic (*text* or _text_)
     text = text.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
     text = text.replace(/_([^_]+)_/g, '<em>$1</em>');
     
-    // Strikethrough (~~text~~)
     text = text.replace(/~~([^~]+)~~/g, '<del>$1</del>');
     
-    // Headers
     text = text.replace(/^### (.*$)/gm, '<h3 class="md-h3">$1</h3>');
     text = text.replace(/^## (.*$)/gm, '<h2 class="md-h2">$1</h2>');
     text = text.replace(/^# (.*$)/gm, '<h1 class="md-h1">$1</h1>');
     
-    // Unordered lists
     text = text.replace(/^\* (.*$)/gm, '<li class="md-li">$1</li>');
     text = text.replace(/^- (.*$)/gm, '<li class="md-li">$1</li>');
     
-    // Ordered lists
     text = text.replace(/^\d+\. (.*$)/gm, '<li class="md-li-ordered">$1</li>');
     
-    // Wrap consecutive <li> in <ul> or <ol>
     text = text.replace(/(<li class="md-li">.*<\/li>\n?)+/g, '<ul class="md-ul">$&</ul>');
     text = text.replace(/(<li class="md-li-ordered">.*<\/li>\n?)+/g, '<ol class="md-ol">$&</ol>');
     
-    // Links [text](url)
     text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" class="md-link">$1</a>');
     
-    // Blockquotes
     text = text.replace(/^&gt; (.*$)/gm, '<blockquote class="md-blockquote">$1</blockquote>');
     
-    // Horizontal rules
     text = text.replace(/^---$/gm, '<hr class="md-hr">');
     text = text.replace(/^\*\*\*$/gm, '<hr class="md-hr">');
     
-    // Line breaks
     text = text.replace(/\n/g, '<br>');
     
     return text;
 }
 
-// DISPLAY MESSAGE WITH MARKDOWN SUPPORT
 function displayMessage(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
@@ -906,7 +894,6 @@ function displayMessage(content, isUser, imageData = null) {
         `;
     }
     
-    // Format AI responses with markdown, keep user messages simple
     const formattedContent = isUser ? content.replace(/\n/g, '<br>') : formatAIResponse(content);
     
     messageDiv.innerHTML = `
@@ -934,7 +921,9 @@ function displayMessage(content, isUser, imageData = null) {
 function handleKeyPress(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
-        sendMessage();
+        if (!isProcessing && !isImageLoading) {
+            sendMessage();
+        }
     }
 }
 
@@ -964,7 +953,6 @@ function copyMessage(button) {
 // ADD MARKDOWN STYLES
 const markdownStyle = document.createElement('style');
 markdownStyle.textContent = `
-    /* Markdown Formatting Styles */
     .message-text strong {
         font-weight: 600;
         color: #1a1a1a;
@@ -1087,7 +1075,9 @@ markdownStyle.textContent = `
 `;
 document.head.appendChild(markdownStyle);
 
-// IMAGE UPLOAD
+// IMAGE UPLOAD WITH LOADING STATE
+let isImageLoading = false;
+
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1097,9 +1087,14 @@ function handleImageUpload(event) {
         return;
     }
     
+    // Disable send button while loading
+    isImageLoading = true;
+    updateSendButtonState();
+    
     showLoading(getTranslation('processingImage'));
     
     const reader = new FileReader();
+    
     reader.onload = function(e) {
         currentImage = e.target.result;
         
@@ -1109,18 +1104,42 @@ function handleImageUpload(event) {
         if (preview && previewImage) {
             previewImage.src = currentImage;
             preview.style.display = 'block';
+            
+            // Add loading overlay on preview
+            preview.classList.add('loading');
+            
+            // Wait for image to actually load
+            const img = new Image();
+            img.onload = function() {
+                isImageLoading = false;
+                preview.classList.remove('loading');
+                hideLoading();
+                updateSendButtonState();
+                showNotification(getTranslation('imageUploaded'));
+                
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput) messageInput.focus();
+            };
+            
+            img.onerror = function() {
+                isImageLoading = false;
+                currentImage = null;
+                preview.style.display = 'none';
+                preview.classList.remove('loading');
+                hideLoading();
+                updateSendButtonState();
+                showNotification('Failed to load image', 'error');
+            };
+            
+            img.src = currentImage;
         }
-        
-        hideLoading();
-        showNotification(getTranslation('imageUploaded'));
-        
-        const messageInput = document.getElementById('messageInput');
-        if (messageInput) messageInput.focus();
     };
     
     reader.onerror = function() {
+        isImageLoading = false;
+        updateSendButtonState();
         hideLoading();
-        showNotification('Failed to load image', 'error');
+        showNotification('Failed to read image file', 'error');
     };
     
     reader.readAsDataURL(file);
@@ -1129,12 +1148,124 @@ function handleImageUpload(event) {
 
 function removeImage() {
     currentImage = null;
+    isImageLoading = false;
+    
     const preview = document.getElementById('imagePreview');
     const previewImage = document.getElementById('previewImage');
     
-    if (preview) preview.style.display = 'none';
+    if (preview) {
+        preview.style.display = 'none';
+        preview.classList.remove('loading');
+    }
     if (previewImage) previewImage.src = '';
+    
+    updateSendButtonState();
 }
+
+// Update send button state based on conditions
+function updateSendButtonState() {
+    const sendBtn = document.getElementById('sendButton');
+    const input = document.getElementById('messageInput');
+    
+    if (!sendBtn) return;
+    
+    const hasMessage = input && input.value.trim().length > 0;
+    const hasImage = currentImage !== null;
+    
+    // Disable if: processing OR image is loading OR (no message AND no image)
+    const shouldDisable = isProcessing || isImageLoading || (!hasMessage && !hasImage);
+    
+    sendBtn.disabled = shouldDisable;
+    
+    // Visual feedback
+    if (isImageLoading) {
+        sendBtn.style.opacity = '0.5';
+        sendBtn.style.cursor = 'not-allowed';
+    } else if (shouldDisable) {
+        sendBtn.style.opacity = '0.5';
+        sendBtn.style.cursor = 'not-allowed';
+    } else {
+        sendBtn.style.opacity = '1';
+        sendBtn.style.cursor = 'pointer';
+    }
+}
+
+// Call this function when input changes
+function handleInputChange() {
+    updateSendButtonState();
+}
+
+// Add image loading styles
+const imageLoadingStyle = document.createElement('style');
+imageLoadingStyle.textContent = `
+    #imagePreview {
+        position: relative;
+    }
+    
+    #imagePreview.loading::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        z-index: 1;
+    }
+    
+    #imagePreview.loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        z-index: 2;
+    }
+    
+    @keyframes spin {
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    /* Send button loading state */
+    #sendButton:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    #sendButton.processing {
+        position: relative;
+    }
+    
+    #sendButton.processing i {
+        opacity: 0;
+    }
+    
+    #sendButton.processing::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+`;
+document.head.appendChild(imageLoadingStyle);
 
 // SESSION MANAGEMENT
 function getStorageKey() {
