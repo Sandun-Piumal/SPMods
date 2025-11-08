@@ -2,7 +2,7 @@
   "name": "Smart AI - Intelligent Chat Assistant",
   "short_name": "Smart AI",
   "description": "Your intelligent AI chat assistant with advanced capabilities for Sinhala and English conversations",
-  "start_url": "/Test/ai.html",
+  "start_url": "https://www.spmods.download/Test/ai.html",
   "display": "standalone",
   "background_color": "#DE000000",
   "theme_color": "#DE000000",
