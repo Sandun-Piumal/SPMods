@@ -2,7 +2,7 @@
   "name": "Smart AI Assistant",
   "short_name": "Smart AI",
   "description": "Your Intelligent AI Assistant by SPMods",
-  "start_url": "https://www.spmods.download/smart/ai.html",
+  "start_url": "https://www.spmods.download/Test/index.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#667eea",
