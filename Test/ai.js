@@ -2,11 +2,7 @@
 // SMART AI CHAT APP - JS PART 1/4
 // Firebase Config & Core Variables
 // ============================================
-window.addEventListener('load', function() {
-            setTimeout(function() {
-                document.getElementById('splash-wrapper').classList.add('hidden');
-            }, 3000);
-        });
+
 // FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
