@@ -3,7 +3,6 @@
   "short_name": "Smart AI",
   "description": "Your Intelligent Assistant powered by advanced AI technology",
   "start_url": "https://www.spmods.download/Test/index.html",
-  "scope": "./",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
