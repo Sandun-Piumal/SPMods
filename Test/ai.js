@@ -1,1024 +1,1010 @@
-// Firebase configuration
+// FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
     authDomain: "smart-ai-chat-app.firebaseapp.com",
     projectId: "smart-ai-chat-app",
-    storageBucket: "smart-ai-chat-app.firebasestorage.app",
-    messagingSenderId: "195723763663",
-    appId: "1:195723763663:web:0892e6392eb77c15813cba",
-    measurementId: "G-SWRB896B6Y"
+    databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+// GEMINI API KEY
+const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
-// Language content
-const languageContent = {
-    sinhala: {
-        authTitle: "Smart AI",
-        authSubtitle: "Powered by Gemini AI",
-        emailLabel: "Email",
-        passwordLabel: "Password",
-        nameLabel: "Name",
-        confirmPasswordLabel: "Confirm Password",
-        loginButton: "Login",
-        signupButton: "Sign Up",
-        noAccount: "Don't have an account?",
-        haveAccount: "Already have an account?",
-        showSignup: "Sign Up",
-        showLogin: "Login",
-        forgotPassword: "Forgot Password?",
-        resetPasswordButton: "Reset Password",
-        backToLogin: "Back to Login",
-        rememberPassword: "Remember your password?",
-        logoTitle: "Smart AI",
-        headerSubtitle: "Powered by Gemini AI",
-        username: "User",
-        userStatus: "Online",
-        logoutText: "Logout",
-        welcomeTitle: "නව Model සාර්ථකව යාවත්කාලීන කරන ලදී! ✨",
-        welcomeText: "Gemini AI Model සමඟ වැඩ කිරීමට සූදානම්!<br>ඔබගේ ප්‍රශ්නය පහතින් ටයිප් කර Enter කරන්න. 🚀",
-        typingText: "Smart AI is preparing response",
-        inputPlaceholder: "Type your question here...",
-        themeLabelDark: "Dark",
-        themeLabelLight: "Light",
-        clearChatText: "Clear Chat",
-        exportChatText: "Export Chat",
-        suggestionsText: "Suggestions",
-        copyright: "Copyright © 2025 SPMods. All Rights Reserved.",
-        designCredit: "Developed: Sandun Piumal",
-        userLabel: "You",
-        aiLabel: "Smart AI",
-        historyTitle: "Chat History",
-        historyToggleText: "History",
-        currentSessionTitle: "Current Session",
-        newChatText: "New Chat",
-        importChatText: "Import",
-        systemPrompt: `ඔබ Smart AI නම් උපකාරක AI වේ. සියලුම ප්‍රශ්නවලට සිංහල භාෂාවෙන් පිළිතුරු දෙන්න. 
-        පිළිතුරු සවිස්තරාත්මක, උපයෝගී සහ මිත්‍රශීලී විය යුතුය. 
-        කේතය, තාක්ෂණය, විද්‍යාව, ඉතිහාසය සහ සාමාන්‍ය දැනුම පිළිබඳ ප්‍රශ්න සඳහා විස්තරාත්මක පිළිතුරු දෙන්න.`
-    },
-    english: {
-        authTitle: "Smart AI",
-        authSubtitle: "Powered by Gemini AI",
-        emailLabel: "Email",
-        passwordLabel: "Password",
-        nameLabel: "Name",
-        confirmPasswordLabel: "Confirm Password",
-        loginButton: "Login",
-        signupButton: "Sign Up",
-        noAccount: "Don't have an account?",
-        haveAccount: "Already have an account?",
-        showSignup: "Sign Up",
-        showLogin: "Login",
-        forgotPassword: "Forgot Password?",
-        resetPasswordButton: "Reset Password",
-        backToLogin: "Back to Login",
-        rememberPassword: "Remember your password?",
-        logoTitle: "Smart AI",
-        headerSubtitle: "Powered by Gemini AI",
-        username: "User",
-        userStatus: "Online",
-        logoutText: "Logout",
-        welcomeTitle: "New Model Successfully Updated! ✨",
-        welcomeText: "Ready to work with Gemini AI Model!<br>Type your question below and press Enter 🚀",
-        typingText: "Smart AI is preparing response",
-        inputPlaceholder: "Type your question here...",
-        themeLabelDark: "Dark",
-        themeLabelLight: "Light",
-        clearChatText: "Clear Chat",
-        exportChatText: "Export Chat",
-        suggestionsText: "Suggestions",
-        copyright: "Copyright © 2025 SPMods. All Rights Reserved.",
-        designCredit: "Developed: Sandun Piumal",
-        userLabel: "You",
-        aiLabel: "Smart AI",
-        historyTitle: "Chat History",
-        historyToggleText: "History",
-        currentSessionTitle: "Current Session",
-        newChatText: "New Chat",
-        importChatText: "Import",
-        systemPrompt: `You are Smart AI, a helpful AI assistant. Respond to all questions in English.
-        Responses should be detailed, helpful and friendly.
-        Provide detailed answers for questions about code, technology, science, history and general knowledge.`
-    }
-};
+// APP VERSION
+const APP_VERSION = '2.0.0';
+const VERSION_KEY = 'smartai-version';
 
-// Current state
-let currentLanguage = 'english';
-let currentTheme = 'dark';
-let chatHistory = [];
+// STATE VARIABLES
+let auth = null;
+let database = null;
+let isProcessing = false;
 let chatSessions = [];
 let currentSessionId = null;
+let currentImage = null;
+let currentLanguage = 'en';
 
-// Gemini API Key
-const GOOGLE_AI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
+// AI MODEL CONFIG
+const AI_CONFIG = {
+    model: 'gemini-2.5-flash',
+    temperature: 0.7,
+    maxTokens: 2048,
+    topP: 0.8,
+    topK: 40
+};
 
-// DOM Elements
-const authContainer = document.getElementById('authContainer');
-const chatApp = document.getElementById('chatApp');
-const loginForm = document.getElementById('loginForm');
-const signupForm = document.getElementById('signupForm');
-const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-const showSignup = document.getElementById('showSignup');
-const showLogin = document.getElementById('showLogin');
-const forgotPassword = document.getElementById('forgotPassword');
-const backToLogin = document.getElementById('backToLogin');
-const loginError = document.getElementById('loginError');
-const signupError = document.getElementById('signupError');
-const signupSuccess = document.getElementById('signupSuccess');
-const forgotError = document.getElementById('forgotError');
-const forgotSuccess = document.getElementById('forgotSuccess');
-const logoutBtn = document.getElementById('logoutBtn');
-const chatMessages = document.getElementById('chatMessages');
-const messageInput = document.getElementById('messageInput');
-const sendButton = document.getElementById('sendButton');
-const typingIndicator = document.getElementById('typingIndicator');
-const themeToggle = document.getElementById('themeToggle');
-const themeLabel = document.getElementById('themeLabel');
-const sinhalaBtn = document.getElementById('sinhalaBtn');
-const englishBtn = document.getElementById('englishBtn');
-const clearChatBtn = document.getElementById('clearChatBtn');
-const exportChatBtn = document.getElementById('exportChatBtn');
-const suggestionsBtn = document.getElementById('suggestionsBtn');
-const notification = document.getElementById('notification');
-const notificationText = document.getElementById('notificationText');
-
-// New Chat History Elements
-const chatSidebar = document.getElementById('chatSidebar');
-const historyToggle = document.getElementById('historyToggle');
-const sidebarClose = document.getElementById('sidebarClose');
-const chatSessionsContainer = document.getElementById('chatSessions');
-const historySearch = document.getElementById('historySearch');
-const newChatBtn = document.getElementById('newChatBtn');
-const importChatBtn = document.getElementById('importChatBtn');
-const saveSessionBtn = document.getElementById('saveSessionBtn');
-const renameSessionBtn = document.getElementById('renameSessionBtn');
-const currentSessionTitle = document.getElementById('currentSessionTitle');
-const sessionDate = document.getElementById('sessionDate');
-
-// User-specific data handling functions
-function getUserId() {
-    const user = auth.currentUser;
-    if (!user) return 'anonymous';
-    return user.uid;
-}
-
-function getStorageKey() {
-    return `neura-user-${getUserId()}-sessions`;
-}
-
-function generateSessionId() {
-    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-function createNewSession() {
-    const sessionId = generateSessionId();
-    const session = {
-        id: sessionId,
-        title: currentLanguage === 'sinhala' ? 'නව සංවාදය' : 'New Chat',
-        messages: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        userId: getUserId()
-    };
-    
-    chatSessions.unshift(session);
-    currentSessionId = sessionId;
-    chatHistory = [];
-    
-    saveChatSessions();
-    renderChatSessions();
-    clearChatMessages();
-    updateSessionDisplay();
-    
-    showNotification(
-        currentLanguage === 'sinhala' ? 'නව සංවාදය ආරම්භ කරන ලදී' : 'New chat started',
-        'success'
-    );
-}
-
-function loadChatSessions() {
-    const storageKey = getStorageKey();
-    const savedSessions = localStorage.getItem(storageKey);
-    
-    if (savedSessions) {
-        chatSessions = JSON.parse(savedSessions);
-    } else {
-        chatSessions = [];
+// TRANSLATIONS
+const translations = {
+    en: {
+        appTitle: "Smart AI",
+        appSubtitle: "Powered by Gemini AI",
+        email: "Email",
+        password: "Password",
+        name: "Name",
+        login: "Login",
+        signUp: "Sign Up",
+        noAccount: "Don't have an account?",
+        haveAccount: "Already have an account?",
+        enterEmail: "Enter your email",
+        enterPassword: "Enter your password",
+        enterName: "Enter your name",
+        createPassword: "Create a password (min 6 characters)",
+        createAccount: "Create Your Account",
+        newChat: "New chat",
+        welcomeTitle: "Hello! I'm Smart AI Assistant",
+        welcomeSubtitle: "I can help you with questions, analysis, creativity, and more!",
+        messagePlaceholder: "Ask me anything...",
+        uploadImage: "Upload Image",
+        moreOptions: "More options",
+        deepThink: "DeepThink",
+        search: "Search",
+        logout: "Logout",
+        processing: "Processing...",
+        imageUploaded: "Image uploaded!",
+        textExtracted: "Text extracted!",
+        chatCleared: "Chat cleared!",
+        loginSuccess: "Login successful!",
+        logoutSuccess: "Logged out successfully!",
+        chatDeleted: "Chat deleted!",
+        deleteConfirm: "Delete this chat?",
+        extractingText: "Extracting text...",
+        processingImage: "Processing image...",
+        analyzingImage: "Analyzing image content...",
+        imageAnalyzed: "Image analyzed!",
+        checkUpdates: "Check for Updates",
+        updatesAvailable: "New version available!",
+        latestVersion: "You have the latest version!",
+        thinking: "Thinking...",
+        generating: "Generating response...",
+        errorOccurred: "An error occurred",
+        tryAgain: "Please try again",
+        noInternet: "No internet connection"
+    },
+    si: {
+        appTitle: "Smart AI",
+        appSubtitle: "Gemini AI මගින් බලගන්වා ඇත",
+        email: "විද්‍යුත් ලිපිනය",
+        password: "මුරපදය",
+        name: "නම",
+        login: "ඇතුල් වන්න",
+        signUp: "ලියාපදිංචි වන්න",
+        noAccount: "ගිණුමක් නැද්ද?",
+        haveAccount: "දැනටමත් ගිණුමක් තිබේද?",
+        enterEmail: "ඔබගේ විද්‍යුත් ලිපිනය ඇතුළත් කරන්න",
+        enterPassword: "ඔබගේ මුරපදය ඇතුළත් කරන්න",
+        enterName: "ඔබගේ නම ඇතුළත් කරන්න",
+        createPassword: "මුරපදයක් සාදන්න (අවම අක්ෂර 6ක්)",
+        createAccount: "ඔබගේ ගිණුම සාදන්න",
+        newChat: "නව සංවාදය",
+        welcomeTitle: "ආයුබෝවන්! මම Smart AI සහායකයා",
+        welcomeSubtitle: "මට ප්‍රශ්න, විශ්ලේෂණ, නිර්මාණශීලිත්වය සහ තවත් බොහෝ දේ වලින් ඔබට උදව් කළ හැක!",
+        messagePlaceholder: "මගෙන් ඕනෑම දෙයක් අහන්න...",
+        uploadImage: "පින්තූරය උඩුගත කරන්න",
+        moreOptions: "තවත් විකල්ප",
+        deepThink: "ගැඹුරු චින්තනය",
+        search: "සොයන්න",
+        logout: "ඉවත් වන්න",
+        processing: "සැකසෙමින්...",
+        imageUploaded: "පින්තූරය උඩුගත විය!",
+        textExtracted: "පෙළ උපුටා ගන්නා ලදී!",
+        chatCleared: "සංවාදය මකා දමන ලදී!",
+        loginSuccess: "පිවිසුම සාර්ථකයි!",
+        logoutSuccess: "සාර්ථකව ඉවත් විය!",
+        chatDeleted: "සංවාදය මකා දමන ලදී!",
+        deleteConfirm: "මෙම සංවාදය මකන්න ද?",
+        extractingText: "පෙළ උපුටා ගනිමින්...",
+        processingImage: "පින්තූරය සකසමින්...",
+        analyzingImage: "පින්තූරය විශ්ලේෂණය කරමින්...",
+        imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!",
+        checkUpdates: "යාවත්කාලීන පරීක්ෂා කරන්න",
+        updatesAvailable: "නව අනුවාදයක් තිබේ!",
+        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!",
+        thinking: "චින්තනය කරමින්...",
+        generating: "ප්‍රතිචාරය ජනනය කරමින්...",
+        errorOccurred: "දෝෂයක් ඇතිවිය",
+        tryAgain: "කරුණාකර නැවත උත්සාහ කරන්න",
+        noInternet: "අන්තර්ජාල සම්බන්ධතාවයක් නැත"
     }
-    
-    if (chatSessions.length === 0) {
-        createNewSession();
-    } else {
-        currentSessionId = chatSessions[0].id;
-        chatHistory = chatSessions[0].messages || [];
-        renderChatHistory();
-    }
-    
-    renderChatSessions();
-    updateSessionDisplay();
-}
+};
 
-function saveChatSessions() {
-    const storageKey = getStorageKey();
-    localStorage.setItem(storageKey, JSON.stringify(chatSessions));
-}
+// ==================== SYSTEM INITIALIZATION ====================
 
-function renderChatSessions() {
-    chatSessionsContainer.innerHTML = '';
-    
-    const searchTerm = historySearch.value.toLowerCase();
-    const filteredSessions = chatSessions.filter(session => 
-        session.title.toLowerCase().includes(searchTerm) ||
-        session.messages.some(msg => msg.content.toLowerCase().includes(searchTerm))
-    );
-    
-    filteredSessions.forEach(session => {
-        const sessionElement = document.createElement('div');
-        sessionElement.className = 'chat-session';
-        if (session.id === currentSessionId) {
-            sessionElement.classList.add('active');
-        }
-        
-        const lastMessage = session.messages.length > 0 ? 
-            session.messages[session.messages.length - 1].content : 
-            (currentLanguage === 'sinhala' ? 'සංවාදය ආරම්භ කරන්න' : 'Start conversation');
-        
-        sessionElement.innerHTML = `
-            <div class="session-title">${session.title}</div>
-            <div class="session-preview">${lastMessage.substring(0, 50)}${lastMessage.length > 50 ? '...' : ''}</div>
-            <div class="session-meta">
-                <span>${new Date(session.updatedAt).toLocaleDateString()}</span>
-                <span>${session.messages.length} ${currentLanguage === 'sinhala' ? 'පණිවිඩ' : 'messages'}</span>
-            </div>
-        `;
-        
-        sessionElement.addEventListener('click', () => {
-            switchToSession(session.id);
-        });
-        
-        chatSessionsContainer.appendChild(sessionElement);
-    });
-}
-
-function switchToSession(sessionId) {
-    const session = chatSessions.find(s => s.id === sessionId);
-    if (session) {
-        currentSessionId = sessionId;
-        chatHistory = session.messages || [];
-        renderChatHistory();
-        renderChatSessions();
-        updateSessionDisplay();
-        
-        if (window.innerWidth <= 768) {
-            chatSidebar.classList.remove('active');
-        }
-    }
-}
-
-function updateSessionDisplay() {
-    const currentSession = chatSessions.find(s => s.id === currentSessionId);
-    if (currentSession) {
-        currentSessionTitle.textContent = currentSession.title;
-        sessionDate.textContent = new Date(currentSession.updatedAt).toLocaleDateString();
-    }
-}
-
-function saveCurrentSession() {
-    const currentSession = chatSessions.find(s => s.id === currentSessionId);
-    if (currentSession) {
-        currentSession.messages = chatHistory;
-        currentSession.updatedAt = new Date().toISOString();
-        saveChatSessions();
-        renderChatSessions();
-        
-        showNotification(
-            currentLanguage === 'sinhala' ? 'සංවාදය සුරකින ලදී' : 'Chat saved successfully',
-            'success'
-        );
-    }
-}
-
-function renameCurrentSession() {
-    const currentSession = chatSessions.find(s => s.id === currentSessionId);
-    if (currentSession) {
-        const newTitle = prompt(
-            currentLanguage === 'sinhala' ? 'සංවාදයේ නම ඇතුලත් කරන්න:' : 'Enter chat title:',
-            currentSession.title
-        );
-        
-        if (newTitle && newTitle.trim() !== '') {
-            currentSession.title = newTitle.trim();
-            currentSession.updatedAt = new Date().toISOString();
-            saveChatSessions();
-            renderChatSessions();
-            updateSessionDisplay();
-            
-            showNotification(
-                currentLanguage === 'sinhala' ? 'සංවාදයේ නම වෙනස් කරන ලදී' : 'Chat renamed successfully',
-                'success'
-            );
-        }
-    }
-}
-
-// Check authentication state
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        showChatApp();
-        updateUserProfile(user);
-        loadChatSessions();
-    } else {
-        showAuthContainer();
-        chatSessions = [];
-        currentSessionId = null;
-        chatHistory = [];
-    }
-});
-
-// Update user profile
-function updateUserProfile(user) {
-    const usernameElement = document.getElementById('username');
-    if (user.displayName) {
-        usernameElement.textContent = user.displayName;
-    } else {
-        usernameElement.textContent = user.email.split('@')[0];
-    }
-}
-
-// Show auth container
-function showAuthContainer() {
-    authContainer.style.display = 'block';
-    chatApp.style.display = 'none';
-    showLoginForm();
-}
-
-// Show chat app
-function showChatApp() {
-    authContainer.style.display = 'none';
-    chatApp.style.display = 'flex';
-    messageInput.focus();
-}
-
-// Show login form
-function showLoginForm() {
-    loginForm.style.display = 'flex';
-    signupForm.style.display = 'none';
-    forgotPasswordForm.style.display = 'none';
-    loginError.style.display = 'none';
-    signupError.style.display = 'none';
-    signupSuccess.style.display = 'none';
-    forgotError.style.display = 'none';
-    forgotSuccess.style.display = 'none';
-}
-
-// Show signup form
-function showSignupForm() {
-    loginForm.style.display = 'none';
-    signupForm.style.display = 'flex';
-    forgotPasswordForm.style.display = 'none';
-    loginError.style.display = 'none';
-    signupError.style.display = 'none';
-    signupSuccess.style.display = 'none';
-    forgotError.style.display = 'none';
-    forgotSuccess.style.display = 'none';
-}
-
-// Show forgot password form
-function showForgotPasswordForm() {
-    loginForm.style.display = 'none';
-    signupForm.style.display = 'none';
-    forgotPasswordForm.style.display = 'flex';
-    loginError.style.display = 'none';
-    signupError.style.display = 'none';
-    signupSuccess.style.display = 'none';
-    forgotError.style.display = 'none';
-    forgotSuccess.style.display = 'none';
-}
-
-// Show notification
-function showNotification(message, type = 'success') {
-    notification.className = 'notification';
-    notification.classList.add(type);
-    notificationText.textContent = message;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
-}
-
-// Login form
-loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    loginError.style.display = 'none';
-    
-    auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-            loginForm.reset();
-            showNotification(
-                currentLanguage === 'sinhala' ? 'සාර්ථකව පිවිසියා!' : 'Successfully logged in!',
-                'success'
-            );
-        })
-        .catch((error) => {
-            loginError.textContent = currentLanguage === 'sinhala' 
-                ? 'පිවිසුම අසාර්ථකයි. කරුණාකර ඔබගේ තොරතුරු පරීක්ෂා කරන්න.' 
-                : 'Login failed. Please check your credentials.';
-            loginError.style.display = 'block';
-        });
-});
-
-// Signup form
-signupForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    signupError.style.display = 'none';
-    signupSuccess.style.display = 'none';
-    
-    if (password !== confirmPassword) {
-        signupError.textContent = currentLanguage === 'sinhala' 
-            ? 'මුරපද ගැලපෙන්නේ නැත' 
-            : 'Passwords do not match';
-        signupError.style.display = 'block';
-        return;
-    }
-    
-    auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            return userCredential.user.updateProfile({
-                displayName: name
-            });
-        })
-        .then(() => {
-            signupSuccess.textContent = currentLanguage === 'sinhala' 
-                ? 'ලියාපදිංචිය සාර්ථකයි!' 
-                : 'Registration successful!';
-            signupSuccess.style.display = 'block';
-            signupForm.reset();
-            showNotification(
-                currentLanguage === 'sinhala' ? 'ලියාපදිංචිය සාර්ථකයි!' : 'Registration successful!',
-                'success'
-            );
-        })
-        .catch((error) => {
-            signupError.textContent = currentLanguage === 'sinhala' 
-                ? 'ලියාපදිංචිය අසාර්ථකයි. කරුණාකර නැවත උත්සාහ කරන්න.' 
-                : 'Registration failed. Please try again.';
-            signupError.style.display = 'block';
-        });
-});
-
-// Forgot password form
-forgotPasswordForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('forgotEmail').value;
-    
-    forgotError.style.display = 'none';
-    forgotSuccess.style.display = 'none';
-    
-    auth.sendPasswordResetEmail(email)
-        .then(() => {
-            forgotSuccess.textContent = currentLanguage === 'sinhala' 
-                ? 'මුරපද යළි සැකසුම් ඊමේල් එකක් යවන ලදී! ඔබගේ ඊමේල් පරීක්ෂා කරන්න.' 
-                : 'Password reset email sent! Check your inbox.';
-            forgotSuccess.style.display = 'block';
-            forgotPasswordForm.reset();
-        })
-        .catch((error) => {
-            forgotError.textContent = currentLanguage === 'sinhala' 
-                ? 'යළි සැකසුම් ඊමේල් යැවීම අසාර්ථකයි. කරුණාකර ඔබගේ ඊමේල් ලිපිනය පරීක්ෂා කරන්න.' 
-                : 'Failed to send reset email. Please check your email address.';
-            forgotError.style.display = 'block';
-        });
-});
-
-// Form switching
-showSignup.addEventListener('click', showSignupForm);
-showLogin.addEventListener('click', showLoginForm);
-forgotPassword.addEventListener('click', showForgotPasswordForm);
-backToLogin.addEventListener('click', showLoginForm);
-
-// Logout button
-logoutBtn.addEventListener('click', () => {
-    auth.signOut();
-    showNotification(
-        currentLanguage === 'sinhala' ? 'සාර්ථකව පිටවිය!' : 'Successfully logged out!',
-        'success'
-    );
-});
-
-// Theme switching
-function switchTheme(theme) {
-    currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('neura-theme', theme);
-    
-    const content = languageContent[currentLanguage];
-    themeLabel.textContent = theme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
-}
-
-// Language switching
-function switchLanguage(lang) {
-    currentLanguage = lang;
-    const content = languageContent[lang];
-    
-    // Update all text content
-    document.getElementById('authTitle').textContent = content.authTitle;
-    document.getElementById('authSubtitle').textContent = content.authSubtitle;
-    document.getElementById('emailLabel').textContent = content.emailLabel;
-    document.getElementById('passwordLabel').textContent = content.passwordLabel;
-    document.getElementById('nameLabel').textContent = content.nameLabel;
-    document.getElementById('signupEmailLabel').textContent = content.emailLabel;
-    document.getElementById('signupPasswordLabel').textContent = content.passwordLabel;
-    document.getElementById('confirmPasswordLabel').textContent = content.confirmPasswordLabel;
-    document.getElementById('loginButton').textContent = content.loginButton;
-    document.getElementById('signupButton').textContent = content.signupButton;
-    document.getElementById('noAccount').textContent = content.noAccount;
-    document.getElementById('haveAccount').textContent = content.haveAccount;
-    document.getElementById('showSignup').textContent = content.showSignup;
-    document.getElementById('showLogin').textContent = content.showLogin;
-    document.getElementById('forgotPassword').textContent = content.forgotPassword;
-    document.getElementById('resetPasswordButton').textContent = content.resetPasswordButton;
-    document.getElementById('backToLogin').textContent = content.backToLogin;
-    
-    document.getElementById('logoTitle').textContent = content.logoTitle;
-    document.getElementById('headerSubtitle').textContent = content.headerSubtitle;
-    document.getElementById('username').textContent = content.username;
-    document.getElementById('userStatus').textContent = content.userStatus;
-    document.getElementById('logoutText').textContent = content.logoutText;
-    document.getElementById('welcomeTitle').textContent = content.welcomeTitle;
-    document.getElementById('welcomeText').innerHTML = content.welcomeText;
-    document.getElementById('typingText').textContent = content.typingText;
-    document.getElementById('messageInput').placeholder = content.inputPlaceholder;
-    document.getElementById('clearChatText').textContent = content.clearChatText;
-    document.getElementById('exportChatText').textContent = content.exportChatText;
-    document.getElementById('suggestionsText').textContent = content.suggestionsText;
-    document.getElementById('copyrightText').textContent = content.copyright;
-    document.getElementById('designCredit').textContent = content.designCredit;
-    document.getElementById('footerCopyright').textContent = content.copyright;
-    document.getElementById('footerDesign').textContent = content.designCredit;
-    
-    // Chat History Texts
-    document.getElementById('historyTitle').textContent = content.historyTitle;
-    document.getElementById('historyToggleText').textContent = content.historyToggleText;
-    document.getElementById('currentSessionTitle').textContent = content.currentSessionTitle;
-    document.getElementById('newChatBtn').innerHTML = `<i class="fas fa-plus"></i><span>${content.newChatText}</span>`;
-    document.getElementById('importChatBtn').innerHTML = `<i class="fas fa-upload"></i><span>${content.importChatText}</span>`;
-    
-    themeLabel.textContent = currentTheme === 'dark' ? content.themeLabelDark : content.themeLabelLight;
-    
-    // Update language switcher animation
-    const languageSwitcher = document.querySelector('.language-switcher');
-    if (lang === 'sinhala') {
-        sinhalaBtn.classList.add('active');
-        englishBtn.classList.remove('active');
-        languageSwitcher.classList.remove('english-active');
-    } else {
-        englishBtn.classList.add('active');
-        sinhalaBtn.classList.remove('active');
-        languageSwitcher.classList.add('english-active');
-    }
-    
-    localStorage.setItem('neura-language', lang);
-}
-
-// Load saved preferences
-const savedTheme = localStorage.getItem('neura-theme') || 'dark';
-const savedLanguage = localStorage.getItem('neura-language') || 'english';
-
-switchTheme(savedTheme);
-switchLanguage(savedLanguage);
-
-if (savedTheme === 'light') {
-    themeToggle.checked = true;
-}
-
-// Event listeners
-themeToggle.addEventListener('change', function() {
-    switchTheme(this.checked ? 'light' : 'dark');
-});
-
-sinhalaBtn.addEventListener('click', () => switchLanguage('sinhala'));
-englishBtn.addEventListener('click', () => switchLanguage('english'));
-
-// Chat History Event Listeners
-historyToggle.addEventListener('click', () => {
-    chatSidebar.classList.toggle('active');
-});
-
-sidebarClose.addEventListener('click', () => {
-    chatSidebar.classList.remove('active');
-});
-
-newChatBtn.addEventListener('click', createNewSession);
-
-importChatBtn.addEventListener('click', () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,.txt';
-    
-    input.onchange = e => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = function(event) {
-            try {
-                const importedData = JSON.parse(event.target.result);
-                if (Array.isArray(importedData.messages)) {
-                    const sessionId = generateSessionId();
-                    const session = {
-                        id: sessionId,
-                        title: importedData.title || (currentLanguage === 'sinhala' ? 'ආයාත කළ සංවාදය' : 'Imported Chat'),
-                        messages: importedData.messages,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                        userId: getUserId()
-                    };
-                    
-                    chatSessions.unshift(session);
-                    saveChatSessions();
-                    renderChatSessions();
-                    
-                    showNotification(
-                        currentLanguage === 'sinhala' ? 'සංවාදය ආයාත කරන ලදී' : 'Chat imported successfully',
-                        'success'
-                    );
-                }
-            } catch (error) {
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'ආයාත කිරීම අසාර්ථකයි' : 'Import failed',
-                    'error'
-                );
-            }
-        };
-        
-        reader.readAsText(file);
-    };
-    
-    input.click();
-});
-
-saveSessionBtn.addEventListener('click', saveCurrentSession);
-renameSessionBtn.addEventListener('click', renameCurrentSession);
-
-historySearch.addEventListener('input', renderChatSessions);
-
-// Chat functionality
-messageInput.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-});
-
-function addMessage(message, isUser) {
-    const welcomeMsg = chatMessages.querySelector('.welcome-message');
-    if (welcomeMsg) {
-        welcomeMsg.remove();
-    }
-    
-    const content = languageContent[currentLanguage];
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
-    messageDiv.classList.add(isUser ? 'user-message' : 'ai-message');
-    
-    const messageHeader = document.createElement('div');
-    messageHeader.classList.add('message-header');
-    messageHeader.innerHTML = isUser ? 
-        `<div class="message-avatar"><i class="fas fa-user"></i></div> ${content.userLabel}` : 
-        `<div class="message-avatar"><i class="fas fa-robot"></i></div> ${content.aiLabel}`;
-    
-    const messageContent = document.createElement('div');
-    messageContent.classList.add('message-content');
-    messageContent.innerHTML = message.replace(/\n/g, '<br>');
-    
-    const messageTime = document.createElement('div');
-    messageTime.classList.add('message-time');
-    messageTime.textContent = new Date().toLocaleTimeString();
-    
-    // Add message actions for AI messages
-    if (!isUser) {
-        const messageActions = document.createElement('div');
-        messageActions.classList.add('message-actions');
-        
-        const copyBtn = document.createElement('button');
-        copyBtn.classList.add('message-action-btn');
-        copyBtn.innerHTML = '<i class="fas fa-copy"></i> ' + (currentLanguage === 'sinhala' ? 'පිටපත් කරන්න' : 'Copy');
-        copyBtn.addEventListener('click', function() {
-            navigator.clipboard.writeText(message).then(() => {
-                showNotification(
-                    currentLanguage === 'sinhala' ? 'පිළිතුරු පිටපත් කරන ලදී' : 'Response copied to clipboard',
-                    'success'
-                );
-            });
-        });
-        
-        messageActions.appendChild(copyBtn);
-        messageDiv.appendChild(messageActions);
-    }
-    
-    messageDiv.appendChild(messageHeader);
-    messageDiv.appendChild(messageContent);
-    messageDiv.appendChild(messageTime);
-    
-    chatMessages.appendChild(messageDiv);
-    
-    // Add to chat history and current session
-    const messageObj = {
-        content: message,
-        isUser: isUser,
-        timestamp: new Date().toISOString()
-    };
-    
-    chatHistory.push(messageObj);
-    
-    // Update current session
-    const currentSession = chatSessions.find(s => s.id === currentSessionId);
-    if (currentSession) {
-        currentSession.messages = chatHistory;
-        currentSession.updatedAt = new Date().toISOString();
-        
-        // Update session title based on first user message
-        if (isUser && currentSession.messages.filter(m => m.isUser).length === 1) {
-            currentSession.title = message.substring(0, 30) + (message.length > 30 ? '...' : '');
-        }
-        
-        saveChatSessions();
-        renderChatSessions();
-    }
-    
-    // Scroll to bottom
-    setTimeout(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, 100);
-}
-
-function renderChatHistory() {
-    chatMessages.innerHTML = '';
-    
-    if (chatHistory.length === 0) {
-        const welcomeMsg = document.createElement('div');
-        welcomeMsg.classList.add('welcome-message');
-        welcomeMsg.innerHTML = `
-            <div class="welcome-icon">
-                <i class="fas fa-rocket"></i>
-            </div>
-            <h2 id="welcome-title">${languageContent[currentLanguage].welcomeTitle}</h2>
-            <p id="welcome-text">${languageContent[currentLanguage].welcomeText}</p>
-            <div class="feature-buttons">
-                <button class="feature-btn" id="clearChatBtn">
-                    <i class="fas fa-trash"></i>
-                    <span id="clear-chat-text">${languageContent[currentLanguage].clearChatText}</span>
-                </button>
-                <button class="feature-btn" id="exportChatBtn">
-                    <i class="fas fa-download"></i>
-                    <span id="export-chat-text">${languageContent[currentLanguage].exportChatText}</span>
-                </button>
-                <button class="feature-btn" id="suggestionsBtn">
-                    <i class="fas fa-lightbulb"></i>
-                    <span id="suggestions-text">${languageContent[currentLanguage].suggestionsText}</span>
-                </button>
-            </div>
-        `;
-        chatMessages.appendChild(welcomeMsg);
-    } else {
-        chatHistory.forEach(msg => {
-            addMessage(msg.content, msg.isUser);
-        });
-    }
-}
-
-function clearChatMessages() {
-    chatMessages.innerHTML = '';
-    const welcomeMsg = document.createElement('div');
-    welcomeMsg.classList.add('welcome-message');
-    welcomeMsg.innerHTML = `
-        <div class="welcome-icon">
-            <i class="fas fa-rocket"></i>
-        </div>
-        <h2 id="welcome-title">${languageContent[currentLanguage].welcomeTitle}</h2>
-        <p id="welcome-text">${languageContent[currentLanguage].welcomeText}</p>
-        <div class="feature-buttons">
-            <button class="feature-btn" id="clearChatBtn">
-                <i class="fas fa-trash"></i>
-                <span id="clear-chat-text">${languageContent[currentLanguage].clearChatText}</span>
-            </button>
-            <button class="feature-btn" id="exportChatBtn">
-                <i class="fas fa-download"></i>
-                <span id="export-chat-text">${languageContent[currentLanguage].exportChatText}</span>
-            </button>
-            <button class="feature-btn" id="suggestionsBtn">
-                <i class="fas fa-lightbulb"></i>
-                <span id="suggestions-text">${languageContent[currentLanguage].suggestionsText}</span>
-            </button>
-        </div>
-    `;
-    chatMessages.appendChild(welcomeMsg);
-}
-
-// Gemini API Integration
-async function getAIResponse(userMessage) {
+function initializeApp() {
     try {
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`;
+        console.log('🚀 Initializing Smart AI System...');
         
-        const languagePrompt = currentLanguage === 'sinhala' ? 
-            "කරුණාකර සිංහල භාෂාවෙන් පමණක් පිළිතුරු දෙන්න. පිළිතුර සරල හා පැහැදිලි විය යුතුය. මානව ආකාරයේ ස්වභාවික සංවාද භාෂාව භාවිතා කරන්න." : 
-            "Please respond in English only. Keep the response clear, concise and use natural conversational language.";
+        // Check system requirements
+        if (!checkSystemRequirements()) {
+            return;
+        }
+
+        // Initialize core systems
+        initializeFirebase();
+        initializeUI();
+        initializeEventListeners();
+        loadUserPreferences();
         
-        const prompt = `${userMessage}\n\n${languagePrompt}`;
+        console.log('✅ Smart AI System initialized successfully');
         
-        const requestBody = {
-            contents: [{
-                parts: [{
-                    text: prompt
-                }]
-            }],
+    } catch (error) {
+        console.error('❌ System initialization failed:', error);
+        showSystemError('System initialization failed');
+    }
+}
+
+function checkSystemRequirements() {
+    const requirements = {
+        fetch: typeof fetch === 'function',
+        localStorage: typeof localStorage !== 'undefined',
+        firebase: typeof firebase !== 'undefined',
+        internet: navigator.onLine
+    };
+
+    if (!requirements.internet) {
+        showNotification(getTranslation('noInternet'), 'error');
+        return false;
+    }
+
+    if (!requirements.fetch) {
+        showSystemError('Browser does not support fetch API');
+        return false;
+    }
+
+    return true;
+}
+
+// ==================== AI CORE ENGINE ====================
+
+class AICoreEngine {
+    constructor() {
+        this.isProcessing = false;
+        this.conversationHistory = [];
+        this.maxHistoryLength = 10;
+    }
+
+    async generateResponse(userMessage, imageData = null, conversationContext = []) {
+        if (this.isProcessing) {
+            throw new Error('AI is already processing a request');
+        }
+
+        this.isProcessing = true;
+        
+        try {
+            console.log('🧠 AI Engine: Processing request...');
+            
+            const requestPayload = this.buildRequestPayload(userMessage, imageData, conversationContext);
+            const response = await this.makeAPIRequest(requestPayload);
+            const aiResponse = this.processAIResponse(response);
+            
+            // Update conversation history
+            this.updateConversationHistory(userMessage, aiResponse);
+            
+            console.log('✅ AI Engine: Response generated successfully');
+            return aiResponse;
+            
+        } catch (error) {
+            console.error('❌ AI Engine Error:', error);
+            throw this.handleAIError(error);
+        } finally {
+            this.isProcessing = false;
+        }
+    }
+
+    buildRequestPayload(userMessage, imageData, conversationContext) {
+        const payload = {
+            contents: [],
             generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 1024,
-            }
+                temperature: AI_CONFIG.temperature,
+                maxOutputTokens: AI_CONFIG.maxTokens,
+                topP: AI_CONFIG.topP,
+                topK: AI_CONFIG.topK
+            },
+            safetySettings: [
+                {
+                    category: "HARM_CATEGORY_HARASSMENT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_HATE_SPEECH", 
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                }
+            ]
         };
+
+        // Add conversation context if available
+        if (conversationContext.length > 0) {
+            conversationContext.forEach(msg => {
+                payload.contents.push({
+                    parts: [{ text: msg.content }],
+                    role: msg.isUser ? 'user' : 'model'
+                });
+            });
+        }
+
+        // Add current message
+        const currentContent = {
+            parts: [{ text: userMessage }]
+        };
+
+        // Add image data if present
+        if (imageData) {
+            currentContent.parts.push({
+                inline_data: {
+                    mime_type: "image/jpeg",
+                    data: imageData.split(',')[1]
+                }
+            });
+        }
+
+        payload.contents.push(currentContent);
         
-        const response = await fetch(API_URL, {
+        return payload;
+    }
+
+    async makeAPIRequest(payload) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${AI_CONFIG.model}:generateContent?key=${GEMINI_API_KEY}`;
+        
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(payload)
         });
-        
+
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`API Error ${response.status}: ${errorData.error?.message || response.statusText}`);
         }
-        
-        const data = await response.json();
-        
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-            return data.candidates[0].content.parts[0].text;
-        } else {
-            throw new Error('Invalid response format from Gemini API');
-        }
-    } catch (error) {
-        console.error("Gemini API Error:", error);
-        return currentLanguage === 'sinhala' ? 
-            "කණගාටුයි, දෝෂයක් ඇති විය. කරුණාකර පසුව නැවත උත්සාහ කරන්න." : 
-            "Sorry, an error occurred. Please try again later.";
+
+        return await response.json();
     }
+
+    processAIResponse(apiResponse) {
+        if (!apiResponse.candidates || !apiResponse.candidates[0]) {
+            throw new Error('No response generated from AI');
+        }
+
+        const candidate = apiResponse.candidates[0];
+        
+        // Check for safety blocks
+        if (candidate.finishReason === 'SAFETY') {
+            throw new Error('Response blocked due to safety concerns');
+        }
+
+        if (!candidate.content || !candidate.content.parts || !candidate.content.parts[0]) {
+            throw new Error('Invalid response format from AI');
+        }
+
+        return candidate.content.parts[0].text;
+    }
+
+    updateConversationHistory(userMessage, aiResponse) {
+        this.conversationHistory.push(
+            { content: userMessage, isUser: true },
+            { content: aiResponse, isUser: false }
+        );
+
+        // Keep only recent history
+        if (this.conversationHistory.length > this.maxHistoryLength * 2) {
+            this.conversationHistory = this.conversationHistory.slice(-this.maxHistoryLength * 2);
+        }
+    }
+
+    handleAIError(error) {
+        const errorMessage = error.message || 'Unknown AI error';
+        
+        if (errorMessage.includes('safety') || errorMessage.includes('blocked')) {
+            return new Error(
+                currentLanguage === 'si' 
+                    ? 'මෙම ප්‍රශ්නය සුරක්ෂිතතා හේතූන් මත පිළිතුරු දීමට මට නොහැකි විය' 
+                    : 'I cannot respond to this question due to safety concerns'
+            );
+        }
+        
+        if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+            return new Error(
+                currentLanguage === 'si'
+                    ? 'ජාලකරණ දෝෂයක්. කරුණාකර ඔබගේ අන්තර්ජාල සම්බන්ධතාවය පරීක්ෂා කරන්න'
+                    : 'Network error. Please check your internet connection'
+            );
+        }
+
+        return new Error(
+            currentLanguage === 'si'
+                ? 'AI සේවාවෙන් දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න'
+                : 'Error from AI service. Please try again in a moment'
+        );
+    }
+
+    clearHistory() {
+        this.conversationHistory = [];
+    }
+
+    getHistory() {
+        return [...this.conversationHistory];
+    }
+}
+
+// Initialize AI Engine
+const aiEngine = new AICoreEngine();
+
+// ==================== ENHANCED AI RESPONSE FUNCTION ====================
+
+async function getAIResponse(userMessage, imageData = null) {
+    console.log('🤖 Smart AI: Processing request...');
+    
+    try {
+        // Get conversation context from current session
+        const currentSession = getCurrentSession();
+        const conversationContext = currentSession ? 
+            currentSession.messages.slice(-4) : []; // Last 2 exchanges
+        
+        showNotification(getTranslation('thinking'), 'info');
+        
+        const response = await aiEngine.generateResponse(
+            userMessage, 
+            imageData, 
+            conversationContext
+        );
+        
+        console.log('✅ Smart AI: Response generated');
+        return response;
+        
+    } catch (error) {
+        console.error('❌ Smart AI Error:', error);
+        throw error;
+    }
+}
+
+// ==================== ENHANCED CHAT FUNCTIONS ====================
+
+function createNewChat() {
+    const sessionId = 'session_' + Date.now();
+    
+    const newSession = {
+        id: sessionId,
+        title: getTranslation('newChat'),
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        metadata: {
+            messageCount: 0,
+            hasImages: false,
+            language: currentLanguage
+        }
+    };
+    
+    chatSessions.unshift(newSession);
+    currentSessionId = sessionId;
+    
+    // Clear AI conversation history for new chat
+    aiEngine.clearHistory();
+    
+    saveChatSessions();
+    renderSessions();
+    clearMessages();
+    
+    if (window.innerWidth <= 768) {
+        closeSidebar();
+    }
+    
+    showNotification('New chat session started', 'success');
 }
 
 async function sendMessage() {
-    const message = messageInput.value.trim();
-    if (message === '') return;
+    if (isProcessing) return;
     
-    addMessage(message, true);
-    messageInput.value = '';
-    messageInput.style.height = 'auto';
+    const input = document.getElementById('messageInput');
+    const message = input ? input.value.trim() : '';
     
-    sendButton.disabled = true;
-    typingIndicator.style.display = 'block';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    try {
-        const response = await getAIResponse(message);
-        typingIndicator.style.display = 'none';
-        addMessage(response, false);
-    } catch (error) {
-        typingIndicator.style.display = 'none';
-        const errorMessage = currentLanguage === 'sinhala' ? 
-            "කණගාටුයි, දෝෂයක් ඇති විය. කරුණාකර පසුව නැවත උත්සාහ කරන්න." : 
-            "Sorry, an error occurred. Please try again later.";
-        addMessage(errorMessage, false);
-    } finally {
-        sendButton.disabled = false;
-        messageInput.focus();
-    }
-}
-
-sendButton.addEventListener('click', sendMessage);
-
-messageInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
-});
-
-// Clear chat function
-clearChatBtn.addEventListener('click', function() {
-    if (chatHistory.length > 0) {
-        chatHistory = [];
-        
-        // Update current session
-        const currentSession = chatSessions.find(s => s.id === currentSessionId);
-        if (currentSession) {
-            currentSession.messages = [];
-            currentSession.updatedAt = new Date().toISOString();
-            saveChatSessions();
-            renderChatSessions();
-        }
-        
-        clearChatMessages();
-        
-        showNotification(
-            currentLanguage === 'sinhala' ? 'සංවාදය හිස් කරන ලදී' : 'Chat cleared successfully',
-            'success'
-        );
-    }
-});
-
-// Export chat function
-exportChatBtn.addEventListener('click', function() {
-    if (chatHistory.length === 0) {
-        showNotification(
-            currentLanguage === 'sinhala' ? 'අප export කිරීමට සංවාදයක් නොමැත' : 'No chat history to export',
-            'warning'
-        );
+    if (!message && !currentImage) {
+        showNotification('Please enter a message or upload an image', 'error');
         return;
     }
     
-    const currentSession = chatSessions.find(s => s.id === currentSessionId);
-    const exportData = {
-        title: currentSession ? currentSession.title : 'Exported Chat',
-        messages: chatHistory,
-        exportedAt: new Date().toISOString(),
-        language: currentLanguage
-    };
+    // Add user message to chat
+    addMessageToChat(message, true, currentImage);
     
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `smart-ai-chat-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Clear input
+    if (input) input.value = '';
     
-    showNotification(
-        currentLanguage === 'sinhala' ? 'සංවාදය බාගත කරන ලදී' : 'Chat exported successfully',
-        'success'
-    );
-});
+    // Show typing indicator
+    const sendBtn = document.getElementById('sendButton');
+    const typing = document.getElementById('typingIndicator');
+    
+    isProcessing = true;
+    if (sendBtn) sendBtn.disabled = true;
+    if (typing) typing.style.display = 'flex';
+    
+    try {
+        console.log('🔄 Smart AI: Generating response...');
+        
+        const response = await getAIResponse(
+            message || (currentLanguage === 'si' ? 
+                'මෙම පින්තූරය ගැන මට කියන්න' : 
+                'Tell me about this image'),
+            currentImage
+        );
+        
+        // Hide typing indicator
+        if (typing) typing.style.display = 'none';
+        
+        // Add AI response to chat
+        addMessageToChat(response, false);
+        
+        if (currentImage) {
+            showNotification(getTranslation('imageAnalyzed'), 'success');
+        }
+        
+    } catch (error) {
+        console.error('❌ Chat Error:', error);
+        if (typing) typing.style.display = 'none';
+        
+        // Add error message to chat
+        addMessageToChat(error.message, false);
+        
+    } finally {
+        isProcessing = false;
+        if (sendBtn) sendBtn.disabled = false;
+        currentImage = null;
+        removeImage();
+        if (input) input.focus();
+    }
+}
 
-// Suggestions function
-suggestionsBtn.addEventListener('click', function() {
-    const suggestions = currentLanguage === 'sinhala' ? [
-        "AI ගැන මට තව දැනගන්න ඕන",
-        "කොහොමද කේතයක් ලියන්නේ?",
-        "මට උදව් කරන්න වර්තමාන තාක්ෂණ ප්‍රවණතා ගැන",
-        "මට ඉගෙන ගැනීමට හොඳම ක්‍රමය කුමක්ද?"
-    ] : [
-        "Tell me more about AI",
-        "How do I write code?",
-        "Help me with current technology trends",
-        "What's the best way to learn?"
-    ];
+function addMessageToChat(content, isUser, imageData = null) {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
     
-    const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-    messageInput.value = randomSuggestion;
-    messageInput.focus();
-    messageInput.style.height = 'auto';
-    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+    // Remove welcome screen if present
+    const welcome = messagesDiv.querySelector('.welcome-screen');
+    if (welcome) {
+        welcome.remove();
+    }
     
-    showNotification(
-        currentLanguage === 'sinhala' ? 'යෝජනාවක් ඇතුලත් කරන ලදී' : 'Suggestion added to input',
-        'success'
-    );
-});
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+    
+    const avatarIcon = isUser ? 
+        '<div class="message-avatar user-avatar"><i class="fas fa-user"></i></div>' : 
+        '<div class="message-avatar ai-avatar"><i class="fas fa-robot"></i></div>';
+    
+    const messageLabel = isUser ? 
+        (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
+        'Smart AI';
+    
+    let imageHTML = '';
+    if (imageData) {
+        imageHTML = `
+            <div class="image-container">
+                <img src="${imageData}" alt="Uploaded image" class="message-image" onload="this.style.opacity='1'" onerror="this.style.display='none'">
+                <div class="image-caption">${currentLanguage === 'si' ? 'ඔබ උඩුගත කළ පින්තූරය' : 'Image you uploaded'}</div>
+            </div>
+        `;
+    }
+    
+    messageDiv.innerHTML = `
+        <div class="message-header">
+            ${avatarIcon}
+            <div class="message-info">
+                <span class="message-sender">${messageLabel}</span>
+                <span class="message-time">${new Date().toLocaleTimeString()}</span>
+            </div>
+        </div>
+        <div class="message-content">
+            ${imageHTML}
+            <div class="message-text">${formatMessageContent(content)}</div>
+        </div>
+        ${!isUser ? `
+            <div class="message-actions">
+                <button class="action-btn copy-btn" onclick="copyMessage(this)" title="${currentLanguage === 'si' ? 'පිටපත් කරන්න' : 'Copy'}">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="action-btn regenerate-btn" onclick="regenerateLastResponse()" title="${currentLanguage === 'si' ? 'නැවත උත්පාදනය කරන්න' : 'Regenerate'}">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+        ` : ''}
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    
+    // Save to session
+    const session = getCurrentSession();
+    if (session) {
+        session.messages.push({
+            content: content,
+            isUser: isUser,
+            imageData: imageData,
+            timestamp: Date.now()
+        });
+        
+        session.updatedAt = Date.now();
+        
+        // Update session metadata
+        session.metadata.messageCount = session.messages.length;
+        session.metadata.hasImages = session.metadata.hasImages || !!imageData;
+        
+        // Update session title with first user message
+        if (isUser && session.messages.filter(m => m.isUser).length === 1) {
+            const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
+            session.title = titleText + (titleText.length >= 30 ? '...' : '');
+        }
+        
+        saveChatSessions();
+        renderSessions();
+    }
+    
+    // Smooth scroll to bottom
+    messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: 'smooth'
+    });
+}
 
-// Enter key for form submission
-document.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        const activeForm = document.querySelector('.auth-form[style*="display: flex"]');
-        if (activeForm) {
-            const submitButton = activeForm.querySelector('.auth-button');
-            if (submitButton) {
-                submitButton.click();
+function formatMessageContent(content) {
+    // Convert URLs to clickable links
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    content = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+    
+    // Format code blocks
+    content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+    
+    // Format inline code
+    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Convert line breaks
+    content = content.replace(/\n/g, '<br>');
+    
+    return content;
+}
+
+async function regenerateLastResponse() {
+    const session = getCurrentSession();
+    if (!session || session.messages.length < 2) return;
+    
+    // Get last user message
+    const lastUserMessage = session.messages.filter(msg => msg.isUser).pop();
+    if (!lastUserMessage) return;
+    
+    // Remove last AI response
+    session.messages = session.messages.slice(0, -1);
+    
+    // Regenerate response
+    await sendMessage();
+}
+
+// ==================== ENHANCED UI FUNCTIONS ====================
+
+function initializeUI() {
+    updateLanguage();
+    checkForUpdates();
+    setupRealTimeFeatures();
+}
+
+function setupRealTimeFeatures() {
+    // Auto-save every 30 seconds
+    setInterval(() => {
+        if (chatSessions.length > 0) {
+            saveChatSessions();
+        }
+    }, 30000);
+    
+    // Check for connectivity
+    window.addEventListener('online', () => {
+        showNotification('Connection restored', 'success');
+    });
+    
+    window.addEventListener('offline', () => {
+        showNotification('No internet connection', 'error');
+    });
+}
+
+function showNotification(message, type = 'success', duration = 4000) {
+    const notification = document.getElementById('notification');
+    const text = document.getElementById('notificationText');
+    
+    if (!notification || !text) return;
+    
+    const icon = notification.querySelector('i');
+    notification.className = `notification ${type}`;
+    text.textContent = message;
+    
+    if (icon) {
+        icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                        type === 'error' ? 'fas fa-exclamation-circle' :
+                        'fas fa-info-circle';
+    }
+    
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, duration);
+}
+
+function showSystemError(message) {
+    const errorHtml = `
+        <div class="system-error">
+            <div class="error-icon">⚠️</div>
+            <div class="error-content">
+                <h3>System Error</h3>
+                <p>${message}</p>
+                <button onclick="location.reload()" class="btn btn-primary">Reload App</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.innerHTML = errorHtml;
+}
+
+// ==================== FIREBASE ENHANCEMENTS ====================
+
+function initializeFirebase() {
+    try {
+        if (typeof firebase === 'undefined') {
+            throw new Error('Firebase SDK not loaded');
+        }
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        auth = firebase.auth();
+        database = firebase.database();
+        
+        // Enhanced auth state handling
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('🔐 User authenticated:', user.email);
+                showChatApp();
+                loadChatSessions();
+                updateUserProfile(user);
+                trackUserActivity('login');
+            } else {
+                console.log('🔐 No user authenticated');
+                showAuthContainer();
+                trackUserActivity('logout');
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Firebase initialization failed:', error);
+        // Continue without Firebase for offline functionality
+        showAuthContainer();
+    }
+}
+
+function trackUserActivity(action) {
+    if (!auth?.currentUser || !database) return;
+    
+    try {
+        const userRef = database.ref('userActivities/' + auth.currentUser.uid);
+        userRef.push({
+            action: action,
+            timestamp: Date.now(),
+            userAgent: navigator.userAgent,
+            language: currentLanguage
+        });
+    } catch (error) {
+        console.log('Activity tracking failed:', error);
+    }
+}
+
+// ==================== SESSION MANAGEMENT ENHANCEMENTS ====================
+
+function getStorageKey() {
+    const userId = auth?.currentUser?.uid || 'anonymous';
+    return `smartai-sessions-${userId}-v2`;
+}
+
+async function saveChatSessions() {
+    try {
+        const storageKey = getStorageKey();
+        const dataToSave = {
+            sessions: chatSessions,
+            version: APP_VERSION,
+            savedAt: Date.now()
+        };
+        
+        // Save to localStorage
+        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        
+        // Sync to Firebase if available
+        if (auth?.currentUser && database) {
+            const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
+            await userRef.set(dataToSave);
+        }
+        
+    } catch (error) {
+        console.error('❌ Save sessions error:', error);
+    }
+}
+
+async function loadChatSessions() {
+    try {
+        const storageKey = getStorageKey();
+        let sessionsData = null;
+        
+        // Try to load from Firebase first
+        if (auth?.currentUser && database) {
+            try {
+                const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
+                const snapshot = await userRef.once('value');
+                if (snapshot.exists()) {
+                    sessionsData = snapshot.val();
+                }
+            } catch (firebaseError) {
+                console.log('Firebase load failed, trying localStorage...');
             }
         }
+        
+        // Fallback to localStorage
+        if (!sessionsData) {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                sessionsData = JSON.parse(saved);
+            }
+        }
+        
+        if (sessionsData?.sessions) {
+            chatSessions = sessionsData.sessions;
+            
+            // Migrate old session format if needed
+            chatSessions = chatSessions.map(session => {
+                if (!session.metadata) {
+                    session.metadata = {
+                        messageCount: session.messages?.length || 0,
+                        hasImages: session.messages?.some(m => m.imageData) || false,
+                        language: currentLanguage
+                    };
+                }
+                return session;
+            });
+        }
+        
+        if (chatSessions.length === 0) {
+            createNewChat();
+        } else {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        }
+        
+        renderSessions();
+        
+    } catch (error) {
+        console.error('❌ Load sessions error:', error);
+        createNewChat();
     }
+}
+
+// ==================== APP INITIALIZATION ====================
+
+function loadUserPreferences() {
+    // Load language preference
+    const savedLang = localStorage.getItem('smartai-language');
+    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
+        currentLanguage = savedLang;
+    }
+    
+    // Load theme preference
+    const savedTheme = localStorage.getItem('smartai-theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+    
+    updateLanguage();
+}
+
+function initializeEventListeners() {
+    // Message input handling
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+        
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
+    
+    // Image upload handling
+    const imageInput = document.getElementById('imageInput');
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImageUpload);
+    }
+    
+    // Language toggle
+    const languageBtn = document.querySelector('.language-btn');
+    if (languageBtn) {
+        languageBtn.addEventListener('click', toggleLanguage);
+    }
+    
+    // Auth form submissions
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    if (signupForm) {
+        signupForm.addEventListener('submit', handleSignup);
+    }
+}
+
+// ==================== START APPLICATION ====================
+
+window.addEventListener('load', function() {
+    console.log('🚀 Starting Smart AI Application...');
+    initializeApp();
 });
 
-// Initialize chat input height
-messageInput.style.height = 'auto';
-messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
-
-// Close sidebar when clicking outside on mobile
-document.addEventListener('click', function(e) {
-    if (window.innerWidth <= 768 && 
-        !chatSidebar.contains(e.target) && 
-        !historyToggle.contains(e.target) &&
-        chatSidebar.classList.contains('active')) {
-        chatSidebar.classList.remove('active');
+// Add enhanced CSS
+const enhancedStyles = document.createElement('style');
+enhancedStyles.textContent = `
+    .message {
+        margin-bottom: 1.5rem;
+        animation: messageSlideIn 0.3s ease-out;
     }
-});
+    
+    @keyframes messageSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .message-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+    
+    .message-sender {
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+    
+    .message-avatar {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+    
+    .user-avatar {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .ai-avatar {
+        background: linear-gradient(135deg, #4A90E2, #357ABD);
+        color: white;
+    }
+    
+    .message-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+    
+    .action-btn {
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        background: white;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+    }
+    
+    .action-btn:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+    
+    .system-error {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 2rem;
+    }
+    
+    .error-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .error-content {
+        text-align: center;
+        max-width: 400px;
+    }
+    
+    .message-text code {
+        background: #f3f4f6;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875em;
+    }
+    
+    .message-text pre {
+        background: #1f2937;
+        color: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin: 0.5rem 0;
+    }
+    
+    .message-text a {
+        color: #4A90E2;
+        text-decoration: underline;
+    }
+    
+    .message-text a:hover {
+        color: #357ABD;
+    }
+`;
+document.head.appendChild(enhancedStyles);
+
+console.log('🤖 Smart AI System Code Loaded Successfully');
