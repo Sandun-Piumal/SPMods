@@ -578,7 +578,7 @@ async function getAIResponse(userMessage, imageData = null) {
 
         if (imageData) {
             // Vision API
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
+            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             requestBody = {
                 contents: [{
                     parts: [
@@ -598,7 +598,7 @@ async function getAIResponse(userMessage, imageData = null) {
             };
         } else {
             // Text API
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             requestBody = {
                 contents: [{
                     parts: [{ text: userMessage }]
