@@ -145,9 +145,10 @@ function initializeApp() {
         console.log('✅ Smart AI System initialized successfully');
         
     } catch (error) {
-        console.error('❌ System initialization failed:', error);
-        showSystemError('System initialization failed');
-    }
+    console.error('❌ System initialization failed:', error);
+    showNotification('App started with limited functionality', 'info');
+    showAuthContainer(); // Still show the app
+}
 }
 
 function checkSystemRequirements() {
@@ -163,13 +164,17 @@ function checkSystemRequirements() {
         return false;
     }
 
-    if (!requirements.fetch) {
-        showSystemError('Browser does not support fetch API');
-        return false;
-    }
+if (!requirements.fetch) {
+    console.warn('Browser does not support fetch API - AI features disabled');
+    showNotification('Some features disabled - Upgrade browser for full experience', 'warning');
+    return true; // Still continue the app
+}
 
     return true;
 }
+
+
+
 
 // ==================== AI CORE ENGINE ====================
 
