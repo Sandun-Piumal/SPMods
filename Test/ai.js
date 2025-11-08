@@ -9,9 +9,6 @@ const firebaseConfig = {
 // GEMINI API KEY
 const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
-// APP VERSION
-const APP_VERSION = '2.0.0';
-
 // STATE VARIABLES
 let auth = null;
 let database = null;
@@ -20,16 +17,6 @@ let chatSessions = [];
 let currentSessionId = null;
 let currentImage = null;
 let currentLanguage = 'en';
-let isOnline = navigator.onLine;
-
-// AI MODEL CONFIG
-const AI_CONFIG = {
-    model: 'gemini-1.5-flash',
-    temperature: 0.7,
-    maxTokens: 2048,
-    topP: 0.8,
-    topK: 40
-};
 
 // TRANSLATIONS
 const translations = {
@@ -53,30 +40,16 @@ const translations = {
         welcomeSubtitle: "I can help you with questions, analysis, creativity, and more!",
         messagePlaceholder: "Ask me anything...",
         uploadImage: "Upload Image",
-        moreOptions: "More options",
-        deepThink: "DeepThink",
-        search: "Search",
         logout: "Logout",
         processing: "Processing...",
         imageUploaded: "Image uploaded!",
-        textExtracted: "Text extracted!",
-        chatCleared: "Chat cleared!",
         loginSuccess: "Login successful!",
         logoutSuccess: "Logged out successfully!",
         chatDeleted: "Chat deleted!",
         deleteConfirm: "Delete this chat?",
-        extractingText: "Extracting text...",
-        processingImage: "Processing image...",
-        analyzingImage: "Analyzing image content...",
-        imageAnalyzed: "Image analyzed!",
-        checkUpdates: "Check for Updates",
-        updatesAvailable: "New version available!",
-        latestVersion: "You have the latest version!",
         thinking: "Thinking...",
-        generating: "Generating response...",
         errorOccurred: "An error occurred",
-        tryAgain: "Please try again",
-        noInternet: "No internet connection"
+        tryAgain: "Please try again"
     },
     si: {
         appTitle: "Smart AI",
@@ -98,181 +71,89 @@ const translations = {
         welcomeSubtitle: "මට ප්‍රශ්න, විශ්ලේෂණ, නිර්මාණශීලිත්වය සහ තවත් බොහෝ දේ වලින් ඔබට උදව් කළ හැක!",
         messagePlaceholder: "මගෙන් ඕනෑම දෙයක් අහන්න...",
         uploadImage: "පින්තූරය උඩුගත කරන්න",
-        moreOptions: "තවත් විකල්ප",
-        deepThink: "ගැඹුරු චින්තනය",
-        search: "සොයන්න",
         logout: "ඉවත් වන්න",
         processing: "සැකසෙමින්...",
         imageUploaded: "පින්තූරය උඩුගත විය!",
-        textExtracted: "පෙළ උපුටා ගන්නා ලදී!",
-        chatCleared: "සංවාදය මකා දමන ලදී!",
         loginSuccess: "පිවිසුම සාර්ථකයි!",
         logoutSuccess: "සාර්ථකව ඉවත් විය!",
         chatDeleted: "සංවාදය මකා දමන ලදී!",
         deleteConfirm: "මෙම සංවාදය මකන්න ද?",
-        extractingText: "පෙළ උපුටා ගනිමින්...",
-        processingImage: "පින්තූරය සකසමින්...",
-        analyzingImage: "පින්තූරය විශ්ලේෂණය කරමින්...",
-        imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!",
-        checkUpdates: "යාවත්කාලීන පරීක්ෂා කරන්න",
-        updatesAvailable: "නව අනුවාදයක් තිබේ!",
-        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!",
         thinking: "චින්තනය කරමින්...",
-        generating: "ප්‍රතිචාරය ජනනය කරමින්...",
         errorOccurred: "දෝෂයක් ඇතිවිය",
-        tryAgain: "කරුණාකර නැවත උත්සාහ කරන්න",
-        noInternet: "අන්තර්ජාල සම්බන්ධතාවයක් නැත"
+        tryAgain: "කරුණාකර නැවත උත්සාහ කරන්න"
     }
 };
 
-// ==================== DUAL STORAGE MANAGER ====================
+// ==================== SIMPLE STORAGE MANAGER ====================
 
-class DualStorageManager {
-    constructor() {
-        this.localKey = 'smartai-sessions-v2';
-        this.lastSyncKey = 'smartai-last-sync';
-    }
+function getStorageKey() {
+    const userId = auth?.currentUser?.uid || 'anonymous';
+    return `smartai-sessions-${userId}`;
+}
 
-    // INSTANT LOAD - Local storage first
-    async loadSessions() {
-        console.log('📦 Loading from local storage...');
-        
-        // 1. First try local storage (INSTANT - No delay)
-        const localData = this.getFromLocalStorage();
-        if (localData && localData.sessions) {
-            console.log('✅ Loaded from local storage instantly');
-            return localData.sessions;
-        }
-        
-        // 2. If no local data, try Firebase (background process)
-        if (isOnline && auth?.currentUser) {
-            console.log('🌐 Trying Firebase load in background...');
-            this.loadFromFirebaseBackground();
-        }
-        
-        return [];
-    }
-
-    getFromLocalStorage() {
-        try {
-            const storageKey = this.getStorageKey();
-            const saved = localStorage.getItem(storageKey);
-            return saved ? JSON.parse(saved) : null;
-        } catch (error) {
-            console.error('❌ Local storage read error:', error);
-            return null;
-        }
-    }
-
-    async loadFromFirebaseBackground() {
-        try {
-            if (!auth?.currentUser || !database) return;
-            
-            const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
-            const snapshot = await userRef.once('value');
-            
-            if (snapshot.exists()) {
-                const firebaseData = snapshot.val();
-                if (firebaseData && firebaseData.sessions) {
-                    console.log('✅ Background Firebase load successful');
-                    this.saveToLocalStorage(firebaseData);
-                    
-                    // Update UI if needed
-                    if (chatSessions.length === 0) {
-                        chatSessions = firebaseData.sessions;
-                        currentSessionId = chatSessions[0]?.id || null;
-                        renderSessions();
-                        renderChatHistory();
-                    }
-                }
-            }
-        } catch (error) {
-            console.log('⚠️ Background Firebase load failed:', error);
-        }
-    }
-
-    // FAST SAVE - Local storage immediately, Firebase in background
-    async saveSessions(sessions) {
+function saveChatSessions() {
+    try {
+        const storageKey = getStorageKey();
         const dataToSave = {
-            sessions: sessions,
-            version: APP_VERSION,
-            savedAt: Date.now(),
-            lastModified: Date.now()
+            sessions: chatSessions,
+            savedAt: Date.now()
         };
-
-        // 1. Save to local storage INSTANTLY
-        this.saveToLocalStorage(dataToSave);
         
-        // 2. Sync to Firebase in background (if online)
-        if (isOnline && auth?.currentUser) {
-            this.syncToFirebaseBackground(dataToSave);
-        }
-    }
-
-    saveToLocalStorage(data) {
-        try {
-            const storageKey = this.getStorageKey();
-            localStorage.setItem(storageKey, JSON.stringify(data));
-        } catch (error) {
-            console.error('❌ Local storage save error:', error);
-        }
-    }
-
-    async syncToFirebaseBackground(data) {
-        try {
-            if (!auth?.currentUser || !database) return;
-            
-            const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
-            await userRef.set(data);
-            console.log('✅ Background Firebase sync successful');
-        } catch (error) {
-            console.log('⚠️ Background Firebase sync failed:', error);
-        }
-    }
-
-    getStorageKey() {
-        const userId = auth?.currentUser?.uid || 'anonymous';
-        return `${this.localKey}-${userId}`;
+        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        console.log('💾 Saved to localStorage');
+    } catch (error) {
+        console.error('❌ Save error:', error);
     }
 }
 
-// Initialize Dual Storage Manager
-const storageManager = new DualStorageManager();
+function loadChatSessions() {
+    try {
+        const storageKey = getStorageKey();
+        const saved = localStorage.getItem(storageKey);
+        
+        if (saved) {
+            const data = JSON.parse(saved);
+            chatSessions = data.sessions || [];
+            console.log('📦 Loaded from localStorage:', chatSessions.length, 'sessions');
+        }
+        
+        if (chatSessions.length === 0) {
+            createNewChat();
+        } else {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        }
+        
+        renderSessions();
+        
+    } catch (error) {
+        console.error('❌ Load error:', error);
+        createNewChat();
+    }
+}
 
 // ==================== SYSTEM INITIALIZATION ====================
 
 function initializeApp() {
-    try {
-        console.log('🚀 Initializing Smart AI System...');
-        
-        // Check system requirements
-        if (!checkSystemRequirements()) {
-            return;
-        }
-
-        // Initialize UI immediately (NO DELAY)
-        initializeUI();
-        initializeEventListeners();
-        loadUserPreferences();
-        
-        // Initialize Firebase in background (non-blocking)
-        initializeFirebaseBackground();
-        
-        // Load sessions immediately from local storage
-        loadChatSessions();
-        
-        console.log('✅ Smart AI System initialized successfully');
-        
-    } catch (error) {
-        console.error('❌ System initialization failed:', error);
-        showSystemError('System initialization failed');
-    }
+    console.log('🚀 Initializing Smart AI...');
+    
+    // Initialize UI immediately
+    initializeUI();
+    initializeEventListeners();
+    loadUserPreferences();
+    
+    // Initialize Firebase in background
+    initializeFirebase();
+    
+    console.log('✅ Smart AI initialized');
 }
 
-function initializeFirebaseBackground() {
+function initializeFirebase() {
     try {
         if (typeof firebase === 'undefined') {
-            console.log('⚠️ Firebase SDK not available, using offline mode');
+            console.log('⚠️ Firebase not available');
+            showChatApp();
+            loadChatSessions();
             return;
         }
 
@@ -283,147 +164,63 @@ function initializeFirebaseBackground() {
         auth = firebase.auth();
         database = firebase.database();
         
-        // Auth state handling (non-blocking)
         auth.onAuthStateChanged((user) => {
             if (user) {
-                console.log('🔐 User authenticated:', user.email);
+                console.log('🔐 User:', user.email);
                 showChatApp();
                 updateUserProfile(user);
-                
-                // Background sync with Firebase
-                if (chatSessions.length > 0) {
-                    storageManager.syncToFirebaseBackground({
-                        sessions: chatSessions,
-                        version: APP_VERSION,
-                        savedAt: Date.now()
-                    });
-                } else {
-                    storageManager.loadFromFirebaseBackground();
-                }
+                loadChatSessions();
             } else {
-                console.log('🔐 No user authenticated');
+                console.log('🔐 No user');
                 showAuthContainer();
             }
         });
         
     } catch (error) {
-        console.log('⚠️ Firebase initialization failed, using offline mode:', error);
+        console.log('⚠️ Firebase failed, using offline mode');
+        showChatApp();
+        loadChatSessions();
     }
 }
 
-function checkSystemRequirements() {
-    const requirements = {
-        fetch: typeof fetch === 'function',
-        localStorage: typeof localStorage !== 'undefined',
-        internet: navigator.onLine
-    };
+// ==================== AI SERVICE ====================
 
-    if (!requirements.internet) {
-        showNotification(getTranslation('noInternet'), 'info');
-    }
-
-    if (!requirements.fetch) {
-        showSystemError('Browser does not support fetch API');
-        return false;
-    }
-
-    return true;
-}
-
-// ==================== AI CORE ENGINE ====================
-
-class AICoreEngine {
-    constructor() {
-        this.isProcessing = false;
-        this.conversationHistory = [];
-        this.maxHistoryLength = 10;
-    }
-
-    async generateResponse(userMessage, imageData = null, conversationContext = []) {
-        if (this.isProcessing) {
-            throw new Error('AI is already processing a request');
-        }
-
-        this.isProcessing = true;
+async function getAIResponse(userMessage, imageData = null) {
+    console.log('🤖 Getting AI response...');
+    
+    try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         
-        try {
-            console.log('🧠 AI Engine: Processing request...');
-            
-            const requestPayload = this.buildRequestPayload(userMessage, imageData, conversationContext);
-            const response = await this.makeAPIRequest(requestPayload);
-            const aiResponse = this.processAIResponse(response);
-            
-            this.updateConversationHistory(userMessage, aiResponse);
-            
-            console.log('✅ AI Engine: Response generated successfully');
-            return aiResponse;
-            
-        } catch (error) {
-            console.error('❌ AI Engine Error:', error);
-            throw this.handleAIError(error);
-        } finally {
-            this.isProcessing = false;
-        }
-    }
-
-    buildRequestPayload(userMessage, imageData, conversationContext = []) {
-        const payload = {
-            contents: [],
-            generationConfig: {
-                temperature: AI_CONFIG.temperature,
-                maxOutputTokens: AI_CONFIG.maxTokens,
-                topP: AI_CONFIG.topP,
-                topK: AI_CONFIG.topK
-            },
-            safetySettings: [
-                {
-                    category: "HARM_CATEGORY_HARASSMENT",
-                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
-                },
-                {
-                    category: "HARM_CATEGORY_HATE_SPEECH", 
-                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
-                },
-                {
-                    category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
-                },
-                {
-                    category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
-                }
-            ]
-        };
-
-        if (conversationContext.length > 0) {
-            conversationContext.forEach(msg => {
-                payload.contents.push({
-                    parts: [{ text: msg.content }],
-                    role: msg.isUser ? 'user' : 'model'
-                });
-            });
-        }
-
-        const currentContent = {
-            parts: [{ text: userMessage }]
-        };
-
+        const contents = [];
+        
+        // Add image if present
         if (imageData) {
-            currentContent.parts.push({
-                inline_data: {
-                    mime_type: "image/jpeg",
-                    data: imageData.split(',')[1]
-                }
+            contents.push({
+                parts: [
+                    { text: userMessage || "Describe this image" },
+                    {
+                        inline_data: {
+                            mime_type: "image/jpeg",
+                            data: imageData.split(',')[1]
+                        }
+                    }
+                ]
+            });
+        } else {
+            contents.push({
+                parts: [{ text: userMessage }]
             });
         }
-
-        payload.contents.push(currentContent);
         
-        return payload;
-    }
-
-    async makeAPIRequest(payload) {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${AI_CONFIG.model}:generateContent?key=${GEMINI_API_KEY}`;
+        const payload = {
+            contents: contents,
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 2000,
+                topP: 0.8,
+                topK: 40
+            }
+        };
         
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -434,104 +231,24 @@ class AICoreEngine {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`API Error ${response.status}: ${errorData.error?.message || response.statusText}`);
+            throw new Error(`API error: ${response.status}`);
         }
 
-        return await response.json();
-    }
-
-    processAIResponse(apiResponse) {
-        if (!apiResponse.candidates || !apiResponse.candidates[0]) {
-            throw new Error('No response generated from AI');
-        }
-
-        const candidate = apiResponse.candidates[0];
+        const data = await response.json();
         
-        if (candidate.finishReason === 'SAFETY') {
-            throw new Error('Response blocked due to safety concerns');
-        }
-
-        if (!candidate.content || !candidate.content.parts || !candidate.content.parts[0]) {
-            throw new Error('Invalid response format from AI');
-        }
-
-        return candidate.content.parts[0].text;
-    }
-
-    updateConversationHistory(userMessage, aiResponse) {
-        this.conversationHistory.push(
-            { content: userMessage, isUser: true },
-            { content: aiResponse, isUser: false }
-        );
-
-        if (this.conversationHistory.length > this.maxHistoryLength * 2) {
-            this.conversationHistory = this.conversationHistory.slice(-this.maxHistoryLength * 2);
-        }
-    }
-
-    handleAIError(error) {
-        const errorMessage = error.message || 'Unknown AI error';
-        
-        if (errorMessage.includes('safety') || errorMessage.includes('blocked')) {
-            return new Error(
-                currentLanguage === 'si' 
-                    ? 'මෙම ප්‍රශ්නය සුරක්ෂිතතා හේතූන් මත පිළිතුරු දීමට මට නොහැකි විය' 
-                    : 'I cannot respond to this question due to safety concerns'
-            );
+        if (!data.candidates || !data.candidates[0].content.parts[0].text) {
+            throw new Error('No response from AI');
         }
         
-        if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-            return new Error(
-                currentLanguage === 'si'
-                    ? 'ජාලකරණ දෝෂයක්. කරුණාකර ඔබගේ අන්තර්ජාල සම්බන්ධතාවය පරීක්ෂා කරන්න'
-                    : 'Network error. Please check your internet connection'
-            );
-        }
-
-        return new Error(
-            currentLanguage === 'si'
-                ? 'AI සේවාවෙන් දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න'
-                : 'Error from AI service. Please try again in a moment'
-        );
-    }
-
-    clearHistory() {
-        this.conversationHistory = [];
-    }
-
-    getHistory() {
-        return [...this.conversationHistory];
-    }
-}
-
-// Initialize AI Engine
-const aiEngine = new AICoreEngine();
-
-// ==================== ENHANCED AI RESPONSE FUNCTION ====================
-
-async function getAIResponse(userMessage, imageData = null) {
-    console.log('🤖 Smart AI: Processing request...');
-    
-    try {
-        const currentSession = getCurrentSession();
-        const conversationContext = currentSession ? 
-            currentSession.messages.slice(-4) : [];
-        
-        showNotification(getTranslation('thinking'), 'info');
-        
-        const response = await aiEngine.generateResponse(
-            userMessage, 
-            imageData, 
-            conversationContext
-        );
-        
-        console.log('✅ Smart AI: Response generated');
-        return response;
+        return data.candidates[0].content.parts[0].text;
         
     } catch (error) {
-        console.error('❌ Smart AI Error:', error);
-        throw error;
+        console.error('❌ AI Error:', error);
+        throw new Error(
+            currentLanguage === 'si' 
+                ? 'AI සේවාවෙන් දෝෂයක්. කරුණාකර නැවත උත්සාහ කරන්න'
+                : 'AI service error. Please try again'
+        );
     }
 }
 
@@ -545,80 +262,63 @@ function createNewChat() {
         title: getTranslation('newChat'),
         messages: [],
         createdAt: Date.now(),
-        updatedAt: Date.now(),
-        metadata: {
-            messageCount: 0,
-            hasImages: false,
-            language: currentLanguage
-        }
+        updatedAt: Date.now()
     };
     
     chatSessions.unshift(newSession);
     currentSessionId = sessionId;
     
-    aiEngine.clearHistory();
-    
     saveChatSessions();
     renderSessions();
     clearMessages();
     
+    // Don't show notification here - that was the problem!
+    console.log('🆕 New chat created');
+    
     if (window.innerWidth <= 768) {
         closeSidebar();
     }
-    
-    showNotification('New chat session started', 'success');
 }
 
 async function sendMessage() {
     if (isProcessing) return;
     
     const input = document.getElementById('messageInput');
-    const message = input ? input.value.trim() : '';
+    const message = input.value.trim();
     
     if (!message && !currentImage) {
         showNotification('Please enter a message or upload an image', 'error');
         return;
     }
     
+    // Add user message immediately
     addMessageToChat(message, true, currentImage);
+    input.value = '';
     
-    if (input) input.value = '';
-    
+    // Show typing indicator
     const sendBtn = document.getElementById('sendButton');
     const typing = document.getElementById('typingIndicator');
     
     isProcessing = true;
-    if (sendBtn) sendBtn.disabled = true;
-    if (typing) typing.style.display = 'flex';
+    sendBtn.disabled = true;
+    typing.style.display = 'flex';
     
     try {
-        console.log('🔄 Smart AI: Generating response...');
-        
-        const response = await getAIResponse(
-            message || (currentLanguage === 'si' ? 
-                'මෙම පින්තූරය ගැන මට කියන්න' : 
-                'Tell me about this image'),
-            currentImage
-        );
-        
-        if (typing) typing.style.display = 'none';
+        const response = await getAIResponse(message, currentImage);
+        typing.style.display = 'none';
         addMessageToChat(response, false);
         
-        if (currentImage) {
-            showNotification(getTranslation('imageAnalyzed'), 'success');
-        }
-        
     } catch (error) {
-        console.error('❌ Chat Error:', error);
-        if (typing) typing.style.display = 'none';
+        console.error('❌ Chat error:', error);
+        typing.style.display = 'none';
         addMessageToChat(error.message, false);
         
     } finally {
         isProcessing = false;
-        if (sendBtn) sendBtn.disabled = false;
+        sendBtn.disabled = false;
         currentImage = null;
         removeImage();
-        if (input) input.focus();
+        input.focus();
     }
 }
 
@@ -626,6 +326,7 @@ function addMessageToChat(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
     
+    // Remove welcome screen
     const welcome = messagesDiv.querySelector('.welcome-screen');
     if (welcome) {
         welcome.remove();
@@ -634,11 +335,11 @@ function addMessageToChat(content, isUser, imageData = null) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
     
-    const avatarIcon = isUser ? 
+    const avatar = isUser ? 
         '<div class="message-avatar user-avatar"><i class="fas fa-user"></i></div>' : 
         '<div class="message-avatar ai-avatar"><i class="fas fa-robot"></i></div>';
     
-    const messageLabel = isUser ? 
+    const sender = isUser ? 
         (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
         'Smart AI';
     
@@ -646,38 +347,26 @@ function addMessageToChat(content, isUser, imageData = null) {
     if (imageData) {
         imageHTML = `
             <div class="image-container">
-                <img src="${imageData}" alt="Uploaded image" class="message-image" onload="this.style.opacity='1'" onerror="this.style.display='none'">
-                <div class="image-caption">${currentLanguage === 'si' ? 'ඔබ උඩුගත කළ පින්තූරය' : 'Image you uploaded'}</div>
+                <img src="${imageData}" alt="Uploaded image" class="message-image">
             </div>
         `;
     }
     
     messageDiv.innerHTML = `
         <div class="message-header">
-            ${avatarIcon}
-            <div class="message-info">
-                <span class="message-sender">${messageLabel}</span>
-                <span class="message-time">${new Date().toLocaleTimeString()}</span>
-            </div>
+            ${avatar}
+            <div class="message-sender">${sender}</div>
+            <div class="message-time">${new Date().toLocaleTimeString()}</div>
         </div>
         <div class="message-content">
             ${imageHTML}
-            <div class="message-text">${formatMessageContent(content)}</div>
+            <div class="message-text">${formatMessage(content)}</div>
         </div>
-        ${!isUser ? `
-            <div class="message-actions">
-                <button class="action-btn copy-btn" onclick="copyMessage(this)" title="${currentLanguage === 'si' ? 'පිටපත් කරන්න' : 'Copy'}">
-                    <i class="fas fa-copy"></i>
-                </button>
-                <button class="action-btn regenerate-btn" onclick="regenerateLastResponse()" title="${currentLanguage === 'si' ? 'නැවත උත්පාදනය කරන්න' : 'Regenerate'}">
-                    <i class="fas fa-redo"></i>
-                </button>
-            </div>
-        ` : ''}
     `;
     
     messagesDiv.appendChild(messageDiv);
     
+    // Save to session
     const session = getCurrentSession();
     if (session) {
         session.messages.push({
@@ -688,52 +377,23 @@ function addMessageToChat(content, isUser, imageData = null) {
         });
         
         session.updatedAt = Date.now();
-        session.metadata.messageCount = session.messages.length;
-        session.metadata.hasImages = session.metadata.hasImages || !!imageData;
         
-        if (isUser && session.messages.filter(m => m.isUser).length === 1) {
-            const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
-            session.title = titleText + (titleText.length >= 30 ? '...' : '');
+        // Update title with first message
+        if (isUser && session.messages.length === 1) {
+            session.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
         }
         
         saveChatSessions();
         renderSessions();
     }
     
-    messagesDiv.scrollTo({
-        top: messagesDiv.scrollHeight,
-        behavior: 'smooth'
-    });
+    // Scroll to bottom
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-function formatMessageContent(content) {
+function formatMessage(content) {
     if (!content) return '';
-    
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    content = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
-    content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
-    content = content.replace(/\n/g, '<br>');
-    
-    return content;
-}
-
-async function regenerateLastResponse() {
-    const session = getCurrentSession();
-    if (!session || session.messages.length < 2) return;
-    
-    const lastUserMessage = session.messages.filter(msg => msg.isUser).pop();
-    if (!lastUserMessage) return;
-    
-    session.messages = session.messages.slice(0, -1);
-    await sendMessage();
-}
-
-function copyMessage(button) {
-    const messageText = button.closest('.message').querySelector('.message-text').textContent;
-    navigator.clipboard.writeText(messageText).then(() => {
-        showNotification('Message copied to clipboard', 'success');
-    });
+    return content.replace(/\n/g, '<br>');
 }
 
 // ==================== SESSION MANAGEMENT ====================
@@ -753,11 +413,8 @@ function renderSessions() {
         sessionElement.className = `history-item ${session.id === currentSessionId ? 'active' : ''}`;
         sessionElement.innerHTML = `
             <div class="history-content" onclick="switchSession('${session.id}')">
-                <div class="history-title">${session.title || getTranslation('newChat')}</div>
-                <div class="history-meta">
-                    <span class="history-date">${formatDate(session.updatedAt)}</span>
-                    <span class="history-count">${session.messages ? session.messages.length : 0} messages</span>
-                </div>
+                <div class="history-title">${session.title}</div>
+                <div class="history-date">${formatDate(session.updatedAt)}</div>
             </div>
             <button class="history-delete" onclick="deleteSession('${session.id}', event)">
                 <i class="fas fa-trash"></i>
@@ -771,10 +428,7 @@ function switchSession(sessionId) {
     currentSessionId = sessionId;
     renderChatHistory();
     renderSessions();
-    
-    if (window.innerWidth <= 768) {
-        closeSidebar();
-    }
+    closeSidebar();
 }
 
 function deleteSession(sessionId, event) {
@@ -796,7 +450,6 @@ function deleteSession(sessionId, event) {
     
     saveChatSessions();
     renderSessions();
-    showNotification(getTranslation('chatDeleted'), 'success');
 }
 
 function renderChatHistory() {
@@ -806,7 +459,7 @@ function renderChatHistory() {
     messagesDiv.innerHTML = '';
     
     const session = getCurrentSession();
-    if (!session || !session.messages || session.messages.length === 0) {
+    if (!session || session.messages.length === 0) {
         showWelcomeScreen();
         return;
     }
@@ -814,8 +467,6 @@ function renderChatHistory() {
     session.messages.forEach(message => {
         addMessageToChat(message.content, message.isUser, message.imageData);
     });
-    
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 function showWelcomeScreen() {
@@ -825,52 +476,16 @@ function showWelcomeScreen() {
     messagesDiv.innerHTML = `
         <div class="welcome-screen">
             <div class="ai-logo">
-                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
-                    <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
-                    <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
-                    <path d="M18 40 Q18 28, 32 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
-                    <path d="M62 40 Q62 28, 48 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
-                </svg>
+                <i class="fas fa-robot"></i>
             </div>
-            <h1 data-i18n="welcomeTitle">Hi, I'm Smart AI.</h1>
-            <p data-i18n="welcomeSubtitle">How can I help you today?</p>
+            <h1>${getTranslation('welcomeTitle')}</h1>
+            <p>${getTranslation('welcomeSubtitle')}</p>
         </div>
     `;
 }
 
 function clearMessages() {
-    const messagesDiv = document.getElementById('chatMessages');
-    if (messagesDiv) {
-        messagesDiv.innerHTML = '';
-    }
     showWelcomeScreen();
-}
-
-// ==================== STORAGE FUNCTIONS ====================
-
-async function saveChatSessions() {
-    await storageManager.saveSessions(chatSessions);
-}
-
-async function loadChatSessions() {
-    const sessions = await storageManager.loadSessions();
-    chatSessions = sessions;
-    
-    if (chatSessions.length === 0) {
-        createNewChat();
-    } else {
-        currentSessionId = chatSessions[0].id;
-        renderChatHistory();
-    }
-    
-    renderSessions();
 }
 
 // ==================== IMAGE HANDLING ====================
@@ -884,15 +499,9 @@ function handleImageUpload(event) {
         return;
     }
     
-    if (file.size > 5 * 1024 * 1024) {
-        showNotification('Image size should be less than 5MB', 'error');
-        return;
-    }
-    
     const reader = new FileReader();
     reader.onload = function(e) {
         currentImage = e.target.result;
-        showNotification(getTranslation('imageUploaded'), 'success');
         showImagePreview(currentImage);
     };
     reader.readAsDataURL(file);
@@ -920,10 +529,10 @@ function removeImage() {
 // ==================== AUTHENTICATION ====================
 
 async function handleLogin(e) {
-    if (e) e.preventDefault();
+    e.preventDefault();
     
-    const email = document.getElementById('loginEmail')?.value;
-    const password = document.getElementById('loginPassword')?.value;
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
     
     if (!email || !password) {
         showNotification('Please enter email and password', 'error');
@@ -931,30 +540,22 @@ async function handleLogin(e) {
     }
     
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        await auth.signInWithEmailAndPassword(email, password);
         showNotification(getTranslation('loginSuccess'), 'success');
-        return userCredential;
     } catch (error) {
-        console.error('Login error:', error);
         showNotification(error.message, 'error');
-        throw error;
     }
 }
 
 async function handleSignup(e) {
-    if (e) e.preventDefault();
+    e.preventDefault();
     
-    const name = document.getElementById('signupName')?.value;
-    const email = document.getElementById('signupEmail')?.value;
-    const password = document.getElementById('signupPassword')?.value;
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
     
     if (!name || !email || !password) {
         showNotification('Please fill all fields', 'error');
-        return;
-    }
-    
-    if (password.length < 6) {
-        showNotification('Password must be at least 6 characters', 'error');
         return;
     }
     
@@ -962,11 +563,8 @@ async function handleSignup(e) {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await userCredential.user.updateProfile({ displayName: name });
         showNotification('Account created successfully!', 'success');
-        return userCredential;
     } catch (error) {
-        console.error('Signup error:', error);
         showNotification(error.message, 'error');
-        throw error;
     }
 }
 
@@ -974,28 +572,19 @@ async function handleLogout() {
     try {
         await auth.signOut();
         showNotification(getTranslation('logoutSuccess'), 'success');
-        chatSessions = [];
-        currentSessionId = null;
     } catch (error) {
-        console.error('Logout error:', error);
         showNotification(error.message, 'error');
     }
 }
 
 function showAuthContainer() {
-    const authContainer = document.getElementById('authContainer');
-    const chatApp = document.getElementById('chatApp');
-    
-    if (authContainer) authContainer.style.display = 'flex';
-    if (chatApp) chatApp.style.display = 'none';
+    document.getElementById('authContainer').style.display = 'flex';
+    document.getElementById('chatApp').style.display = 'none';
 }
 
 function showChatApp() {
-    const authContainer = document.getElementById('authContainer');
-    const chatApp = document.getElementById('chatApp');
-    
-    if (authContainer) authContainer.style.display = 'none';
-    if (chatApp) chatApp.style.display = 'flex';
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('chatApp').style.display = 'flex';
 }
 
 function updateUserProfile(user) {
@@ -1020,36 +609,6 @@ function showSignup() {
 
 function initializeUI() {
     updateLanguage();
-    checkForUpdates();
-    setupRealTimeFeatures();
-}
-
-function setupRealTimeFeatures() {
-    // Auto-save every 30 seconds
-    setInterval(() => {
-        if (chatSessions.length > 0) {
-            saveChatSessions();
-        }
-    }, 30000);
-    
-    // Network status monitoring
-    window.addEventListener('online', () => {
-        isOnline = true;
-        showNotification('Connection restored', 'success');
-        // Background sync when coming online
-        if (chatSessions.length > 0) {
-            storageManager.syncToFirebaseBackground({
-                sessions: chatSessions,
-                version: APP_VERSION,
-                savedAt: Date.now()
-            });
-        }
-    });
-    
-    window.addEventListener('offline', () => {
-        isOnline = false;
-        showNotification('No internet connection', 'info');
-    });
 }
 
 function toggleLanguage() {
@@ -1068,81 +627,45 @@ function updateLanguage() {
         }
     });
     
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        if (translations[currentLanguage][key]) {
-            element.placeholder = translations[currentLanguage][key];
-        }
-    });
-    
-    document.querySelectorAll('[data-i18n-title]').forEach(element => {
-        const key = element.getAttribute('data-i18n-title');
-        if (translations[currentLanguage][key]) {
-            element.title = translations[currentLanguage][key];
-        }
-    });
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.placeholder = getTranslation('messagePlaceholder');
+    }
 }
 
 function getTranslation(key) {
     return translations[currentLanguage][key] || key;
 }
 
-function showNotification(message, type = 'success', duration = 4000) {
+function showNotification(message, type = 'info') {
+    // Simple notification implementation
+    console.log(`📢 ${type}: ${message}`);
+    
+    // You can add a proper notification UI here
     const notification = document.getElementById('notification');
-    const text = document.getElementById('notificationText');
-    
-    if (!notification || !text) return;
-    
-    const icon = notification.querySelector('i');
-    notification.className = `notification ${type}`;
-    text.textContent = message;
-    
-    if (icon) {
-        icon.className = type === 'success' ? 'fas fa-check-circle' : 
-                        type === 'error' ? 'fas fa-exclamation-circle' :
-                        'fas fa-info-circle';
+    if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${type} show`;
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
     }
-    
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, duration);
-}
-
-function showSystemError(message) {
-    const errorHtml = `
-        <div class="system-error">
-            <div class="error-icon">⚠️</div>
-            <div class="error-content">
-                <h3>System Error</h3>
-                <p>${message}</p>
-                <button onclick="location.reload()" class="btn btn-primary">Reload App</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.innerHTML = errorHtml;
 }
 
 function toggleSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    if (sidebar && overlay) {
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-    }
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
 }
 
 function closeSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
-    if (sidebar && overlay) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    }
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
 }
 
 function handleKeyPress(event) {
@@ -1156,73 +679,34 @@ function handleKeyPress(event) {
 
 function loadUserPreferences() {
     const savedLang = localStorage.getItem('smartai-language');
-    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
+    if (savedLang) {
         currentLanguage = savedLang;
     }
-    
-    const savedTheme = localStorage.getItem('smartai-theme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    }
-    
     updateLanguage();
 }
 
 function initializeEventListeners() {
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        });
+        messageInput.addEventListener('keypress', handleKeyPress);
     }
     
     const imageInput = document.getElementById('imageInput');
     if (imageInput) {
         imageInput.addEventListener('change', handleImageUpload);
     }
-    
-    const languageBtn = document.querySelector('.language-btn');
-    if (languageBtn) {
-        languageBtn.addEventListener('click', toggleLanguage);
-    }
-    
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
-    
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    if (signupForm) {
-        signupForm.addEventListener('submit', handleSignup);
-    }
 }
 
 function formatDate(timestamp) {
     const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now - date;
-    
-    if (diff < 24 * 60 * 60 * 1000) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else {
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
-}
-
-function checkForUpdates() {
-    const savedVersion = localStorage.getItem('smartai-version');
-    if (savedVersion !== APP_VERSION) {
-        console.log('🔄 New version detected');
-        localStorage.setItem('smartai-version', APP_VERSION);
-    }
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { 
+        hour: '2-digit', minute: '2-digit' 
+    });
 }
 
 // ==================== START APPLICATION ====================
 
-window.addEventListener('load', function() {
-    console.log('🚀 Starting Smart AI Application...');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Starting Smart AI...');
     initializeApp();
 });
-
-console.log('🤖 Smart AI System Code Loaded Successfully');
