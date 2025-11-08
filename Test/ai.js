@@ -208,7 +208,7 @@ class AICoreEngine {
         }
     }
 
-    buildRequestPayload(userMessage, imageData, conversationContext) {
+    buildRequestPayload(userMessage, imageData, conversationContext = []) {
         const payload = {
             contents: [],
             generationConfig: {
@@ -617,27 +617,27 @@ function getCurrentSession() {
 }
 
 function renderSessions() {
-    const sessionsList = document.getElementById('sessionsList');
-    if (!sessionsList) return;
+    const chatHistory = document.getElementById('chatHistory');
+    if (!chatHistory) return;
     
-    sessionsList.innerHTML = '';
+    chatHistory.innerHTML = '';
     
     chatSessions.forEach(session => {
         const sessionElement = document.createElement('div');
-        sessionElement.className = `session-item ${session.id === currentSessionId ? 'active' : ''}`;
+        sessionElement.className = `history-item ${session.id === currentSessionId ? 'active' : ''}`;
         sessionElement.innerHTML = `
-            <div class="session-content" onclick="switchSession('${session.id}')">
-                <div class="session-title">${session.title || getTranslation('newChat')}</div>
-                <div class="session-meta">
-                    <span class="session-date">${formatDate(session.updatedAt)}</span>
-                    <span class="session-count">${session.messages ? session.messages.length : 0} messages</span>
+            <div class="history-content" onclick="switchSession('${session.id}')">
+                <div class="history-title">${session.title || getTranslation('newChat')}</div>
+                <div class="history-meta">
+                    <span class="history-date">${formatDate(session.updatedAt)}</span>
+                    <span class="history-count">${session.messages ? session.messages.length : 0} messages</span>
                 </div>
             </div>
-            <button class="session-delete" onclick="deleteSession('${session.id}', event)">
+            <button class="history-delete" onclick="deleteSession('${session.id}', event)">
                 <i class="fas fa-trash"></i>
             </button>
         `;
-        sessionsList.appendChild(sessionElement);
+        chatHistory.appendChild(sessionElement);
     });
 }
 
@@ -698,25 +698,23 @@ function showWelcomeScreen() {
     
     messagesDiv.innerHTML = `
         <div class="welcome-screen">
-            <div class="welcome-icon">
-                <i class="fas fa-robot"></i>
+            <div class="ai-logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
+                    <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
+                    <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
+                    <path d="M18 40 Q18 28, 32 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
+                    <path d="M62 40 Q62 28, 48 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
+                </svg>
             </div>
-            <h2>${getTranslation('welcomeTitle')}</h2>
-            <p>${getTranslation('welcomeSubtitle')}</p>
-            <div class="welcome-features">
-                <div class="feature">
-                    <i class="fas fa-comment"></i>
-                    <span>${currentLanguage === 'si' ? 'ප්‍රශ්නවලට පිළිතුරු දෙන්න' : 'Answer questions'}</span>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-image"></i>
-                    <span>${currentLanguage === 'si' ? 'පින්තූර විශ්ලේෂණය කරන්න' : 'Analyze images'}</span>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-lightbulb"></i>
-                    <span>${currentLanguage === 'si' ? 'නිර්මාණශීලී අදහස්' : 'Creative ideas'}</span>
-                </div>
-            </div>
+            <h1 data-i18n="welcomeTitle">Hi, I'm Smart AI.</h1>
+            <p data-i18n="welcomeSubtitle">How can I help you today?</p>
         </div>
     `;
 }
@@ -756,28 +754,20 @@ function handleImageUpload(event) {
 
 function showImagePreview(imageData) {
     const imagePreview = document.getElementById('imagePreview');
-    const uploadBtn = document.getElementById('uploadButton');
+    const previewImage = document.getElementById('previewImage');
     
-    if (imagePreview && uploadBtn) {
-        imagePreview.innerHTML = `
-            <img src="${imageData}" alt="Preview">
-            <button class="remove-image" onclick="removeImage()">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
+    if (imagePreview && previewImage) {
+        previewImage.src = imageData;
         imagePreview.style.display = 'block';
-        uploadBtn.style.display = 'none';
     }
 }
 
 function removeImage() {
     currentImage = null;
     const imagePreview = document.getElementById('imagePreview');
-    const uploadBtn = document.getElementById('uploadButton');
     const imageInput = document.getElementById('imageInput');
     
     if (imagePreview) imagePreview.style.display = 'none';
-    if (uploadBtn) uploadBtn.style.display = 'block';
     if (imageInput) imageInput.value = '';
 }
 
@@ -870,6 +860,16 @@ function updateUserProfile(user) {
     if (userEmail) userEmail.textContent = user.email;
 }
 
+function showLogin() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('signupForm').style.display = 'none';
+}
+
+function showSignup() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('signupForm').style.display = 'block';
+}
+
 // ==================== UI FUNCTIONS ====================
 
 function initializeUI() {
@@ -905,18 +905,28 @@ function toggleLanguage() {
 }
 
 function updateLanguage() {
-    document.querySelectorAll('[data-translate]').forEach(element => {
-        const key = element.getAttribute('data-translate');
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
         if (translations[currentLanguage][key]) {
             element.textContent = translations[currentLanguage][key];
         }
     });
     
     // Update placeholders
-    const messageInput = document.getElementById('messageInput');
-    if (messageInput) {
-        messageInput.placeholder = getTranslation('messagePlaceholder');
-    }
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        if (translations[currentLanguage][key]) {
+            element.placeholder = translations[currentLanguage][key];
+        }
+    });
+    
+    // Update titles
+    document.querySelectorAll('[data-i18n-title]').forEach(element => {
+        const key = element.getAttribute('data-i18n-title');
+        if (translations[currentLanguage][key]) {
+            element.title = translations[currentLanguage][key];
+        }
+    });
 }
 
 function getTranslation(key) {
@@ -924,24 +934,12 @@ function getTranslation(key) {
 }
 
 function showNotification(message, type = 'success', duration = 4000) {
-    // Create notification if it doesn't exist
-    let notification = document.getElementById('notification');
-    if (!notification) {
-        notification = document.createElement('div');
-        notification.id = 'notification';
-        notification.className = 'notification';
-        notification.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span id="notificationText"></span>
-        `;
-        document.body.appendChild(notification);
-    }
-    
+    const notification = document.getElementById('notification');
     const text = document.getElementById('notificationText');
+    
+    if (!notification || !text) return;
+    
     const icon = notification.querySelector('i');
-    
-    if (!text) return;
-    
     notification.className = `notification ${type}`;
     text.textContent = message;
     
@@ -974,16 +972,29 @@ function showSystemError(message) {
 }
 
 function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
+    const sidebar = document.getElementById('chatSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (sidebar && overlay) {
         sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
     }
 }
 
 function closeSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
+    const sidebar = document.getElementById('chatSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (sidebar && overlay) {
         sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
     }
 }
 
@@ -1153,13 +1164,6 @@ function initializeEventListeners() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
-        
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
     }
     
     // Image upload handling
@@ -1213,215 +1217,5 @@ window.addEventListener('load', function() {
     console.log('🚀 Starting Smart AI Application...');
     initializeApp();
 });
-
-// Add enhanced CSS
-const enhancedStyles = document.createElement('style');
-enhancedStyles.textContent = `
-    .message {
-        margin-bottom: 1.5rem;
-        animation: messageSlideIn 0.3s ease-out;
-    }
-    
-    @keyframes messageSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .message-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .message-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.125rem;
-    }
-    
-    .message-sender {
-        font-weight: 600;
-        font-size: 0.875rem;
-    }
-    
-    .message-time {
-        font-size: 0.75rem;
-        color: #6b7280;
-    }
-    
-    .message-avatar {
-        width: 2rem;
-        height: 2rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.875rem;
-    }
-    
-    .user-avatar {
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-    }
-    
-    .ai-avatar {
-        background: linear-gradient(135deg, #4A90E2, #357ABD);
-        color: white;
-    }
-    
-    .message-actions {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-    }
-    
-    .action-btn {
-        padding: 0.375rem 0.75rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.5rem;
-        background: white;
-        color: #6b7280;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.75rem;
-    }
-    
-    .action-btn:hover {
-        background: #f9fafb;
-        color: #374151;
-    }
-    
-    .system-error {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        padding: 2rem;
-    }
-    
-    .error-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-    
-    .error-content {
-        text-align: center;
-        max-width: 400px;
-    }
-    
-    .message-text code {
-        background: #f3f4f6;
-        padding: 0.125rem 0.25rem;
-        border-radius: 0.25rem;
-        font-family: 'Courier New', monospace;
-        font-size: 0.875em;
-    }
-    
-    .message-text pre {
-        background: #1f2937;
-        color: #f9fafb;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        overflow-x: auto;
-        margin: 0.5rem 0;
-    }
-    
-    .message-text a {
-        color: #4A90E2;
-        text-decoration: underline;
-    }
-    
-    .message-text a:hover {
-        color: #357ABD;
-    }
-    
-    .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: white;
-        border-left: 4px solid #10b981;
-        padding: 1rem 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        z-index: 1000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-        max-width: 400px;
-    }
-    
-    .notification.show {
-        transform: translateX(0);
-    }
-    
-    .notification.success {
-        border-left-color: #10b981;
-    }
-    
-    .notification.error {
-        border-left-color: #ef4444;
-    }
-    
-    .notification.info {
-        border-left-color: #4A90E2;
-    }
-    
-    .welcome-screen {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: #6b7280;
-    }
-    
-    .welcome-icon {
-        font-size: 4rem;
-        color: #4A90E2;
-        margin-bottom: 1.5rem;
-    }
-    
-    .welcome-screen h2 {
-        color: #1f2937;
-        margin-bottom: 1rem;
-        font-size: 1.5rem;
-    }
-    
-    .welcome-features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-    
-    .feature {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 0.5rem;
-    }
-    
-    .feature i {
-        font-size: 1.5rem;
-        color: #4A90E2;
-    }
-`;
-document.head.appendChild(enhancedStyles);
 
 console.log('🤖 Smart AI System Code Loaded Successfully');
