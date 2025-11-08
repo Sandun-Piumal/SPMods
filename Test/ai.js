@@ -18,7 +18,123 @@ let currentSessionId = null;
 let currentImage = null;
 let currentLanguage = 'en';
 
-// SIMPLE STORAGE
+// TRANSLATIONS
+const translations = {
+    en: {
+        appTitle: "Smart AI",
+        appSubtitle: "Powered by Gemini AI",
+        email: "Email",
+        password: "Password",
+        name: "Name",
+        login: "Login",
+        signUp: "Sign Up",
+        noAccount: "Don't have an account?",
+        haveAccount: "Already have an account?",
+        enterEmail: "Enter your email",
+        enterPassword: "Enter your password",
+        enterName: "Enter your name",
+        createPassword: "Create a password (min 6 characters)",
+        createAccount: "Create Your Account",
+        newChat: "New chat",
+        welcomeTitle: "Hello! I'm Smart AI Assistant",
+        welcomeSubtitle: "I can help you with questions, analysis, creativity, and more!",
+        messagePlaceholder: "Ask me anything...",
+        uploadImage: "Upload Image",
+        logout: "Logout",
+        processing: "Processing...",
+        imageUploaded: "Image uploaded!",
+        loginSuccess: "Login successful!",
+        logoutSuccess: "Logged out successfully!",
+        chatDeleted: "Chat deleted!",
+        deleteConfirm: "Delete this chat?",
+        thinking: "Thinking...",
+        errorOccurred: "An error occurred",
+        tryAgain: "Please try again"
+    },
+    si: {
+        appTitle: "Smart AI",
+        appSubtitle: "Gemini AI මගින් බලගන්වා ඇත",
+        email: "විද්‍යුත් ලිපිනය",
+        password: "මුරපදය",
+        name: "නම",
+        login: "ඇතුල් වන්න",
+        signUp: "ලියාපදිංචි වන්න",
+        noAccount: "ගිණුමක් නැද්ද?",
+        haveAccount: "දැනටමත් ගිණුමක් තිබේද?",
+        enterEmail: "ඔබගේ විද්‍යුත් ලිපිනය ඇතුළත් කරන්න",
+        enterPassword: "ඔබගේ මුරපදය ඇතුළත් කරන්න",
+        enterName: "ඔබගේ නම ඇතුළත් කරන්න",
+        createPassword: "මුරපදයක් සාදන්න (අවම අක්ෂර 6ක්)",
+        createAccount: "ඔබගේ ගිණුම සාදන්න",
+        newChat: "නව සංවාදය",
+        welcomeTitle: "ආයුබෝවන්! මම Smart AI සහායකයා",
+        welcomeSubtitle: "මට ප්‍රශ්න, විශ්ලේෂණ, නිර්මාණශීලිත්වය සහ තවත් බොහෝ දේ වලින් ඔබට උදව් කළ හැක!",
+        messagePlaceholder: "මගෙන් ඕනෑම දෙයක් අහන්න...",
+        uploadImage: "පින්තූරය උඩුගත කරන්න",
+        logout: "ඉවත් වන්න",
+        processing: "සැකසෙමින්...",
+        imageUploaded: "පින්තූරය උඩුගත විය!",
+        loginSuccess: "පිවිසුම සාර්ථකයි!",
+        logoutSuccess: "සාර්ථකව ඉවත් විය!",
+        chatDeleted: "සංවාදය මකා දමන ලදී!",
+        deleteConfirm: "මෙම සංවාදය මකන්න ද?",
+        thinking: "චින්තනය කරමින්...",
+        errorOccurred: "දෝෂයක් ඇතිවිය",
+        tryAgain: "කරුණාකර නැවත උත්සාහ කරන්න"
+    }
+};
+
+// ==================== SYSTEM INITIALIZATION ====================
+
+function initializeApp() {
+    console.log('🚀 Starting Smart AI...');
+    
+    // Initialize Firebase first
+    initializeFirebase();
+    
+    // Then initialize UI
+    initializeUI();
+    initializeEventListeners();
+    loadUserPreferences();
+}
+
+function initializeFirebase() {
+    try {
+        if (typeof firebase === 'undefined') {
+            console.log('⚠️ Firebase not available');
+            showChatApp();
+            loadChatSessions();
+            return;
+        }
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        auth = firebase.auth();
+        database = firebase.database();
+        
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('🔐 User authenticated:', user.email);
+                showChatApp();
+                updateUserProfile(user);
+                loadChatSessions();
+            } else {
+                console.log('🔐 No user');
+                showAuthContainer();
+            }
+        });
+        
+    } catch (error) {
+        console.log('⚠️ Firebase failed, using offline mode');
+        showChatApp();
+        loadChatSessions();
+    }
+}
+
+// ==================== STORAGE MANAGEMENT ====================
+
 function getStorageKey() {
     const userId = auth?.currentUser?.uid || 'anonymous';
     return `smartai-sessions-${userId}`;
@@ -41,6 +157,7 @@ function loadChatSessions() {
     try {
         const storageKey = getStorageKey();
         const saved = localStorage.getItem(storageKey);
+        
         if (saved) {
             const data = JSON.parse(saved);
             chatSessions = data.sessions || [];
@@ -52,53 +169,17 @@ function loadChatSessions() {
             currentSessionId = chatSessions[0].id;
             renderChatHistory();
         }
+        
         renderSessions();
+        
     } catch (error) {
         console.error('Load error:', error);
         createNewChat();
     }
 }
 
-// INITIALIZATION
-function initializeApp() {
-    console.log('Starting Smart AI...');
-    initializeFirebase();
-    initializeUI();
-    initializeEventListeners();
-}
+// ==================== AI SERVICE ====================
 
-function initializeFirebase() {
-    try {
-        if (typeof firebase === 'undefined') {
-            showChatApp();
-            loadChatSessions();
-            return;
-        }
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
-        auth = firebase.auth();
-        database = firebase.database();
-        
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                showChatApp();
-                updateUserProfile(user);
-                loadChatSessions();
-            } else {
-                showAuthContainer();
-            }
-        });
-        
-    } catch (error) {
-        showChatApp();
-        loadChatSessions();
-    }
-}
-
-// AI SERVICE
 async function getAIResponse(userMessage, imageData = null) {
     try {
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
@@ -157,12 +238,13 @@ async function getAIResponse(userMessage, imageData = null) {
     }
 }
 
-// CHAT FUNCTIONS
+// ==================== CHAT FUNCTIONS ====================
+
 function createNewChat() {
     const sessionId = 'session_' + Date.now();
     const newSession = {
         id: sessionId,
-        title: 'New chat',
+        title: getTranslation('newChat'),
         messages: [],
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -233,11 +315,17 @@ function addMessageToChat(content, isUser, imageData = null) {
         '<div class="message-avatar user-avatar"><i class="fas fa-user"></i></div>' : 
         '<div class="message-avatar ai-avatar"><i class="fas fa-robot"></i></div>';
     
-    const sender = isUser ? 'You' : 'Smart AI';
+    const sender = isUser ? 
+        (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
+        'Smart AI';
     
     let imageHTML = '';
     if (imageData) {
-        imageHTML = `<img src="${imageData}" alt="Uploaded image" class="message-image">`;
+        imageHTML = `
+            <div class="image-container">
+                <img src="${imageData}" alt="Uploaded image" class="message-image">
+            </div>
+        `;
     }
     
     messageDiv.innerHTML = `
@@ -277,7 +365,8 @@ function addMessageToChat(content, isUser, imageData = null) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// SESSION MANAGEMENT
+// ==================== SESSION MANAGEMENT ====================
+
 function getCurrentSession() {
     return chatSessions.find(session => session.id === currentSessionId);
 }
@@ -313,7 +402,7 @@ function switchSession(sessionId) {
 
 function deleteSession(sessionId, event) {
     if (event) event.stopPropagation();
-    if (!confirm('Delete this chat?')) return;
+    if (!confirm(getTranslation('deleteConfirm'))) return;
     
     const sessionIndex = chatSessions.findIndex(session => session.id === sessionId);
     if (sessionIndex === -1) return;
@@ -329,6 +418,7 @@ function deleteSession(sessionId, event) {
     
     saveChatSessions();
     renderSessions();
+    showNotification(getTranslation('chatDeleted'), 'success');
 }
 
 function renderChatHistory() {
@@ -357,8 +447,8 @@ function showWelcomeScreen() {
             <div class="ai-logo">
                 <i class="fas fa-robot"></i>
             </div>
-            <h1>Hello! I'm Smart AI Assistant</h1>
-            <p>How can I help you today?</p>
+            <h1>${getTranslation('welcomeTitle')}</h1>
+            <p>${getTranslation('welcomeSubtitle')}</p>
         </div>
     `;
 }
@@ -367,7 +457,8 @@ function clearMessages() {
     showWelcomeScreen();
 }
 
-// IMAGE HANDLING
+// ==================== IMAGE HANDLING ====================
+
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -404,7 +495,8 @@ function removeImage() {
     if (imageInput) imageInput.value = '';
 }
 
-// AUTHENTICATION
+// ==================== AUTHENTICATION ====================
+
 async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
@@ -417,7 +509,7 @@ async function handleLogin(e) {
     
     try {
         await auth.signInWithEmailAndPassword(email, password);
-        showNotification('Login successful!', 'success');
+        showNotification(getTranslation('loginSuccess'), 'success');
     } catch (error) {
         showNotification(error.message, 'error');
     }
@@ -446,7 +538,7 @@ async function handleSignup(e) {
 async function handleLogout() {
     try {
         await auth.signOut();
-        showNotification('Logged out successfully!', 'success');
+        showNotification(getTranslation('logoutSuccess'), 'success');
     } catch (error) {
         showNotification(error.message, 'error');
     }
@@ -480,21 +572,59 @@ function showSignup() {
     document.getElementById('signupForm').style.display = 'block';
 }
 
-// UI FUNCTIONS
+// ==================== UI FUNCTIONS ====================
+
 function initializeUI() {
-    // Basic UI setup
+    updateLanguage();
 }
 
 function toggleLanguage() {
-    // Simple language toggle
     currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
-    showNotification('Language changed to ' + (currentLanguage === 'en' ? 'English' : 'Sinhala'));
+    localStorage.setItem('smartai-language', currentLanguage);
+    updateLanguage();
+    renderSessions();
+    renderChatHistory();
+}
+
+function updateLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[currentLanguage][key]) {
+            element.textContent = translations[currentLanguage][key];
+        }
+    });
+    
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.placeholder = getTranslation('messagePlaceholder');
+    }
+}
+
+function getTranslation(key) {
+    return translations[currentLanguage][key] || key;
 }
 
 function showNotification(message, type = 'info') {
-    console.log(type + ': ' + message);
-    // Simple notification - you can enhance this later
-    alert(message);
+    const notification = document.getElementById('notification');
+    const text = document.getElementById('notificationText');
+    
+    if (!notification || !text) return;
+    
+    const icon = notification.querySelector('i');
+    notification.className = `notification ${type}`;
+    text.textContent = message;
+    
+    if (icon) {
+        icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                        type === 'error' ? 'fas fa-exclamation-circle' :
+                        'fas fa-info-circle';
+    }
+    
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
 }
 
 function toggleSidebar() {
@@ -536,7 +666,17 @@ function initializeEventListeners() {
     }
 }
 
-// START APP
+function loadUserPreferences() {
+    const savedLang = localStorage.getItem('smartai-language');
+    if (savedLang) {
+        currentLanguage = savedLang;
+    }
+    updateLanguage();
+}
+
+// ==================== START APPLICATION ====================
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Starting Smart AI...');
     initializeApp();
 });
