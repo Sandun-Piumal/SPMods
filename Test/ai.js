@@ -10,7 +10,7 @@ const firebaseConfig = {
 const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
 
 // APP VERSION
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '2.0.0';
 const VERSION_KEY = 'smartai-version';
 
 // STATE VARIABLES
@@ -20,8 +20,16 @@ let isProcessing = false;
 let chatSessions = [];
 let currentSessionId = null;
 let currentImage = null;
-let currentOCRText = '';
 let currentLanguage = 'en';
+
+// AI MODEL CONFIG
+const AI_CONFIG = {
+    model: 'gemini-2.5-flash',
+    temperature: 0.7,
+    maxTokens: 2048,
+    topP: 0.8,
+    topK: 40
+};
 
 // TRANSLATIONS
 const translations = {
@@ -41,9 +49,9 @@ const translations = {
         createPassword: "Create a password (min 6 characters)",
         createAccount: "Create Your Account",
         newChat: "New chat",
-        welcomeTitle: "Hi, I'm Smart AI.",
-        welcomeSubtitle: "How can I help you today?",
-        messagePlaceholder: "Message Smart AI",
+        welcomeTitle: "Hello! I'm Smart AI Assistant",
+        welcomeSubtitle: "I can help you with questions, analysis, creativity, and more!",
+        messagePlaceholder: "Ask me anything...",
         uploadImage: "Upload Image",
         moreOptions: "More options",
         deepThink: "DeepThink",
@@ -63,7 +71,12 @@ const translations = {
         imageAnalyzed: "Image analyzed!",
         checkUpdates: "Check for Updates",
         updatesAvailable: "New version available!",
-        latestVersion: "You have the latest version!"
+        latestVersion: "You have the latest version!",
+        thinking: "Thinking...",
+        generating: "Generating response...",
+        errorOccurred: "An error occurred",
+        tryAgain: "Please try again",
+        noInternet: "No internet connection"
     },
     si: {
         appTitle: "Smart AI",
@@ -81,9 +94,9 @@ const translations = {
         createPassword: "මුරපදයක් සාදන්න (අවම අක්ෂර 6ක්)",
         createAccount: "ඔබගේ ගිණුම සාදන්න",
         newChat: "නව සංවාදය",
-        welcomeTitle: "හායි, මම Smart AI.",
-        welcomeSubtitle: "අද මට ඔබට උදව් කරන්නේ කෙසේද?",
-        messagePlaceholder: "Smart AI වෙත පණිවිඩයක්",
+        welcomeTitle: "ආයුබෝවන්! මම Smart AI සහායකයා",
+        welcomeSubtitle: "මට ප්‍රශ්න, විශ්ලේෂණ, නිර්මාණශීලිත්වය සහ තවත් බොහෝ දේ වලින් ඔබට උදව් කළ හැක!",
+        messagePlaceholder: "මගෙන් ඕනෑම දෙයක් අහන්න...",
         uploadImage: "පින්තූරය උඩුගත කරන්න",
         moreOptions: "තවත් විකල්ප",
         deepThink: "ගැඹුරු චින්තනය",
@@ -103,545 +116,275 @@ const translations = {
         imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!",
         checkUpdates: "යාවත්කාලීන පරීක්ෂා කරන්න",
         updatesAvailable: "නව අනුවාදයක් තිබේ!",
-        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!"
+        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!",
+        thinking: "චින්තනය කරමින්...",
+        generating: "ප්‍රතිචාරය ජනනය කරමින්...",
+        errorOccurred: "දෝෂයක් ඇතිවිය",
+        tryAgain: "කරුණාකර නැවත උත්සාහ කරන්න",
+        noInternet: "අන්තර්ජාල සම්බන්ධතාවයක් නැත"
     }
 };
 
-// VERSION CONTROL
-function checkForUpdates() {
-    const savedVersion = localStorage.getItem(VERSION_KEY);
-    
-    if (savedVersion !== APP_VERSION) {
-        console.log('🔄 New version detected, clearing cache...');
-        
-        // Clear old caches
-        if ('caches' in window) {
-            caches.keys().then(function(cacheNames) {
-                cacheNames.forEach(function(cacheName) {
-                    caches.delete(cacheName);
-                });
-            });
-        }
-        
-        // Clear localStorage if needed
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('smartai-')) {
-                keysToRemove.push(key);
-            }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        
-        // Update version
-        localStorage.setItem(VERSION_KEY, APP_VERSION);
-        
-        // Force reload
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
-    }
-}
+// ==================== SYSTEM INITIALIZATION ====================
 
-function checkForAppUpdates() {
-    const currentVersion = localStorage.getItem(VERSION_KEY);
-    if (currentVersion !== APP_VERSION) {
-        showNotification(getTranslation('updatesAvailable'), 'info');
-        setTimeout(() => {
-            localStorage.setItem(VERSION_KEY, APP_VERSION);
-            window.location.reload();
-        }, 2000);
-    } else {
-        showNotification(getTranslation('latestVersion'), 'success');
-    }
-}
-
-function setupAutoUpdateCheck() {
-    // Check every 5 minutes for updates
-    setInterval(() => {
-        const currentVersion = localStorage.getItem(VERSION_KEY);
-        if (currentVersion !== APP_VERSION) {
-            showNotification(getTranslation('updatesAvailable'), 'info');
-            setTimeout(() => {
-                window.location.reload();
-            }, 3000);
-        }
-    }, 5 * 60 * 1000);
-}
-
-// LANGUAGE FUNCTIONS
-function getTranslation(key) {
-    return translations[currentLanguage][key] || translations.en[key] || key;
-}
-
-function updateLanguage() {
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        const translation = getTranslation(key);
-        if (translation) {
-            element.textContent = translation;
-        }
-    });
-
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        const translation = getTranslation(key);
-        if (translation) {
-            element.placeholder = translation;
-        }
-    });
-
-    document.querySelectorAll('[data-i18n-title]').forEach(element => {
-        const key = element.getAttribute('data-i18n-title');
-        const translation = getTranslation(key);
-        if (translation) {
-            element.title = translation;
-        }
-    });
-
-    localStorage.setItem('smartai-language', currentLanguage);
-}
-
-function toggleLanguage() {
-    currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
-    updateLanguage();
-    showNotification(currentLanguage === 'en' ? 'Language changed to English' : 'භාෂාව සිංහලට වෙනස් විය');
-}
-
-function loadLanguagePreference() {
-    const savedLang = localStorage.getItem('smartai-language');
-    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
-        currentLanguage = savedLang;
-    }
-    updateLanguage();
-}
-
-// FIREBASE INITIALIZATION
-function initializeFirebase() {
+function initializeApp() {
     try {
-        console.log("🔄 Initializing Firebase...");
+        console.log('🚀 Initializing Smart AI System...');
         
-        if (typeof firebase === 'undefined') {
-            console.error('❌ Firebase SDK not loaded');
-            showNotification('Please check your internet connection', 'error');
+        // Check system requirements
+        if (!checkSystemRequirements()) {
             return;
         }
 
-        // Initialize Firebase app
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        } else {
-            firebase.app();
-        }
+        // Initialize core systems
+        initializeFirebase();
+        initializeUI();
+        initializeEventListeners();
+        loadUserPreferences();
         
-        auth = firebase.auth();
-        database = firebase.database();
+        console.log('✅ Smart AI System initialized successfully');
         
-        console.log("✅ Firebase initialized successfully");
+    } catch (error) {
+        console.error('❌ System initialization failed:', error);
+        showSystemError('System initialization failed');
+    }
+}
 
-        // Auth state listener
-        auth.onAuthStateChanged((user) => {
-            console.log("🔐 Auth state changed:", user ? user.email : "No user");
+function checkSystemRequirements() {
+    const requirements = {
+        fetch: typeof fetch === 'function',
+        localStorage: typeof localStorage !== 'undefined',
+        firebase: typeof firebase !== 'undefined',
+        internet: navigator.onLine
+    };
+
+    if (!requirements.internet) {
+        showNotification(getTranslation('noInternet'), 'error');
+        return false;
+    }
+
+    if (!requirements.fetch) {
+        showSystemError('Browser does not support fetch API');
+        return false;
+    }
+
+    return true;
+}
+
+// ==================== AI CORE ENGINE ====================
+
+class AICoreEngine {
+    constructor() {
+        this.isProcessing = false;
+        this.conversationHistory = [];
+        this.maxHistoryLength = 10;
+    }
+
+    async generateResponse(userMessage, imageData = null, conversationContext = []) {
+        if (this.isProcessing) {
+            throw new Error('AI is already processing a request');
+        }
+
+        this.isProcessing = true;
+        
+        try {
+            console.log('🧠 AI Engine: Processing request...');
             
-            if (user) {
-                showChatApp();
-                loadChatSessions();
-                updateUserProfile(user);
-            } else {
-                showAuthContainer();
-            }
+            const requestPayload = this.buildRequestPayload(userMessage, imageData, conversationContext);
+            const response = await this.makeAPIRequest(requestPayload);
+            const aiResponse = this.processAIResponse(response);
+            
+            // Update conversation history
+            this.updateConversationHistory(userMessage, aiResponse);
+            
+            console.log('✅ AI Engine: Response generated successfully');
+            return aiResponse;
+            
+        } catch (error) {
+            console.error('❌ AI Engine Error:', error);
+            throw this.handleAIError(error);
+        } finally {
+            this.isProcessing = false;
+        }
+    }
+
+    buildRequestPayload(userMessage, imageData, conversationContext) {
+        const payload = {
+            contents: [],
+            generationConfig: {
+                temperature: AI_CONFIG.temperature,
+                maxOutputTokens: AI_CONFIG.maxTokens,
+                topP: AI_CONFIG.topP,
+                topK: AI_CONFIG.topK
+            },
+            safetySettings: [
+                {
+                    category: "HARM_CATEGORY_HARASSMENT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_HATE_SPEECH", 
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                }
+            ]
+        };
+
+        // Add conversation context if available
+        if (conversationContext.length > 0) {
+            conversationContext.forEach(msg => {
+                payload.contents.push({
+                    parts: [{ text: msg.content }],
+                    role: msg.isUser ? 'user' : 'model'
+                });
+            });
+        }
+
+        // Add current message
+        const currentContent = {
+            parts: [{ text: userMessage }]
+        };
+
+        // Add image data if present
+        if (imageData) {
+            currentContent.parts.push({
+                inline_data: {
+                    mime_type: "image/jpeg",
+                    data: imageData.split(',')[1]
+                }
+            });
+        }
+
+        payload.contents.push(currentContent);
+        
+        return payload;
+    }
+
+    async makeAPIRequest(payload) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${AI_CONFIG.model}:generateContent?key=${GEMINI_API_KEY}`;
+        
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
         });
 
-        loadLanguagePreference();
-        
-    } catch (error) {
-        console.error("❌ Firebase init error:", error);
-        showNotification("Failed to initialize app", "error");
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`API Error ${response.status}: ${errorData.error?.message || response.statusText}`);
+        }
+
+        return await response.json();
     }
-}
 
-// UI FUNCTIONS
-function showLogin() {
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
-    
-    if (loginForm) loginForm.style.display = 'block';
-    if (signupForm) signupForm.style.display = 'none';
-    hideMessages();
-}
+    processAIResponse(apiResponse) {
+        if (!apiResponse.candidates || !apiResponse.candidates[0]) {
+            throw new Error('No response generated from AI');
+        }
 
-function showSignup() {
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
-    
-    if (loginForm) loginForm.style.display = 'none';
-    if (signupForm) signupForm.style.display = 'block';
-    hideMessages();
-}
+        const candidate = apiResponse.candidates[0];
+        
+        // Check for safety blocks
+        if (candidate.finishReason === 'SAFETY') {
+            throw new Error('Response blocked due to safety concerns');
+        }
 
-function showAuthContainer() {
-    const authContainer = document.getElementById('authContainer');
-    const chatApp = document.getElementById('chatApp');
-    
-    if (authContainer) authContainer.style.display = 'flex';
-    if (chatApp) chatApp.style.display = 'none';
-}
+        if (!candidate.content || !candidate.content.parts || !candidate.content.parts[0]) {
+            throw new Error('Invalid response format from AI');
+        }
 
-function showChatApp() {
-    const authContainer = document.getElementById('authContainer');
-    const chatApp = document.getElementById('chatApp');
-    
-    if (authContainer) authContainer.style.display = 'none';
-    if (chatApp) chatApp.style.display = 'block';
-}
+        return candidate.content.parts[0].text;
+    }
 
-function hideMessages() {
-    const loginError = document.getElementById('loginError');
-    const signupError = document.getElementById('signupError');
-    const signupSuccess = document.getElementById('signupSuccess');
-    
-    if (loginError) loginError.style.display = 'none';
-    if (signupError) signupError.style.display = 'none';
-    if (signupSuccess) signupSuccess.style.display = 'none';
-}
+    updateConversationHistory(userMessage, aiResponse) {
+        this.conversationHistory.push(
+            { content: userMessage, isUser: true },
+            { content: aiResponse, isUser: false }
+        );
 
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    const text = document.getElementById('notificationText');
-    
-    if (!notification || !text) return;
-    
-    const icon = notification.querySelector('i');
-    notification.className = `notification ${type}`;
-    text.textContent = message;
-    
-    if (icon) {
-        if (type === 'success') {
-            icon.className = 'fas fa-check-circle';
-        } else {
-            icon.className = 'fas fa-exclamation-circle';
+        // Keep only recent history
+        if (this.conversationHistory.length > this.maxHistoryLength * 2) {
+            this.conversationHistory = this.conversationHistory.slice(-this.maxHistoryLength * 2);
         }
     }
-    
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
-}
 
-function showLoading(text) {
-    const overlay = document.getElementById('loadingOverlay');
-    const loadingText = document.getElementById('loadingText');
-    
-    if (overlay && loadingText) {
-        loadingText.textContent = text;
-        overlay.classList.add('show');
+    handleAIError(error) {
+        const errorMessage = error.message || 'Unknown AI error';
+        
+        if (errorMessage.includes('safety') || errorMessage.includes('blocked')) {
+            return new Error(
+                currentLanguage === 'si' 
+                    ? 'මෙම ප්‍රශ්නය සුරක්ෂිතතා හේතූන් මත පිළිතුරු දීමට මට නොහැකි විය' 
+                    : 'I cannot respond to this question due to safety concerns'
+            );
+        }
+        
+        if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+            return new Error(
+                currentLanguage === 'si'
+                    ? 'ජාලකරණ දෝෂයක්. කරුණාකර ඔබගේ අන්තර්ජාල සම්බන්ධතාවය පරීක්ෂා කරන්න'
+                    : 'Network error. Please check your internet connection'
+            );
+        }
+
+        return new Error(
+            currentLanguage === 'si'
+                ? 'AI සේවාවෙන් දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න'
+                : 'Error from AI service. Please try again in a moment'
+        );
+    }
+
+    clearHistory() {
+        this.conversationHistory = [];
+    }
+
+    getHistory() {
+        return [...this.conversationHistory];
     }
 }
 
-function hideLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.classList.remove('show');
-    }
-}
+// Initialize AI Engine
+const aiEngine = new AICoreEngine();
 
-function toggleSidebar() {
-    const sidebar = document.getElementById('chatSidebar');
-    const overlay = document.getElementById('sidebarOverlay');
+// ==================== ENHANCED AI RESPONSE FUNCTION ====================
+
+async function getAIResponse(userMessage, imageData = null) {
+    console.log('🤖 Smart AI: Processing request...');
     
-    if (sidebar) sidebar.classList.toggle('active');
-    if (overlay) overlay.classList.toggle('active');
-}
-
-function closeSidebar() {
-    const sidebar = document.getElementById('chatSidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    
-    if (sidebar) sidebar.classList.remove('active');
-    if (overlay) overlay.classList.remove('active');
-}
-
-function updateUserProfile(user) {
-    const userNameElement = document.getElementById('userName');
-    const userEmailElement = document.getElementById('userEmail');
-    
-    if (userNameElement) {
-        userNameElement.textContent = user.displayName || user.email.split('@')[0] || 'User';
-    }
-    if (userEmailElement) {
-        userEmailElement.textContent = user.email || '';
-    }
-}
-
-// FIREBASE DATABASE FUNCTIONS
-async function saveUserToDatabase(userId, name, email) {
     try {
-        const userData = {
-            name: name,
-            email: email,
-            createdAt: Date.now(),
-            lastLogin: Date.now(),
-            chatSessions: []
-        };
+        // Get conversation context from current session
+        const currentSession = getCurrentSession();
+        const conversationContext = currentSession ? 
+            currentSession.messages.slice(-4) : []; // Last 2 exchanges
         
-        const userRef = database.ref('users/' + userId);
-        await userRef.set(userData);
+        showNotification(getTranslation('thinking'), 'info');
         
-        console.log("✅ User data saved to Firebase Database");
-        return true;
+        const response = await aiEngine.generateResponse(
+            userMessage, 
+            imageData, 
+            conversationContext
+        );
+        
+        console.log('✅ Smart AI: Response generated');
+        return response;
         
     } catch (error) {
-        console.error("❌ Error saving user to database:", error);
+        console.error('❌ Smart AI Error:', error);
         throw error;
     }
 }
 
-async function updateUserInDatabase() {
-    try {
-        const user = auth.currentUser;
-        if (!user) return;
-        
-        const userRef = database.ref('users/' + user.uid);
-        await userRef.update({
-            lastLogin: Date.now()
-        });
-        
-        console.log("✅ User last login updated");
-        
-    } catch (error) {
-        console.error("❌ Error updating user in database:", error);
-    }
-}
+// ==================== ENHANCED CHAT FUNCTIONS ====================
 
-// AUTH HANDLERS
-async function handleLogin(event) {
-    if (event) event.preventDefault();
-    if (isProcessing) return;
-    
-    const email = document.getElementById('loginEmail');
-    const password = document.getElementById('loginPassword');
-    const btn = document.getElementById('loginBtn');
-    
-    if (!email || !password || !email.value || !password.value) {
-        showNotification('Please fill all fields', 'error');
-        return;
-    }
-    
-    isProcessing = true;
-    if (btn) {
-        btn.disabled = true;
-        const loader = btn.querySelector('.loader');
-        const loginText = btn.querySelector('#loginText');
-        if (loader) loader.style.display = 'block';
-        if (loginText) loginText.textContent = 'Logging in...';
-    }
-    
-    hideMessages();
-    
-    try {
-        const userCredential = await auth.signInWithEmailAndPassword(email.value, password.value);
-        await updateUserInDatabase();
-        showNotification(getTranslation('loginSuccess'));
-        if (email) email.value = '';
-        if (password) password.value = '';
-        
-    } catch (error) {
-        console.error("Login error:", error);
-        const errorMsg = document.getElementById('loginError');
-        
-        if (errorMsg) {
-            if (error.code === 'auth/user-not-found') {
-                errorMsg.textContent = 'No account found with this email. Please sign up.';
-            } else if (error.code === 'auth/wrong-password') {
-                errorMsg.textContent = 'Incorrect password. Please try again.';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMsg.textContent = 'Invalid email address.';
-            } else {
-                errorMsg.textContent = 'Login failed. Please check your credentials.';
-            }
-            errorMsg.style.display = 'block';
-        }
-    } finally {
-        isProcessing = false;
-        if (btn) {
-            btn.disabled = false;
-            const loader = btn.querySelector('.loader');
-            const loginText = btn.querySelector('#loginText');
-            if (loader) loader.style.display = 'none';
-            if (loginText) loginText.textContent = getTranslation('login');
-        }
-    }
-}
-
-async function handleSignup(event) {
-    if (event) event.preventDefault();
-    if (isProcessing) return;
-    
-    const name = document.getElementById('signupName');
-    const email = document.getElementById('signupEmail');
-    const password = document.getElementById('signupPassword');
-    const btn = document.getElementById('signupBtn');
-    
-    if (!name || !email || !password || !name.value || !email.value || !password.value) {
-        showNotification('Please fill all fields', 'error');
-        return;
-    }
-    
-    if (password.value.length < 6) {
-        showNotification('Password must be at least 6 characters', 'error');
-        return;
-    }
-    
-    isProcessing = true;
-    if (btn) {
-        btn.disabled = true;
-        const loader = btn.querySelector('.loader');
-        const signupText = btn.querySelector('#signupText');
-        if (loader) loader.style.display = 'block';
-        if (signupText) signupText.textContent = 'Creating account...';
-    }
-    
-    hideMessages();
-    
-    try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email.value, password.value);
-        const user = userCredential.user;
-        
-        await user.updateProfile({ 
-            displayName: name.value 
-        });
-        
-        await saveUserToDatabase(user.uid, name.value, email.value);
-        
-        const successMsg = document.getElementById('signupSuccess');
-        if (successMsg) {
-            successMsg.textContent = 'Registration successful! Redirecting...';
-            successMsg.style.display = 'block';
-        }
-        
-        if (name) name.value = '';
-        if (email) email.value = '';
-        if (password) password.value = '';
-        
-        setTimeout(() => {
-            showLogin();
-        }, 2000);
-        
-    } catch (error) {
-        console.error("Signup error:", error);
-        const errorMsg = document.getElementById('signupError');
-        
-        if (errorMsg) {
-            if (error.code === 'auth/email-already-in-use') {
-                errorMsg.textContent = 'This email is already registered. Please login.';
-            } else if (error.code === 'auth/weak-password') {
-                errorMsg.textContent = 'Password is too weak. Please use a stronger password.';
-            } else if (error.code === 'auth/invalid-email') {
-                errorMsg.textContent = 'Invalid email address.';
-            } else {
-                errorMsg.textContent = 'Registration failed. Please try again.';
-            }
-            errorMsg.style.display = 'block';
-        }
-    } finally {
-        isProcessing = false;
-        if (btn) {
-            btn.disabled = false;
-            const loader = btn.querySelector('.loader');
-            const signupText = btn.querySelector('#signupText');
-            if (loader) loader.style.display = 'none';
-            if (signupText) signupText.textContent = getTranslation('signUp');
-        }
-    }
-}
-
-async function handleLogout() {
-    try {
-        await auth.signOut();
-        chatSessions = [];
-        currentSessionId = null;
-        showNotification(getTranslation('logoutSuccess'));
-    } catch (error) {
-        console.error("Logout error:", error);
-        showNotification('Logout failed', 'error');
-    }
-}
-
-// GEMINI AI FUNCTIONS
-async function getAIResponse(userMessage, imageData = null) {
-    console.log("🤖 Getting AI response...", { userMessage, hasImage: !!imageData });
-    
-    try {
-        let apiUrl, requestBody;
-
-        if (imageData) {
-            // Vision API
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            requestBody = {
-                contents: [{
-                    parts: [
-                        { text: userMessage },
-                        {
-                            inline_data: {
-                                mime_type: "image/jpeg",
-                                data: imageData.split(',')[1]
-                            }
-                        }
-                    ]
-                }],
-                generationConfig: {
-                    temperature: 0.4,
-                    maxOutputTokens: 2048,
-                }
-            };
-        } else {
-            // Text API
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            requestBody = {
-                contents: [{
-                    parts: [{ text: userMessage }]
-                }],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 1024,
-                }
-            };
-        }
-        
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        if (!aiResponse) {
-            throw new Error('Empty response from AI');
-        }
-        
-        console.log("✅ AI API success");
-        return aiResponse;
-        
-    } catch (error) {
-        console.error('❌ AI Error:', error);
-        
-        if (currentLanguage === 'si') {
-            return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.';
-        } else {
-            return 'I apologize, but I encountered an error. Please try again in a moment.';
-        }
-    }
-}
-
-// CHAT FUNCTIONS
 function createNewChat() {
     const sessionId = 'session_' + Date.now();
     
@@ -650,11 +393,19 @@ function createNewChat() {
         title: getTranslation('newChat'),
         messages: [],
         createdAt: Date.now(),
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        metadata: {
+            messageCount: 0,
+            hasImages: false,
+            language: currentLanguage
+        }
     };
     
     chatSessions.unshift(newSession);
     currentSessionId = sessionId;
+    
+    // Clear AI conversation history for new chat
+    aiEngine.clearHistory();
     
     saveChatSessions();
     renderSessions();
@@ -664,32 +415,7 @@ function createNewChat() {
         closeSidebar();
     }
     
-    showNotification('New chat started');
-}
-
-function clearMessages() {
-    const messagesDiv = document.getElementById('chatMessages');
-    if (!messagesDiv) return;
-    
-    messagesDiv.innerHTML = `
-        <div class="welcome-screen">
-            <div class="ai-logo">
-                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
-                    <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
-                    <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
-                </svg>
-            </div>
-            <h1>${getTranslation('welcomeTitle')}</h1>
-            <p>${getTranslation('welcomeSubtitle')}</p>
-        </div>
-    `;
+    showNotification('New chat session started', 'success');
 }
 
 async function sendMessage() {
@@ -703,14 +429,13 @@ async function sendMessage() {
         return;
     }
     
-    const messageToSend = message || (currentLanguage === 'si' ? 
-        'මෙම පින්තූරය ගැන මට කියන්න' : 
-        'Tell me about this image');
+    // Add user message to chat
+    addMessageToChat(message, true, currentImage);
     
-    addMessageToChat(messageToSend, true, currentImage);
-    
+    // Clear input
     if (input) input.value = '';
     
+    // Show typing indicator
     const sendBtn = document.getElementById('sendButton');
     const typing = document.getElementById('typingIndicator');
     
@@ -719,25 +444,32 @@ async function sendMessage() {
     if (typing) typing.style.display = 'flex';
     
     try {
-        console.log("🔄 Getting AI response...");
-        const response = await getAIResponse(messageToSend, currentImage);
+        console.log('🔄 Smart AI: Generating response...');
         
+        const response = await getAIResponse(
+            message || (currentLanguage === 'si' ? 
+                'මෙම පින්තූරය ගැන මට කියන්න' : 
+                'Tell me about this image'),
+            currentImage
+        );
+        
+        // Hide typing indicator
         if (typing) typing.style.display = 'none';
+        
+        // Add AI response to chat
         addMessageToChat(response, false);
         
         if (currentImage) {
-            showNotification(getTranslation('imageAnalyzed'));
+            showNotification(getTranslation('imageAnalyzed'), 'success');
         }
         
     } catch (error) {
-        console.error("❌ Error in sendMessage:", error);
+        console.error('❌ Chat Error:', error);
         if (typing) typing.style.display = 'none';
         
-        const errorMsg = currentLanguage === 'si' 
-            ? 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
-            : 'Sorry, an error occurred. Please try again.';
+        // Add error message to chat
+        addMessageToChat(error.message, false);
         
-        addMessageToChat(errorMsg, false);
     } finally {
         isProcessing = false;
         if (sendBtn) sendBtn.disabled = false;
@@ -751,6 +483,7 @@ function addMessageToChat(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
     
+    // Remove welcome screen if present
     const welcome = messagesDiv.querySelector('.welcome-screen');
     if (welcome) {
         welcome.remove();
@@ -760,8 +493,8 @@ function addMessageToChat(content, isUser, imageData = null) {
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
     
     const avatarIcon = isUser ? 
-        '<div class="message-avatar"><i class="fas fa-user"></i></div>' : 
-        '<div class="message-avatar"><i class="fas fa-robot"></i></div>';
+        '<div class="message-avatar user-avatar"><i class="fas fa-user"></i></div>' : 
+        '<div class="message-avatar ai-avatar"><i class="fas fa-robot"></i></div>';
     
     const messageLabel = isUser ? 
         (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
@@ -771,7 +504,7 @@ function addMessageToChat(content, isUser, imageData = null) {
     if (imageData) {
         imageHTML = `
             <div class="image-container">
-                <img src="${imageData}" alt="Uploaded image" class="message-image">
+                <img src="${imageData}" alt="Uploaded image" class="message-image" onload="this.style.opacity='1'" onerror="this.style.display='none'">
                 <div class="image-caption">${currentLanguage === 'si' ? 'ඔබ උඩුගත කළ පින්තූරය' : 'Image you uploaded'}</div>
             </div>
         `;
@@ -780,16 +513,22 @@ function addMessageToChat(content, isUser, imageData = null) {
     messageDiv.innerHTML = `
         <div class="message-header">
             ${avatarIcon}
-            <span>${messageLabel}</span>
+            <div class="message-info">
+                <span class="message-sender">${messageLabel}</span>
+                <span class="message-time">${new Date().toLocaleTimeString()}</span>
+            </div>
         </div>
         <div class="message-content">
             ${imageHTML}
-            <div class="message-text">${content.replace(/\n/g, '<br>')}</div>
+            <div class="message-text">${formatMessageContent(content)}</div>
         </div>
         ${!isUser ? `
             <div class="message-actions">
-                <button class="action-btn copy-btn" onclick="copyMessage(this)">
-                    <i class="fas fa-copy"></i> ${currentLanguage === 'si' ? 'පිටපත්' : 'Copy'}
+                <button class="action-btn copy-btn" onclick="copyMessage(this)" title="${currentLanguage === 'si' ? 'පිටපත් කරන්න' : 'Copy'}">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="action-btn regenerate-btn" onclick="regenerateLastResponse()" title="${currentLanguage === 'si' ? 'නැවත උත්පාදනය කරන්න' : 'Regenerate'}">
+                    <i class="fas fa-redo"></i>
                 </button>
             </div>
         ` : ''}
@@ -797,6 +536,7 @@ function addMessageToChat(content, isUser, imageData = null) {
     
     messagesDiv.appendChild(messageDiv);
     
+    // Save to session
     const session = getCurrentSession();
     if (session) {
         session.messages.push({
@@ -808,6 +548,11 @@ function addMessageToChat(content, isUser, imageData = null) {
         
         session.updatedAt = Date.now();
         
+        // Update session metadata
+        session.metadata.messageCount = session.messages.length;
+        session.metadata.hasImages = session.metadata.hasImages || !!imageData;
+        
+        // Update session title with first user message
         if (isUser && session.messages.filter(m => m.isUser).length === 1) {
             const titleText = content.replace(/<[^>]*>/g, '').substring(0, 30);
             session.title = titleText + (titleText.length >= 30 ? '...' : '');
@@ -817,105 +562,185 @@ function addMessageToChat(content, isUser, imageData = null) {
         renderSessions();
     }
     
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-function handleKeyPress(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-    }
-}
-
-function copyMessage(button) {
-    const messageContent = button.closest('.message');
-    if (!messageContent) return;
-    
-    const messageText = messageContent.querySelector('.message-text');
-    if (!messageText) return;
-    
-    const textContent = messageText.textContent || messageText.innerText;
-    
-    navigator.clipboard.writeText(textContent).then(() => {
-        const originalHTML = button.innerHTML;
-        button.innerHTML = `<i class="fas fa-check"></i> ${currentLanguage === 'si' ? 'පිටපත් විය!' : 'Copied!'}`;
-        button.style.background = '#10b981';
-        
-        setTimeout(() => {
-            button.innerHTML = originalHTML;
-            button.style.background = '';
-        }, 2000);
-    }).catch(err => {
-        console.error('Copy failed:', err);
+    // Smooth scroll to bottom
+    messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: 'smooth'
     });
 }
 
-// IMAGE UPLOAD
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+function formatMessageContent(content) {
+    // Convert URLs to clickable links
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    content = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
     
-    if (!file.type.startsWith('image/')) {
-        showNotification('Please upload an image file', 'error');
-        return;
+    // Format code blocks
+    content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+    
+    // Format inline code
+    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Convert line breaks
+    content = content.replace(/\n/g, '<br>');
+    
+    return content;
+}
+
+async function regenerateLastResponse() {
+    const session = getCurrentSession();
+    if (!session || session.messages.length < 2) return;
+    
+    // Get last user message
+    const lastUserMessage = session.messages.filter(msg => msg.isUser).pop();
+    if (!lastUserMessage) return;
+    
+    // Remove last AI response
+    session.messages = session.messages.slice(0, -1);
+    
+    // Regenerate response
+    await sendMessage();
+}
+
+// ==================== ENHANCED UI FUNCTIONS ====================
+
+function initializeUI() {
+    updateLanguage();
+    checkForUpdates();
+    setupRealTimeFeatures();
+}
+
+function setupRealTimeFeatures() {
+    // Auto-save every 30 seconds
+    setInterval(() => {
+        if (chatSessions.length > 0) {
+            saveChatSessions();
+        }
+    }, 30000);
+    
+    // Check for connectivity
+    window.addEventListener('online', () => {
+        showNotification('Connection restored', 'success');
+    });
+    
+    window.addEventListener('offline', () => {
+        showNotification('No internet connection', 'error');
+    });
+}
+
+function showNotification(message, type = 'success', duration = 4000) {
+    const notification = document.getElementById('notification');
+    const text = document.getElementById('notificationText');
+    
+    if (!notification || !text) return;
+    
+    const icon = notification.querySelector('i');
+    notification.className = `notification ${type}`;
+    text.textContent = message;
+    
+    if (icon) {
+        icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                        type === 'error' ? 'fas fa-exclamation-circle' :
+                        'fas fa-info-circle';
     }
     
-    showLoading(getTranslation('processingImage'));
+    notification.classList.add('show');
     
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        currentImage = e.target.result;
-        
-        const preview = document.getElementById('imagePreview');
-        const previewImage = document.getElementById('previewImage');
-        
-        if (preview && previewImage) {
-            previewImage.src = currentImage;
-            preview.style.display = 'block';
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, duration);
+}
+
+function showSystemError(message) {
+    const errorHtml = `
+        <div class="system-error">
+            <div class="error-icon">⚠️</div>
+            <div class="error-content">
+                <h3>System Error</h3>
+                <p>${message}</p>
+                <button onclick="location.reload()" class="btn btn-primary">Reload App</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.innerHTML = errorHtml;
+}
+
+// ==================== FIREBASE ENHANCEMENTS ====================
+
+function initializeFirebase() {
+    try {
+        if (typeof firebase === 'undefined') {
+            throw new Error('Firebase SDK not loaded');
+        }
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
         
-        hideLoading();
-        showNotification(getTranslation('imageUploaded'));
+        auth = firebase.auth();
+        database = firebase.database();
         
-        const messageInput = document.getElementById('messageInput');
-        if (messageInput) messageInput.focus();
-    };
-    
-    reader.onerror = function() {
-        hideLoading();
-        showNotification('Failed to load image', 'error');
-    };
-    
-    reader.readAsDataURL(file);
-    event.target.value = '';
+        // Enhanced auth state handling
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('🔐 User authenticated:', user.email);
+                showChatApp();
+                loadChatSessions();
+                updateUserProfile(user);
+                trackUserActivity('login');
+            } else {
+                console.log('🔐 No user authenticated');
+                showAuthContainer();
+                trackUserActivity('logout');
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Firebase initialization failed:', error);
+        // Continue without Firebase for offline functionality
+        showAuthContainer();
+    }
 }
 
-function removeImage() {
-    currentImage = null;
-    const preview = document.getElementById('imagePreview');
-    const previewImage = document.getElementById('previewImage');
+function trackUserActivity(action) {
+    if (!auth?.currentUser || !database) return;
     
-    if (preview) preview.style.display = 'none';
-    if (previewImage) previewImage.src = '';
+    try {
+        const userRef = database.ref('userActivities/' + auth.currentUser.uid);
+        userRef.push({
+            action: action,
+            timestamp: Date.now(),
+            userAgent: navigator.userAgent,
+            language: currentLanguage
+        });
+    } catch (error) {
+        console.log('Activity tracking failed:', error);
+    }
 }
 
-// SESSION MANAGEMENT
+// ==================== SESSION MANAGEMENT ENHANCEMENTS ====================
+
 function getStorageKey() {
-    const userId = auth && auth.currentUser ? auth.currentUser.uid : 'anonymous';
-    return `smartai-sessions-${userId}`;
+    const userId = auth?.currentUser?.uid || 'anonymous';
+    return `smartai-sessions-${userId}-v2`;
 }
 
 async function saveChatSessions() {
     try {
-        const userId = auth && auth.currentUser ? auth.currentUser.uid : null;
         const storageKey = getStorageKey();
+        const dataToSave = {
+            sessions: chatSessions,
+            version: APP_VERSION,
+            savedAt: Date.now()
+        };
         
-        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+        // Save to localStorage
+        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
         
-        if (userId && database) {
-            const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
-            await userSessionsRef.set(chatSessions);
-            console.log("✅ Data saved to both localStorage and Firebase");
+        // Sync to Firebase if available
+        if (auth?.currentUser && database) {
+            const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
+            await userRef.set(dataToSave);
         }
         
     } catch (error) {
@@ -925,202 +750,109 @@ async function saveChatSessions() {
 
 async function loadChatSessions() {
     try {
-        const userId = auth && auth.currentUser ? auth.currentUser.uid : null;
         const storageKey = getStorageKey();
+        let sessionsData = null;
         
-        let sessions = [];
-
         // Try to load from Firebase first
-        if (userId && database) {
+        if (auth?.currentUser && database) {
             try {
-                const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
-                const snapshot = await userSessionsRef.once('value');
-                
+                const userRef = database.ref('users/' + auth.currentUser.uid + '/chatData');
+                const snapshot = await userRef.once('value');
                 if (snapshot.exists()) {
-                    sessions = snapshot.val();
-                    console.log("✅ Loaded from Firebase");
+                    sessionsData = snapshot.val();
                 }
             } catch (firebaseError) {
-                console.log("⚠️ Firebase load failed:", firebaseError);
+                console.log('Firebase load failed, trying localStorage...');
             }
         }
-
+        
         // Fallback to localStorage
-        if (!sessions || sessions.length === 0) {
+        if (!sessionsData) {
             const saved = localStorage.getItem(storageKey);
             if (saved) {
-                try {
-                    sessions = JSON.parse(saved);
-                    console.log("✅ Loaded from localStorage");
-                } catch (parseError) {
-                    console.error("❌ Failed to parse localStorage data:", parseError);
-                    sessions = [];
-                }
+                sessionsData = JSON.parse(saved);
             }
         }
-
-        chatSessions = Array.isArray(sessions) ? sessions : [];
-
+        
+        if (sessionsData?.sessions) {
+            chatSessions = sessionsData.sessions;
+            
+            // Migrate old session format if needed
+            chatSessions = chatSessions.map(session => {
+                if (!session.metadata) {
+                    session.metadata = {
+                        messageCount: session.messages?.length || 0,
+                        hasImages: session.messages?.some(m => m.imageData) || false,
+                        language: currentLanguage
+                    };
+                }
+                return session;
+            });
+        }
+        
         if (chatSessions.length === 0) {
             createNewChat();
         } else {
             currentSessionId = chatSessions[0].id;
             renderChatHistory();
         }
-
+        
         renderSessions();
-
+        
     } catch (error) {
         console.error('❌ Load sessions error:', error);
         createNewChat();
     }
 }
 
-function renderSessions() {
-    const historyContainer = document.getElementById('chatHistory');
-    if (!historyContainer) return;
+// ==================== APP INITIALIZATION ====================
+
+function loadUserPreferences() {
+    // Load language preference
+    const savedLang = localStorage.getItem('smartai-language');
+    if (savedLang && (savedLang === 'en' || savedLang === 'si')) {
+        currentLanguage = savedLang;
+    }
     
-    historyContainer.innerHTML = '';
+    // Load theme preference
+    const savedTheme = localStorage.getItem('smartai-theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
     
-    chatSessions.forEach(session => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        if (session.id === currentSessionId) {
-            item.classList.add('active');
-        }
+    updateLanguage();
+}
+
+function initializeEventListeners() {
+    // Message input handling
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
         
-        const lastMessage = session.messages && session.messages.length > 0 
-            ? session.messages[session.messages.length - 1].content 
-            : (currentLanguage === 'si' ? 'තවම පණිවිඩ නැත' : 'No messages yet');
-        
-        const timeStr = getTimeString(session.updatedAt);
-        
-        item.innerHTML = `
-            <div class="history-title">${escapeHtml(session.title || getTranslation('newChat'))}</div>
-            <div class="history-preview">${escapeHtml((lastMessage || '').substring(0, 40))}${(lastMessage || '').length > 40 ? '...' : ''}</div>
-            <div class="history-time">${timeStr}</div>
-            <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="${currentLanguage === 'si' ? 'මකන්න' : 'Delete'}">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-        
-        item.onclick = () => switchToSession(session.id);
-        historyContainer.appendChild(item);
-    });
-}
-
-function getTimeString(timestamp) {
-    if (!timestamp) return '';
-    
-    const now = Date.now();
-    const diff = now - timestamp;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
-    
-    if (currentLanguage === 'si') {
-        if (days === 0) return 'අද';
-        if (days === 1) return 'ඊයේ';
-        if (days < 7) return `දින ${days}කට පෙර`;
-        return new Date(timestamp).toLocaleDateString('si-LK');
-    } else {
-        if (days === 0) return 'Today';
-        if (days === 1) return 'Yesterday';
-        if (days < 7) return `${days} days ago`;
-        return new Date(timestamp).toLocaleDateString();
-    }
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function switchToSession(sessionId) {
-    if (currentSessionId === sessionId) {
-        closeSidebar();
-        return;
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
     }
     
-    currentSessionId = sessionId;
-    renderChatHistory();
-    renderSessions();
-    closeSidebar();
-}
-
-function deleteChat(sessionId, event) {
-    if (event) event.stopPropagation();
-    
-    const confirmMsg = getTranslation('deleteConfirm');
-    if (!confirm(confirmMsg)) return;
-    
-    const index = chatSessions.findIndex(s => s.id === sessionId);
-    if (index === -1) return;
-    
-    chatSessions.splice(index, 1);
-    
-    if (currentSessionId === sessionId) {
-        if (chatSessions.length > 0) {
-            currentSessionId = chatSessions[0].id;
-            renderChatHistory();
-        } else {
-            createNewChat();
-        }
+    // Image upload handling
+    const imageInput = document.getElementById('imageInput');
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImageUpload);
     }
     
-    saveChatSessions();
-    renderSessions();
-    showNotification(getTranslation('chatDeleted'));
-}
-
-function getCurrentSession() {
-    return chatSessions.find(s => s.id === currentSessionId);
-}
-
-function renderChatHistory() {
-    const session = getCurrentSession();
-    const messagesDiv = document.getElementById('chatMessages');
-    
-    if (!messagesDiv) return;
-    messagesDiv.innerHTML = '';
-    
-    if (!session || !session.messages || session.messages.length === 0) {
-        clearMessages();
-        return;
+    // Language toggle
+    const languageBtn = document.querySelector('.language-btn');
+    if (languageBtn) {
+        languageBtn.addEventListener('click', toggleLanguage);
     }
     
-    session.messages.forEach(msg => {
-        addMessageToChat(msg.content, msg.isUser, msg.imageData);
-    });
-}
-
-// SETTINGS MENU
-function toggleSettings() {
-    const settingsMenu = document.querySelector('.settings-menu');
-    if (settingsMenu) {
-        settingsMenu.classList.toggle('active');
-    }
-}
-
-function addUpdateButton() {
-    const settingsMenu = document.querySelector('.settings-menu');
-    if (!settingsMenu) return;
-    
-    const updateBtn = document.createElement('button');
-    updateBtn.className = 'action-btn';
-    updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> ' + getTranslation('checkUpdates');
-    updateBtn.onclick = checkForAppUpdates;
-    
-    settingsMenu.appendChild(updateBtn);
-}
-
-// INITIALIZE APP
-window.addEventListener('load', function() {
-    console.log("🎯 Page loaded - initializing app");
-    checkForUpdates();
-    initializeFirebase();
-    
+    // Auth form submissions
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
     
@@ -1130,40 +862,149 @@ window.addEventListener('load', function() {
     if (signupForm) {
         signupForm.addEventListener('submit', handleSignup);
     }
-    
-    addUpdateButton();
-    
-    console.log("✅ App initialized");
+}
+
+// ==================== START APPLICATION ====================
+
+window.addEventListener('load', function() {
+    console.log('🚀 Starting Smart AI Application...');
+    initializeApp();
 });
 
-// Add CSS for image display
-const style = document.createElement('style');
-style.textContent = `
-    .image-container {
-        margin-bottom: 10px;
-        text-align: center;
-    }
-    .message-image {
-        max-width: 300px;
-        max-height: 300px;
-        border-radius: 8px;
-        border: 2px solid #4A90E2;
-    }
-    .image-caption {
-        font-size: 12px;
-        color: #888;
-        margin-top: 5px;
-    }
-    .message-text {
-        line-height: 1.5;
-        word-wrap: break-word;
+// Add enhanced CSS
+const enhancedStyles = document.createElement('style');
+enhancedStyles.textContent = `
+    .message {
+        margin-bottom: 1.5rem;
+        animation: messageSlideIn 0.3s ease-out;
     }
     
-    /* Settings menu update button */
-    .settings-menu .action-btn {
-        width: 100%;
-        margin: 5px 0;
-        text-align: left;
+    @keyframes messageSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .message-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+    
+    .message-sender {
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+    
+    .message-avatar {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+    
+    .user-avatar {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .ai-avatar {
+        background: linear-gradient(135deg, #4A90E2, #357ABD);
+        color: white;
+    }
+    
+    .message-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+    
+    .action-btn {
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        background: white;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+    }
+    
+    .action-btn:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+    
+    .system-error {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 2rem;
+    }
+    
+    .error-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .error-content {
+        text-align: center;
+        max-width: 400px;
+    }
+    
+    .message-text code {
+        background: #f3f4f6;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875em;
+    }
+    
+    .message-text pre {
+        background: #1f2937;
+        color: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin: 0.5rem 0;
+    }
+    
+    .message-text a {
+        color: #4A90E2;
+        text-decoration: underline;
+    }
+    
+    .message-text a:hover {
+        color: #357ABD;
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(enhancedStyles);
+
+console.log('🤖 Smart AI System Code Loaded Successfully');
