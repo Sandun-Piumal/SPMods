@@ -1,19 +1,21 @@
-const CACHE_NAME = 'smart-ai-v1.0';
+const CACHE_NAME = 'smart-ai-v1.0.1';
+const APP_URL = 'https://www.spmods.download/Test/ai.html';
+
 const urlsToCache = [
-  '/Test/',
-  '/Test/index.html',
-  '/Test/manifest.json',
-  '/Test/icon.svg',
-  '/Test/style.css'
+  '/',
+  '/index.html',
+  APP_URL,
+  '/manifest.json',
+  '/icon.svg'
 ];
 
 // Install
 self.addEventListener('install', (event) => {
-  console.log('🚀 Service Worker Installing...');
+  console.log('[SW] Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('📦 Caching app resources');
+        console.log('[SW] Caching files');
         return cache.addAll(urlsToCache);
       })
       .then(() => self.skipWaiting())
@@ -22,30 +24,57 @@ self.addEventListener('install', (event) => {
 
 // Activate
 self.addEventListener('activate', (event) => {
-  console.log('🎯 Service Worker Activated');
+  console.log('[SW] Activating...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('[SW] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch
+// Fetch - Network first, fallback to cache
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        if (response) {
+        if (!response || response.status !== 200) {
           return response;
         }
-        return fetch(event.request);
+
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME)
+          .then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request)
+          .then((response) => {
+            if (response) {
+              return response;
+            }
+            if (event.request.url.includes(APP_URL)) {
+              return caches.match(APP_URL);
+            }
+          });
       })
   );
+});
+
+// Messages
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
