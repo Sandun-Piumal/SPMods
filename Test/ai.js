@@ -982,3 +982,714 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
         }
     }
 }
+
+// ============================================
+// SMART AI CHAT APP - PART 5/5
+// Chat Functions & Session Management
+// ============================================
+
+// ============================================
+// MESSAGE FORMATTING - MARKDOWN SUPPORT
+// ============================================
+function formatAIResponse(text) {
+    if (!text) return '';
+    
+    text = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+        return `<pre><code class="code-block">${code.trim()}</code></pre>`;
+    });
+    text = text.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+    text = text.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    text = text.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
+    text = text.replace(/_([^_]+)_/g, '<em>$1</em>');
+    text = text.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+    text = text.replace(/^### (.*$)/gm, '<h3 class="md-h3">$1</h3>');
+    text = text.replace(/^## (.*$)/gm, '<h2 class="md-h2">$1</h2>');
+    text = text.replace(/^# (.*$)/gm, '<h1 class="md-h1">$1</h1>');
+    text = text.replace(/^\* (.*$)/gm, '<li class="md-li">$1</li>');
+    text = text.replace(/^- (.*$)/gm, '<li class="md-li">$1</li>');
+    text = text.replace(/^\d+\. (.*$)/gm, '<li class="md-li-ordered">$1</li>');
+    text = text.replace(/(<li class="md-li">.*<\/li>\n?)+/g, '<ul class="md-ul">$&</ul>');
+    text = text.replace(/(<li class="md-li-ordered">.*<\/li>\n?)+/g, '<ol class="md-ol">$&</ol>');
+    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" class="md-link">$1</a>');
+    text = text.replace(/^&gt; (.*$)/gm, '<blockquote class="md-blockquote">$1</blockquote>');
+    text = text.replace(/^---$/gm, '<hr class="md-hr">');
+    text = text.replace(/^\*\*\*$/gm, '<hr class="md-hr">');
+    text = text.replace(/\n/g, '<br>');
+    
+    return text;
+}
+
+// ============================================
+// DISPLAY MESSAGES
+// ============================================
+function displayMessage(content, isUser, imageData = null) {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
+    const welcome = messagesDiv.querySelector('.welcome-screen');
+    if (welcome) welcome.remove();
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+    
+    const avatarIcon = isUser ? 
+        '<div class="message-avatar"><i class="fas fa-user"></i></div>' : 
+        '<div class="message-avatar"><i class="fas fa-robot"></i></div>';
+    
+    const messageLabel = isUser ? 
+        (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
+        'Smart AI';
+    
+    let imageHTML = '';
+    if (imageData) {
+        imageHTML = `
+            <div class="image-container">
+                <img src="${imageData}" alt="Uploaded image" class="message-image">
+                <div class="image-caption">${currentLanguage === 'si' ? 'ඔබ උඩුගත කළ පින්තූරය' : 'Image you uploaded'}</div>
+            </div>
+        `;
+    }
+    
+    const formattedContent = isUser ? content.replace(/\n/g, '<br>') : formatAIResponse(content);
+    
+    messageDiv.innerHTML = `
+        <div class="message-header">
+            ${avatarIcon}
+            <span>${messageLabel}</span>
+        </div>
+        <div class="message-content">
+            ${imageHTML}
+            <div class="message-text">${formattedContent}</div>
+        </div>
+        ${!isUser ? `
+            <div class="message-actions">
+                <button class="action-btn copy-btn" onclick="copyMessage(this)">
+                    <i class="fas fa-copy"></i> ${currentLanguage === 'si' ? 'පිටපත්' : 'Copy'}
+                </button>
+            </div>
+        ` : ''}
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function displayGeneratedImageMessage(imageBase64, prompt) {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
+    const welcome = messagesDiv.querySelector('.welcome-screen');
+    if (welcome) welcome.remove();
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ai-message';
+    
+    const messageLabel = 'Smart AI';
+    const downloadBtnText = currentLanguage === 'si' ? 'පින්තූරය බාගන්න' : 'Download Image';
+    
+    messageDiv.innerHTML = `
+        <div class="message-header">
+            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            <span>${messageLabel}</span>
+        </div>
+        <div class="message-content">
+            <div class="image-container generated-image-container">
+                <img src="${imageBase64}" alt="Generated image" class="message-image generated-image">
+                <div class="image-caption">${currentLanguage === 'si' ? 'AI මගින් සාදන ලද පින්තූරය' : 'AI Generated Image'}</div>
+            </div>
+            <div class="message-text">
+                ${currentLanguage === 'si' ? 'මෙන්න ඔබගේ පින්තූරය!' : 'Here is your generated image!'}
+            </div>
+        </div>
+        <div class="message-actions">
+            <button class="action-btn download-btn" onclick="downloadGeneratedImage('${imageBase64}', '${prompt.replace(/'/g, "\\'")}')">
+                <i class="fas fa-download"></i> ${downloadBtnText}
+            </button>
+        </div>
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function copyMessage(button) {
+    const messageContent = button.closest('.message');
+    if (!messageContent) return;
+    
+    const messageText = messageContent.querySelector('.message-text');
+    if (!messageText) return;
+    
+    const textContent = messageText.textContent || messageText.innerText;
+    
+    navigator.clipboard.writeText(textContent).then(() => {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = `<i class="fas fa-check"></i> ${currentLanguage === 'si' ? 'පිටපත් විය!' : 'Copied!'}`;
+        button.style.background = '#10b981';
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.style.background = '';
+        }, 2000);
+    }).catch(err => {
+        console.error('Copy failed:', err);
+    });
+}
+
+// ============================================
+// SEND MESSAGE - MAIN FUNCTION
+// ============================================
+async function sendMessage() {
+    if (isProcessing || isImageLoading || isGeneratingImage) return;
+    
+    const input = document.getElementById('messageInput');
+    const message = input ? input.value.trim() : '';
+    
+    if (!message && !currentImage) {
+        showNotification('Please enter a message or upload an image', 'error');
+        return;
+    }
+    
+    // Check if image generation request
+    if (message && isImageGenerationRequest(message) && !currentImage) {
+        await handleImageGenerationFlow(message);
+        return;
+    }
+    
+    const messageToSend = message || (currentLanguage === 'si' ? 
+        'මෙම පින්තූරය ගැන මට කියන්න' : 
+        'Tell me about this image');
+    
+    const session = getCurrentSession();
+    if (!session) {
+        createNewChat();
+        return;
+    }
+    
+    displayMessage(messageToSend, true, currentImage);
+    
+    session.messages.push({
+        content: messageToSend,
+        isUser: true,
+        imageData: currentImage,
+        timestamp: Date.now()
+    });
+    
+    if (session.messages.filter(m => m.isUser).length === 1) {
+        const titleText = messageToSend.replace(/<[^>]*>/g, '').substring(0, 30);
+        session.title = titleText + (titleText.length >= 30 ? '...' : '');
+    }
+    
+    session.updatedAt = Date.now();
+    saveChatSessions();
+    renderSessions();
+    
+    if (input) input.value = '';
+    
+    const sendBtn = document.getElementById('sendButton');
+    const typing = document.getElementById('typingIndicator');
+    
+    isProcessing = true;
+    if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.classList.add('processing');
+    }
+    if (typing) typing.style.display = 'flex';
+    
+    const imageToSend = currentImage;
+    currentImage = null;
+    removeImage();
+    
+    try {
+        console.log("🔄 Getting AI response with history...");
+        
+        const historyForAI = session.messages.slice(-11, -1);
+        const response = await getAIResponse(messageToSend, imageToSend, historyForAI);
+        
+        if (typing) typing.style.display = 'none';
+        
+        displayMessage(response, false);
+        
+        session.messages.push({
+            content: response,
+            isUser: false,
+            timestamp: Date.now()
+        });
+        
+        session.updatedAt = Date.now();
+        saveChatSessions();
+        renderSessions();
+        
+        if (imageToSend) {
+            showNotification(getTranslation('imageAnalyzed'));
+        }
+        
+    } catch (error) {
+        console.error("❌ Error in sendMessage:", error);
+        if (typing) typing.style.display = 'none';
+        
+        const errorMsg = currentLanguage === 'si' 
+            ? 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
+            : 'Sorry, an error occurred. Please try again.';
+        
+        displayMessage(errorMsg, false);
+        
+        session.messages.push({
+            content: errorMsg,
+            isUser: false,
+            timestamp: Date.now()
+        });
+        
+        saveChatSessions();
+    } finally {
+        isProcessing = false;
+        if (sendBtn) sendBtn.classList.remove('processing');
+        updateSendButtonState();
+        if (input) input.focus();
+    }
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        if (!isProcessing && !isImageLoading && !isGeneratingImage) {
+            sendMessage();
+        }
+    }
+}
+
+// ============================================
+// IMAGE UPLOAD
+// ============================================
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+        showNotification('Please upload an image file', 'error');
+        return;
+    }
+    
+    isImageLoading = true;
+    updateSendButtonState();
+    showLoading(getTranslation('processingImage'));
+    
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        currentImage = e.target.result;
+        
+        const preview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        
+        if (preview && previewImage) {
+            previewImage.src = currentImage;
+            preview.style.display = 'block';
+            preview.classList.add('loading');
+            
+            const img = new Image();
+            img.onload = function() {
+                isImageLoading = false;
+                preview.classList.remove('loading');
+                hideLoading();
+                updateSendButtonState();
+                showNotification(getTranslation('imageUploaded'));
+                
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput) messageInput.focus();
+            };
+            
+            img.onerror = function() {
+                isImageLoading = false;
+                currentImage = null;
+                preview.style.display = 'none';
+                preview.classList.remove('loading');
+                hideLoading();
+                updateSendButtonState();
+                showNotification('Failed to load image', 'error');
+            };
+            
+            img.src = currentImage;
+        }
+    };
+    
+    reader.onerror = function() {
+        isImageLoading = false;
+        updateSendButtonState();
+        hideLoading();
+        showNotification('Failed to read image file', 'error');
+    };
+    
+    reader.readAsDataURL(file);
+    event.target.value = '';
+}
+
+function removeImage() {
+    currentImage = null;
+    isImageLoading = false;
+    
+    const preview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    
+    if (preview) {
+        preview.style.display = 'none';
+        preview.classList.remove('loading');
+    }
+    if (previewImage) previewImage.src = '';
+    
+    updateSendButtonState();
+}
+
+function updateSendButtonState() {
+    const sendBtn = document.getElementById('sendButton');
+    const input = document.getElementById('messageInput');
+    
+    if (!sendBtn) return;
+    
+    const hasMessage = input && input.value.trim().length > 0;
+    const hasImage = currentImage !== null;
+    
+    const shouldEnable = !isProcessing && !isImageLoading && !isGeneratingImage && (hasMessage || hasImage);
+    
+    sendBtn.disabled = !shouldEnable;
+    
+    if (!shouldEnable) {
+        sendBtn.style.opacity = '0.5';
+        sendBtn.style.cursor = 'not-allowed';
+    } else {
+        sendBtn.style.opacity = '1';
+        sendBtn.style.cursor = 'pointer';
+    }
+}
+
+function handleInputChange() {
+    updateSendButtonState();
+}
+
+// ============================================
+// SESSION MANAGEMENT
+// ============================================
+function getStorageKey() {
+    const userId = auth && auth.currentUser ? auth.currentUser.uid : 'anonymous';
+    return `smartai-sessions-${userId}`;
+}
+
+async function saveChatSessions() {
+    try {
+        const userId = auth && auth.currentUser ? auth.currentUser.uid : null;
+        const storageKey = getStorageKey();
+        
+        localStorage.setItem(storageKey, JSON.stringify(chatSessions));
+        
+        if (userId && database) {
+            const sessionsArray = chatSessions.map((session, index) => ({
+                ...session,
+                index: index
+            }));
+            
+            const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
+            await userSessionsRef.set(sessionsArray);
+            console.log("✅ Data saved to both localStorage and Firebase");
+        }
+        
+    } catch (error) {
+        console.error('❌ Save sessions error:', error);
+    }
+}
+
+async function loadChatSessions() {
+    try {
+        const userId = auth && auth.currentUser ? auth.currentUser.uid : null;
+        const storageKey = getStorageKey();
+        
+        let sessions = [];
+
+        if (userId && database) {
+            try {
+                const userSessionsRef = database.ref('users/' + userId + '/chatSessions');
+                const snapshot = await userSessionsRef.once('value');
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    sessions = Array.isArray(data) ? data : Object.values(data);
+                    console.log("✅ Loaded from Firebase");
+                }
+            } catch (firebaseError) {
+                console.log("⚠️ Firebase load failed:", firebaseError);
+            }
+        }
+
+        if (!sessions || sessions.length === 0) {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                try {
+                    sessions = JSON.parse(saved);
+                    console.log("✅ Loaded from localStorage");
+                } catch (parseError) {
+                    console.error("❌ Failed to parse localStorage data:", parseError);
+                    sessions = [];
+                }
+            }
+        }
+
+        chatSessions = Array.isArray(sessions) ? sessions : [];
+
+        if (chatSessions.length === 0) {
+            createNewChat();
+        } else {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        }
+
+        renderSessions();
+
+    } catch (error) {
+        console.error('❌ Load sessions error:', error);
+        createNewChat();
+    }
+}
+
+function createNewChat() {
+    const sessionId = 'session_' + Date.now();
+    
+    const newSession = {
+        id: sessionId,
+        title: getTranslation('newChat'),
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    };
+    
+    chatSessions.unshift(newSession);
+    currentSessionId = sessionId;
+    
+    saveChatSessions();
+    renderSessions();
+    clearMessages();
+    
+    if (window.innerWidth <= 768) {
+        closeSidebar();
+    }
+    
+    showNotification('New chat started');
+}
+
+function clearMessages() {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
+    messagesDiv.innerHTML = `
+        <div class="welcome-screen">
+            <div class="ai-logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
+                    <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
+                    <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
+                </svg>
+            </div>
+            <h1>${getTranslation('welcomeTitle')}</h1>
+            <p>${getTranslation('welcomeSubtitle')}</p>
+        </div>
+    `;
+}
+
+function renderSessions() {
+    const historyContainer = document.getElementById('chatHistory');
+    if (!historyContainer) return;
+    
+    historyContainer.innerHTML = '';
+    
+    chatSessions.forEach(session => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        if (session.id === currentSessionId) {
+            item.classList.add('active');
+        }
+        
+        const lastMessage = session.messages && session.messages.length > 0 
+            ? session.messages[session.messages.length - 1].content 
+            : (currentLanguage === 'si' ? 'තවම පණිවිඩ නැත' : 'No messages yet');
+        
+        const timeStr = getTimeString(session.updatedAt);
+        
+        item.innerHTML = `
+            <div class="history-title">${escapeHtml(session.title || getTranslation('newChat'))}</div>
+            <div class="history-preview">${escapeHtml((lastMessage || '').substring(0, 40))}${(lastMessage || '').length > 40 ? '...' : ''}</div>
+            <div class="history-time">${timeStr}</div>
+            <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="${currentLanguage === 'si' ? 'මකන්න' : 'Delete'}">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        
+        item.onclick = () => switchToSession(session.id);
+        historyContainer.appendChild(item);
+    });
+}
+
+function switchToSession(sessionId) {
+    if (currentSessionId === sessionId) {
+        closeSidebar();
+        return;
+    }
+    
+    currentSessionId = sessionId;
+    renderChatHistory();
+    renderSessions();
+    closeSidebar();
+}
+
+function deleteChat(sessionId, event) {
+    if (event) event.stopPropagation();
+    
+    const confirmMsg = getTranslation('deleteConfirm');
+    if (!confirm(confirmMsg)) return;
+    
+    const index = chatSessions.findIndex(s => s.id === sessionId);
+    if (index === -1) return;
+    
+    chatSessions.splice(index, 1);
+    
+    if (currentSessionId === sessionId) {
+        if (chatSessions.length > 0) {
+            currentSessionId = chatSessions[0].id;
+            renderChatHistory();
+        } else {
+            createNewChat();
+        }
+    }
+    
+    saveChatSessions();
+    renderSessions();
+    showNotification(getTranslation('chatDeleted'));
+}
+
+function getCurrentSession() {
+    return chatSessions.find(s => s.id === currentSessionId);
+}
+
+function renderChatHistory() {
+    const session = getCurrentSession();
+    const messagesDiv = document.getElementById('chatMessages');
+    
+    if (!messagesDiv) return;
+    messagesDiv.innerHTML = '';
+    
+    if (!session || !session.messages || session.messages.length === 0) {
+        clearMessages();
+        return;
+    }
+    
+    session.messages.forEach(msg => {
+        if (msg.isGeneratedImage) {
+            displayGeneratedImageMessage(msg.imageData, msg.imagePrompt || 'Generated image');
+        } else {
+            displayMessage(msg.content, msg.isUser, msg.imageData);
+        }
+    });
+}
+
+// ============================================
+// INITIALIZE APP
+// ============================================
+window.addEventListener('load', function() {
+    console.log("🎯 Page loaded - initializing app");
+    checkForUpdates();
+    initializeFirebase();
+    
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    
+    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+    if (signupForm) signupForm.addEventListener('submit', handleSignup);
+    
+    addUpdateButton();
+    
+    console.log("✅ App initialized with image generation support - VERSION 1.0.4");
+});
+
+// ============================================
+// CSS STYLES FOR MARKDOWN & IMAGES
+// ============================================
+const markdownStyle = document.createElement('style');
+markdownStyle.textContent = `
+    .message-text strong { font-weight: 600; color: #1a1a1a; }
+    .message-text em { font-style: italic; }
+    .message-text del { text-decoration: line-through; opacity: 0.7; }
+    .message-text code.inline-code {
+        background: #f4f4f4; padding: 2px 6px; border-radius: 4px;
+        font-family: 'Courier New', monospace; font-size: 0.9em;
+        color: #e83e8c; border: 1px solid #e1e1e1;
+    }
+    .message-text pre {
+        background: #1e1e1e; padding: 12px; border-radius: 6px;
+        overflow-x: auto; margin: 10px 0;
+    }
+    .message-text code.code-block {
+        color: #d4d4d4; font-family: 'Courier New', monospace;
+        font-size: 0.9em; display: block; white-space: pre; line-height: 1.5;
+    }
+    .message-text .md-h1 { font-size: 1.8em; font-weight: 700; margin: 16px 0 8px 0; color: #2c3e50; }
+    .message-text .md-h2 { font-size: 1.5em; font-weight: 600; margin: 14px 0 7px 0; color: #34495e; }
+    .message-text .md-h3 { font-size: 1.3em; font-weight: 600; margin: 12px 0 6px 0; color: #4A90E2; }
+    .message-text .md-ul, .message-text .md-ol { margin: 10px 0; padding-left: 25px; }
+    .message-text .md-li, .message-text .md-li-ordered { margin: 5px 0; line-height: 1.6; }
+    .message-text .md-ul .md-li { list-style-type: disc; }
+    .message-text .md-ol .md-li-ordered { list-style-type: decimal; }
+    .message-text .md-link {
+        color: #4A90E2; text-decoration: none; border-bottom: 1px solid #4A90E2; transition: all 0.2s;
+    }
+    .message-text .md-link:hover { color: #357ABD; border-bottom-color: #357ABD; }
+    .message-text .md-blockquote {
+        border-left: 4px solid #4A90E2; padding-left: 15px;
+        margin: 10px 0; color: #666; font-style: italic;
+    }
+    .message-text .md-hr { border: none; border-top: 2px solid #e1e1e1; margin: 20px 0; }
+    .image-container { margin-bottom: 10px; text-align: center; }
+    .message-image {
+        max-width: 300px; max-height: 300px; border-radius: 8px; border: 2px solid #4A90E2;
+    }
+    .image-caption { font-size: 12px; color: #888; margin-top: 5px; }
+    .generated-image-container { position: relative; }
+    .generated-image {
+        border: 3px solid #4A90E2; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+    }
+    .download-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
+    }
+    .download-btn:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px);
+    }
+    #imagePreview { position: relative; }
+    #imagePreview.loading::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.5); display: flex; align-items: center;
+        justify-content: center; border-radius: 8px; z-index: 1;
+    }
+    #imagePreview.loading::after {
+        content: ''; position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%); width: 40px; height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.3); border-top-color: #fff;
+        border-radius: 50%; animation: spin 1s linear infinite; z-index: 2;
+    }
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+    #sendButton:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    #sendButton.processing { position: relative; }
+    #sendButton.processing i { opacity: 0; }
+    #sendButton.processing::after {
+        content: ''; position: absolute; width: 16px; height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: #fff;
+        border-radius: 50%; animation: spin 0.8s linear infinite;
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+`;
+document.head.appendChild(markdownStyle);
+
+console.log("✅ Smart AI Chat App - All 5 parts loaded successfully!");
