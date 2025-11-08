@@ -24,7 +24,7 @@ let currentLanguage = 'en';
 
 // AI MODEL CONFIG
 const AI_CONFIG = {
-    model: 'gemini-2.5-flash',
+    model: 'gemini-1.5-flash',
     temperature: 0.7,
     maxTokens: 2048,
     topP: 0.8,
@@ -145,10 +145,9 @@ function initializeApp() {
         console.log('✅ Smart AI System initialized successfully');
         
     } catch (error) {
-    console.error('❌ System initialization failed:', error);
-    showNotification('App started with limited functionality', 'info');
-    showAuthContainer(); // Still show the app
-}
+        console.error('❌ System initialization failed:', error);
+        showSystemError('System initialization failed');
+    }
 }
 
 function checkSystemRequirements() {
@@ -164,17 +163,13 @@ function checkSystemRequirements() {
         return false;
     }
 
-if (!requirements.fetch) {
-    console.warn('Browser does not support fetch API - AI features disabled');
-    showNotification('Some features disabled - Upgrade browser for full experience', 'warning');
-    return true; // Still continue the app
-}
+    if (!requirements.fetch) {
+        showSystemError('Browser does not support fetch API');
+        return false;
+    }
 
     return true;
 }
-
-
-
 
 // ==================== AI CORE ENGINE ====================
 
@@ -575,6 +570,8 @@ function addMessageToChat(content, isUser, imageData = null) {
 }
 
 function formatMessageContent(content) {
+    if (!content) return '';
+    
     // Convert URLs to clickable links
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     content = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
@@ -606,7 +603,274 @@ async function regenerateLastResponse() {
     await sendMessage();
 }
 
-// ==================== ENHANCED UI FUNCTIONS ====================
+function copyMessage(button) {
+    const messageText = button.closest('.message').querySelector('.message-text').textContent;
+    navigator.clipboard.writeText(messageText).then(() => {
+        showNotification('Message copied to clipboard', 'success');
+    });
+}
+
+// ==================== SESSION MANAGEMENT ====================
+
+function getCurrentSession() {
+    return chatSessions.find(session => session.id === currentSessionId);
+}
+
+function renderSessions() {
+    const sessionsList = document.getElementById('sessionsList');
+    if (!sessionsList) return;
+    
+    sessionsList.innerHTML = '';
+    
+    chatSessions.forEach(session => {
+        const sessionElement = document.createElement('div');
+        sessionElement.className = `session-item ${session.id === currentSessionId ? 'active' : ''}`;
+        sessionElement.innerHTML = `
+            <div class="session-content" onclick="switchSession('${session.id}')">
+                <div class="session-title">${session.title || getTranslation('newChat')}</div>
+                <div class="session-meta">
+                    <span class="session-date">${formatDate(session.updatedAt)}</span>
+                    <span class="session-count">${session.messages ? session.messages.length : 0} messages</span>
+                </div>
+            </div>
+            <button class="session-delete" onclick="deleteSession('${session.id}', event)">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        sessionsList.appendChild(sessionElement);
+    });
+}
+
+function switchSession(sessionId) {
+    currentSessionId = sessionId;
+    renderChatHistory();
+    renderSessions();
+    
+    if (window.innerWidth <= 768) {
+        closeSidebar();
+    }
+}
+
+function deleteSession(sessionId, event) {
+    if (event) event.stopPropagation();
+    
+    if (!confirm(getTranslation('deleteConfirm'))) return;
+    
+    const sessionIndex = chatSessions.findIndex(session => session.id === sessionId);
+    if (sessionIndex === -1) return;
+    
+    chatSessions.splice(sessionIndex, 1);
+    
+    if (chatSessions.length === 0) {
+        createNewChat();
+    } else if (currentSessionId === sessionId) {
+        currentSessionId = chatSessions[0].id;
+        renderChatHistory();
+    }
+    
+    saveChatSessions();
+    renderSessions();
+    showNotification(getTranslation('chatDeleted'), 'success');
+}
+
+function renderChatHistory() {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
+    messagesDiv.innerHTML = '';
+    
+    const session = getCurrentSession();
+    if (!session || !session.messages || session.messages.length === 0) {
+        showWelcomeScreen();
+        return;
+    }
+    
+    session.messages.forEach(message => {
+        addMessageToChat(message.content, message.isUser, message.imageData);
+    });
+    
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function showWelcomeScreen() {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
+    messagesDiv.innerHTML = `
+        <div class="welcome-screen">
+            <div class="welcome-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h2>${getTranslation('welcomeTitle')}</h2>
+            <p>${getTranslation('welcomeSubtitle')}</p>
+            <div class="welcome-features">
+                <div class="feature">
+                    <i class="fas fa-comment"></i>
+                    <span>${currentLanguage === 'si' ? 'ප්‍රශ්නවලට පිළිතුරු දෙන්න' : 'Answer questions'}</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-image"></i>
+                    <span>${currentLanguage === 'si' ? 'පින්තූර විශ්ලේෂණය කරන්න' : 'Analyze images'}</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>${currentLanguage === 'si' ? 'නිර්මාණශීලී අදහස්' : 'Creative ideas'}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function clearMessages() {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (messagesDiv) {
+        messagesDiv.innerHTML = '';
+    }
+    showWelcomeScreen();
+}
+
+// ==================== IMAGE HANDLING ====================
+
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+        showNotification('Please select an image file', 'error');
+        return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image size should be less than 5MB', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentImage = e.target.result;
+        showNotification(getTranslation('imageUploaded'), 'success');
+        showImagePreview(currentImage);
+    };
+    reader.readAsDataURL(file);
+}
+
+function showImagePreview(imageData) {
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadBtn = document.getElementById('uploadButton');
+    
+    if (imagePreview && uploadBtn) {
+        imagePreview.innerHTML = `
+            <img src="${imageData}" alt="Preview">
+            <button class="remove-image" onclick="removeImage()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        imagePreview.style.display = 'block';
+        uploadBtn.style.display = 'none';
+    }
+}
+
+function removeImage() {
+    currentImage = null;
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadBtn = document.getElementById('uploadButton');
+    const imageInput = document.getElementById('imageInput');
+    
+    if (imagePreview) imagePreview.style.display = 'none';
+    if (uploadBtn) uploadBtn.style.display = 'block';
+    if (imageInput) imageInput.value = '';
+}
+
+// ==================== AUTHENTICATION ====================
+
+async function handleLogin(e) {
+    if (e) e.preventDefault();
+    
+    const email = document.getElementById('loginEmail')?.value;
+    const password = document.getElementById('loginPassword')?.value;
+    
+    if (!email || !password) {
+        showNotification('Please enter email and password', 'error');
+        return;
+    }
+    
+    try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        showNotification(getTranslation('loginSuccess'), 'success');
+        return userCredential;
+    } catch (error) {
+        console.error('Login error:', error);
+        showNotification(error.message, 'error');
+        throw error;
+    }
+}
+
+async function handleSignup(e) {
+    if (e) e.preventDefault();
+    
+    const name = document.getElementById('signupName')?.value;
+    const email = document.getElementById('signupEmail')?.value;
+    const password = document.getElementById('signupPassword')?.value;
+    
+    if (!name || !email || !password) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await userCredential.user.updateProfile({ displayName: name });
+        showNotification('Account created successfully!', 'success');
+        return userCredential;
+    } catch (error) {
+        console.error('Signup error:', error);
+        showNotification(error.message, 'error');
+        throw error;
+    }
+}
+
+async function handleLogout() {
+    try {
+        await auth.signOut();
+        showNotification(getTranslation('logoutSuccess'), 'success');
+        chatSessions = [];
+        currentSessionId = null;
+    } catch (error) {
+        console.error('Logout error:', error);
+        showNotification(error.message, 'error');
+    }
+}
+
+function showAuthContainer() {
+    const authContainer = document.getElementById('authContainer');
+    const chatApp = document.getElementById('chatApp');
+    
+    if (authContainer) authContainer.style.display = 'flex';
+    if (chatApp) chatApp.style.display = 'none';
+}
+
+function showChatApp() {
+    const authContainer = document.getElementById('authContainer');
+    const chatApp = document.getElementById('chatApp');
+    
+    if (authContainer) authContainer.style.display = 'none';
+    if (chatApp) chatApp.style.display = 'flex';
+}
+
+function updateUserProfile(user) {
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    
+    if (userName) userName.textContent = user.displayName || 'User';
+    if (userEmail) userEmail.textContent = user.email;
+}
+
+// ==================== UI FUNCTIONS ====================
 
 function initializeUI() {
     updateLanguage();
@@ -632,13 +896,52 @@ function setupRealTimeFeatures() {
     });
 }
 
+function toggleLanguage() {
+    currentLanguage = currentLanguage === 'en' ? 'si' : 'en';
+    localStorage.setItem('smartai-language', currentLanguage);
+    updateLanguage();
+    renderSessions();
+    renderChatHistory();
+}
+
+function updateLanguage() {
+    document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        if (translations[currentLanguage][key]) {
+            element.textContent = translations[currentLanguage][key];
+        }
+    });
+    
+    // Update placeholders
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.placeholder = getTranslation('messagePlaceholder');
+    }
+}
+
+function getTranslation(key) {
+    return translations[currentLanguage][key] || key;
+}
+
 function showNotification(message, type = 'success', duration = 4000) {
-    const notification = document.getElementById('notification');
+    // Create notification if it doesn't exist
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.className = 'notification';
+        notification.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span id="notificationText"></span>
+        `;
+        document.body.appendChild(notification);
+    }
+    
     const text = document.getElementById('notificationText');
-    
-    if (!notification || !text) return;
-    
     const icon = notification.querySelector('i');
+    
+    if (!text) return;
+    
     notification.className = `notification ${type}`;
     text.textContent = message;
     
@@ -670,7 +973,21 @@ function showSystemError(message) {
     document.body.innerHTML = errorHtml;
 }
 
-// ==================== FIREBASE ENHANCEMENTS ====================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('active');
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.remove('active');
+    }
+}
+
+// ==================== FIREBASE FUNCTIONS ====================
 
 function initializeFirebase() {
     try {
@@ -723,7 +1040,7 @@ function trackUserActivity(action) {
     }
 }
 
-// ==================== SESSION MANAGEMENT ENHANCEMENTS ====================
+// ==================== STORAGE MANAGEMENT ====================
 
 function getStorageKey() {
     const userId = auth?.currentUser?.uid || 'anonymous';
@@ -810,7 +1127,7 @@ async function loadChatSessions() {
     }
 }
 
-// ==================== APP INITIALIZATION ====================
+// ==================== UTILITY FUNCTIONS ====================
 
 function loadUserPreferences() {
     // Load language preference
@@ -866,6 +1183,27 @@ function initializeEventListeners() {
     }
     if (signupForm) {
         signupForm.addEventListener('submit', handleSignup);
+    }
+}
+
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    
+    if (diff < 24 * 60 * 60 * 1000) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+}
+
+function checkForUpdates() {
+    const savedVersion = localStorage.getItem(VERSION_KEY);
+    if (savedVersion !== APP_VERSION) {
+        console.log('🔄 New version detected, clearing old data...');
+        // Clear old data and migrate if needed
+        localStorage.setItem(VERSION_KEY, APP_VERSION);
     }
 }
 
@@ -1008,6 +1346,80 @@ enhancedStyles.textContent = `
     
     .message-text a:hover {
         color: #357ABD;
+    }
+    
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border-left: 4px solid #10b981;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        z-index: 1000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        max-width: 400px;
+    }
+    
+    .notification.show {
+        transform: translateX(0);
+    }
+    
+    .notification.success {
+        border-left-color: #10b981;
+    }
+    
+    .notification.error {
+        border-left-color: #ef4444;
+    }
+    
+    .notification.info {
+        border-left-color: #4A90E2;
+    }
+    
+    .welcome-screen {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #6b7280;
+    }
+    
+    .welcome-icon {
+        font-size: 4rem;
+        color: #4A90E2;
+        margin-bottom: 1.5rem;
+    }
+    
+    .welcome-screen h2 {
+        color: #1f2937;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+    
+    .welcome-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .feature {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 0.5rem;
+    }
+    
+    .feature i {
+        font-size: 1.5rem;
+        color: #4A90E2;
     }
 `;
 document.head.appendChild(enhancedStyles);
