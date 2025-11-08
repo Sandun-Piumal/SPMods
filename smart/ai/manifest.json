@@ -1,40 +1,30 @@
 {
-  "name": "Smart AI - Your Intelligent Assistant",
+  "name": "Smart AI",
   "short_name": "Smart AI",
-  "description": "Your Intelligent Assistant powered by advanced AI technology",
-  "start_url": "https://www.spmods.download/Test/index.html",
+  "description": "ඔබේ බුද්ධිමත් AI සහායක - Offline සහ Online ක්‍රියාත්මක",
+  "start_url": "https://www.spmods.download/Test/ai.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
-  "orientation": "portrait-primary",
+  "background_color": "#8A000000",
+  "theme_color": "#8A000000",
+  "orientation": "any",
   "dir": "ltr",
-  "lang": "en",
-  "categories": ["productivity", "utilities", "ai"],
-  "prefer_related_applications": false,
+  "lang": "si",
   "icons": [
     {
-      "src": "./icon-192.svg",
-      "sizes": "192x192",
-      "type": "image/svg",
-      "purpose": "any"
-    },
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "education", "utilities"],
+  "shortcuts": [
     {
-      "src": "./icon-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-192.svg",
-      "sizes": "192x192",
-      "type": "image/svg",
-      "purpose": "maskable"
-    },
-    {
-      "src": "./icon-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg",
-      "purpose": "maskable"
+      "name": "Smart AI විවෘත කරන්න",
+      "short_name": "Open AI",
+      "url": "https://www.spmods.download/Test/ai.html",
+      "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ]
 }
