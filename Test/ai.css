@@ -31,14 +31,10 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-    
-    /* ============================================
-   SPLASH SCREEN STYLES - FULL BROWSER SUPPORT
-   ============================================ */
 /* ============================================
    SPLASH SCREEN STYLES
    ============================================ */
-        
+
 #splashScreen {
     position: fixed;
     top: 0;
@@ -388,7 +384,8 @@ body {
     .splash-sparkle {
         animation: none !important;
     }
-   }
+}
+
 /* ============================================
    LOADING OVERLAY
    ============================================ */
