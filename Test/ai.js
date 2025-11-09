@@ -1,5 +1,70 @@
 // ============================================
-// SMART AI CHAT APP - JS PART 1/4
+// SPLASH SCREEN MANAGER - FIRST PRIORITY
+// ============================================
+
+// Create floating particles for splash
+(function() {
+    const particlesContainer = document.getElementById('splashParticles');
+    if (particlesContainer) {
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'splash-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+})();
+
+// Splash timing control
+let minSplashTimeElapsed = false;
+let authCheckComplete = false;
+const MIN_SPLASH_DURATION = 2500; // 2.5 seconds
+
+// Start minimum splash timer
+setTimeout(() => {
+    console.log("⏱️ Minimum splash time elapsed");
+    minSplashTimeElapsed = true;
+    checkReadyToShowApp();
+}, MIN_SPLASH_DURATION);
+
+// Check if ready to show app
+function checkReadyToShowApp() {
+    if (minSplashTimeElapsed && authCheckComplete) {
+        console.log("✅ Ready to show app!");
+        showMainApp();
+    } else {
+        console.log("⏳ Waiting... minTime:", minSplashTimeElapsed, "authCheck:", authCheckComplete);
+    }
+}
+
+// Transition to main app
+function showMainApp() {
+    const splashScreen = document.getElementById('splashScreen');
+    const mainApp = document.getElementById('mainAppContainer');
+    
+    console.log("🎬 Transitioning to main app...");
+    
+    if (splashScreen) splashScreen.classList.add('hidden');
+    
+    setTimeout(() => {
+        if (mainApp) mainApp.classList.add('visible');
+        console.log("✨ Main app visible!");
+    }, 500);
+}
+
+// Mark auth check complete
+function markAuthCheckComplete() {
+    console.log("🔐 Auth check complete");
+    authCheckComplete = true;
+    checkReadyToShowApp();
+}
+
+console.log("✅ Splash Screen Manager loaded");
+
+// ============================================
+// SMART AI CHAT APP - PART 1/5
 // Firebase Config & Core Variables
 // ============================================
 
@@ -127,10 +192,10 @@ const translations = {
     }
 };
 
-console.log("✅ Part 1/4 loaded - Config & Variables");
+console.log("✅ Part 1/5 loaded - Splash Manager, Config & Variables");
 
 // ============================================
-// SMART AI CHAT APP - JS PART 2/4
+// SMART AI CHAT APP - PART 2/5
 // Helper Functions, Language & Firebase Init
 // ============================================
 
@@ -379,7 +444,7 @@ function addUpdateButton() {
     settingsMenu.appendChild(updateBtn);
 }
 
-// FIREBASE INITIALIZATION
+// FIREBASE INITIALIZATION (⭐ MODIFIED FOR SPLASH)
 function initializeFirebase() {
     try {
         console.log("🔄 Initializing Firebase...");
@@ -387,6 +452,7 @@ function initializeFirebase() {
         if (typeof firebase === 'undefined') {
             console.error('❌ Firebase SDK not loaded');
             showNotification('Please check your internet connection', 'error');
+            markAuthCheckComplete(); // ⭐ IMPORTANT
             return;
         }
 
@@ -404,6 +470,9 @@ function initializeFirebase() {
         auth.onAuthStateChanged((user) => {
             console.log("🔐 Auth state changed:", user ? user.email : "No user");
             
+            // ⭐⭐⭐ CRITICAL: Mark auth check complete ⭐⭐⭐
+            markAuthCheckComplete();
+            
             if (user) {
                 showChatApp();
                 loadChatSessions();
@@ -417,6 +486,7 @@ function initializeFirebase() {
         
     } catch (error) {
         console.error("❌ Firebase init error:", error);
+        markAuthCheckComplete(); // ⭐ IMPORTANT
         showNotification("Failed to initialize app", "error");
     }
 }
@@ -614,25 +684,21 @@ async function handleLogout() {
     }
 }
 
-console.log("✅ Part 2/4 loaded - Helpers & Firebase");
+console.log("✅ Part 2/5 loaded - Helpers & Firebase with Splash Integration");
 
 // ============================================
-// SMART AI CHAT APP - JS PART 3/4 (UPDATED)
-// AI Functions, Text Art & Optimized Storage
+// SMART AI CHAT APP - PART 3/5
+// AI Functions, Text Art & Image Generation
 // ============================================
 
-// IMAGE GENERATION DETECTION (UPDATED)
+// IMAGE GENERATION DETECTION
 function isImageGenerationRequest(message) {
-    // First check if it's a text art request
     if (isTextArtRequest(message)) {
         return 'text-art';
     }
     
     const lowerMessage = message.toLowerCase().trim();
-    
-    const cleaned = lowerMessage
-        .replace(/^(can you|could you|please|i want to|i need to|help me)\s+/i, '')
-        .trim();
+    const cleaned = lowerMessage.replace(/^(can you|could you|please|i want to|i need to|help me)\s+/i, '').trim();
     
     const englishPatterns = [
         /^create\s+(an?\s+)?(image|picture|photo|illustration)/i,
@@ -661,7 +727,7 @@ function isImageGenerationRequest(message) {
     return false;
 }
 
-// TEXT ART DETECTION (NEW)
+// TEXT ART DETECTION
 function isTextArtRequest(message) {
     const lowerMessage = message.toLowerCase().trim();
     
@@ -671,7 +737,6 @@ function isTextArtRequest(message) {
         /draw\s+(with|using)?\s*(text|ascii|characters)/i,
         /create.*using\s+(text|characters|ascii)/i,
         /make.*text\s+(art|image)/i,
-        // Sinhala
         /අකුරු\s*(පින්තූර|කලාව)/i,
         /text\s*පින්තූර/i,
     ];
@@ -679,15 +744,12 @@ function isTextArtRequest(message) {
     return textArtPatterns.some(pattern => pattern.test(lowerMessage));
 }
 
-// GENERATE TEXT ART WITH GEMINI (NEW)
+// GENERATE TEXT ART WITH GEMINI
 async function generateTextArt(prompt) {
     try {
         console.log("🎨 Generating text art for:", prompt);
         
-        const loadingMsg = currentLanguage === 'si' 
-            ? 'Text art එක සාදමින්...' 
-            : 'Creating text art...';
-        
+        const loadingMsg = currentLanguage === 'si' ? 'Text art එක සාදමින්...' : 'Creating text art...';
         showLoading(loadingMsg);
         isGeneratingImage = true;
 
@@ -718,10 +780,7 @@ Be creative and make it beautiful! The more detailed, the better!`;
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
         
         const requestBody = {
-            contents: [{
-                role: "user",
-                parts: [{ text: enhancedPrompt }]
-            }],
+            contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
             generationConfig: {
                 temperature: 1.0,
                 topK: 40,
@@ -730,8 +789,6 @@ Be creative and make it beautiful! The more detailed, the better!`;
             }
         };
 
-        console.log("📤 Sending text art request to Gemini...");
-
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -739,8 +796,6 @@ Be creative and make it beautiful! The more detailed, the better!`;
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error("❌ API Error:", errorData);
             throw new Error('Failed to generate text art');
         }
 
@@ -771,7 +826,7 @@ Be creative and make it beautiful! The more detailed, the better!`;
     }
 }
 
-// TEXT ART GENERATION FLOW (NEW)
+// TEXT ART GENERATION FLOW
 async function handleTextArtFlow(userMessage) {
     const session = getCurrentSession();
     if (!session) {
@@ -802,9 +857,7 @@ async function handleTextArtFlow(userMessage) {
     const typing = document.getElementById('typingIndicator');
     if (typing) typing.style.display = 'flex';
 
-    // Extract prompt from command
     let artPrompt = userMessage;
-    
     const commandPatterns = [
         /^(create|generate|draw|make)\s+(a\s+)?text\s+(art|image|picture)\s+(of\s+)?/i,
         /^(create|generate|draw|make)\s+.*using\s+(text|ascii|characters)\s*:?\s*/i,
@@ -815,8 +868,6 @@ async function handleTextArtFlow(userMessage) {
     for (const pattern of commandPatterns) {
         artPrompt = artPrompt.replace(pattern, '').trim();
     }
-
-    console.log("🎨 Extracted art prompt:", artPrompt);
 
     const textArt = await generateTextArt(artPrompt);
 
@@ -842,30 +893,16 @@ async function handleTextArtFlow(userMessage) {
         session.updatedAt = Date.now();
         saveChatSessions();
         
-        showNotification(
-            currentLanguage === 'si' 
-                ? 'Text art එක සාදන ලදී!' 
-                : 'Text art created!',
-            'success'
-        );
+        showNotification(currentLanguage === 'si' ? 'Text art එක සාදන ලදී!' : 'Text art created!', 'success');
     } else {
-        const errorMsg = currentLanguage === 'si' 
-            ? 'මට කණගාටුයි, text art එක සෑදීමට නොහැකි විය.'
-            : 'Sorry, I could not generate the text art.';
-        
+        const errorMsg = currentLanguage === 'si' ? 'මට කණගාටුයි, text art එක සෑදීමට නොහැකි විය.' : 'Sorry, I could not generate the text art.';
         displayMessage(errorMsg, false);
-        
-        session.messages.push({
-            content: errorMsg,
-            isUser: false,
-            timestamp: Date.now()
-        });
-        
+        session.messages.push({ content: errorMsg, isUser: false, timestamp: Date.now() });
         saveChatSessions();
     }
 }
 
-// DISPLAY TEXT ART MESSAGE (NEW)
+// DISPLAY TEXT ART MESSAGE
 function displayTextArtMessage(textArt, prompt) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
@@ -876,14 +913,13 @@ function displayTextArtMessage(textArt, prompt) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message ai-message text-art-message';
     
-    const messageLabel = 'Smart AI';
     const copyBtnText = currentLanguage === 'si' ? 'පිටපත් කරන්න' : 'Copy Art';
     const downloadBtnText = currentLanguage === 'si' ? 'බාගන්න' : 'Download';
     
     messageDiv.innerHTML = `
         <div class="message-header">
             <div class="message-avatar"><i class="fas fa-robot"></i></div>
-            <span>${messageLabel}</span>
+            <span>Smart AI</span>
         </div>
         <div class="message-content">
             <div class="text-art-container">
@@ -907,7 +943,7 @@ function displayTextArtMessage(textArt, prompt) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// COPY TEXT ART (NEW)
+// COPY TEXT ART
 function copyTextArt(button, textArt) {
     navigator.clipboard.writeText(textArt).then(() => {
         const originalHTML = button.innerHTML;
@@ -924,7 +960,7 @@ function copyTextArt(button, textArt) {
     });
 }
 
-// DOWNLOAD TEXT ART AS TXT FILE (NEW)
+// DOWNLOAD TEXT ART AS TXT FILE
 function downloadTextArt(textArt, prompt) {
     try {
         const filename = `text-art-${prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
@@ -939,17 +975,14 @@ function downloadTextArt(textArt, prompt) {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        showNotification(
-            currentLanguage === 'si' ? 'බාගත විය!' : 'Downloaded!',
-            'success'
-        );
+        showNotification(currentLanguage === 'si' ? 'බාගත විය!' : 'Downloaded!', 'success');
     } catch (error) {
         console.error('Download failed:', error);
         showNotification('Download failed', 'error');
     }
 }
 
-// GENERATE DETAILED IMAGE DESCRIPTION (EXISTING)
+// GENERATE DETAILED IMAGE DESCRIPTION
 async function generateDetailedImageDescription(prompt) {
     try {
         console.log("🎨 Generating detailed image description for:", prompt);
@@ -993,10 +1026,7 @@ Format your response beautifully using markdown with emojis for visual appeal.`;
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
         
         const requestBody = {
-            contents: [{
-                role: "user",
-                parts: [{ text: enhancedPrompt }]
-            }],
+            contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
             generationConfig: {
                 temperature: 0.9,
                 topK: 40,
@@ -1005,8 +1035,6 @@ Format your response beautifully using markdown with emojis for visual appeal.`;
             }
         };
 
-        console.log("📤 Sending description request to Gemini...");
-
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1014,8 +1042,6 @@ Format your response beautifully using markdown with emojis for visual appeal.`;
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error("❌ API Error:", errorData);
             throw new Error('Failed to generate description');
         }
 
@@ -1046,7 +1072,7 @@ Format your response beautifully using markdown with emojis for visual appeal.`;
     }
 }
 
-// IMAGE GENERATION FLOW (EXISTING)
+// IMAGE GENERATION FLOW
 async function handleImageGenerationFlow(userMessage) {
     const session = getCurrentSession();
     if (!session) {
@@ -1056,14 +1082,9 @@ async function handleImageGenerationFlow(userMessage) {
 
     const input = document.getElementById('messageInput');
     if (input) input.value = '';
-
     displayMessage(userMessage, true);
     
-    session.messages.push({
-        content: userMessage,
-        isUser: true,
-        timestamp: Date.now()
-    });
+    session.messages.push({ content: userMessage, isUser: true, timestamp: Date.now() });
 
     if (session.messages.filter(m => m.isUser).length === 1) {
         const titleText = userMessage.replace(/<[^>]*>/g, '').substring(0, 30);
@@ -1078,7 +1099,6 @@ async function handleImageGenerationFlow(userMessage) {
     if (typing) typing.style.display = 'flex';
 
     let imagePrompt = userMessage;
-    
     const commandPatterns = [
         /^(create|generate|draw|make|design|paint|sketch)\s+(an?\s+)?(image|picture|photo)\s+(of\s+)?/i,
         /^(හදන්න|සාදන්න|ඇඳන්න)\s+පින්තූරයක්\s+/i,
@@ -1088,8 +1108,6 @@ async function handleImageGenerationFlow(userMessage) {
     for (const pattern of commandPatterns) {
         imagePrompt = imagePrompt.replace(pattern, '').trim();
     }
-
-    console.log("🎨 Extracted image prompt:", imagePrompt);
 
     const description = await generateDetailedImageDescription(imagePrompt);
 
@@ -1101,7 +1119,6 @@ async function handleImageGenerationFlow(userMessage) {
             : `## 📝 Detailed Image Description\n\n> **Note:** I don't have access to Imagen API to generate actual images. Instead, I'm providing:\n> - Detailed visual description 🎨\n> - Links to free image sources 🔗\n> - Creative design suggestions 💡\n\n---\n\n`;
         
         const fullResponse = headerNote + description;
-        
         displayMessage(fullResponse, false);
         
         session.messages.push({
@@ -1123,22 +1140,16 @@ async function handleImageGenerationFlow(userMessage) {
         );
     } else {
         const errorMsg = currentLanguage === 'si' 
-            ? 'මට කණගාටුයි, විස්තරය සෑදීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
-            : 'Sorry, I could not generate the description. Please try again.';
+            ? 'මට කණගාටුයි, විස්තරය සෑදීමට නොහැකි විය.'
+            : 'Sorry, I could not generate the description.';
         
         displayMessage(errorMsg, false);
-        
-        session.messages.push({
-            content: errorMsg,
-            isUser: false,
-            timestamp: Date.now()
-        });
-        
+        session.messages.push({ content: errorMsg, isUser: false, timestamp: Date.now() });
         saveChatSessions();
     }
 }
 
-// GEMINI AI TEXT RESPONSE (EXISTING)
+// GEMINI AI TEXT RESPONSE
 async function getAIResponse(userMessage, imageData = null, conversationHistory = []) {
     console.log("🤖 Getting AI response...", { 
         userMessage: userMessage.substring(0, 50), 
@@ -1207,8 +1218,6 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
             };
         }
         
-        console.log("📤 Sending request to Gemini API...");
-        
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1216,14 +1225,10 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
         });
         
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error("❌ API Error:", errorData);
             throw new Error(`API request failed with status ${response.status}`);
         }
         
         const data = await response.json();
-        console.log("📥 Received response from Gemini API");
-        
         const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (!aiResponse) {
@@ -1244,7 +1249,14 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
     }
 }
 
-// OPTIMIZED STORAGE - LOCAL FIRST, FIREBASE BACKGROUND (EXISTING)
+console.log("✅ Part 3/5 loaded - AI Functions & Text Art");
+
+// ============================================
+// SMART AI CHAT APP - PART 4/5
+// Storage & Chat Functions
+// ============================================
+
+// OPTIMIZED STORAGE - LOCAL FIRST, FIREBASE BACKGROUND
 function getStorageKey() {
     const userId = auth && auth.currentUser ? auth.currentUser.uid : 'anonymous';
     return `smartai-sessions-${userId}`;
@@ -1301,7 +1313,6 @@ async function loadChatSessions() {
 
         // 🔄 PRIORITY 2: Check Firebase (for first load or sync across devices)
         if (userId && database) {
-            // If no localStorage data, wait for Firebase
             if (!loadedFromLocalStorage) {
                 console.log("📥 No localStorage, loading from Firebase...");
                 try {
@@ -1325,7 +1336,6 @@ async function loadChatSessions() {
                             const firebaseData = snapshot.val();
                             const firebaseSessions = Array.isArray(firebaseData) ? firebaseData : Object.values(firebaseData);
                             
-                            // Only update if Firebase has newer data
                             if (firebaseSessions.length > 0 && sessions.length > 0) {
                                 const firebaseLatest = Math.max(...firebaseSessions.map(s => s.updatedAt || 0));
                                 const localLatest = Math.max(...sessions.map(s => s.updatedAt || 0));
@@ -1340,7 +1350,6 @@ async function loadChatSessions() {
                                     console.log("✅ localStorage is up to date");
                                 }
                             } else if (firebaseSessions.length > sessions.length) {
-                                // Firebase has more chats
                                 console.log("☁️ Firebase has more chats, syncing...");
                                 chatSessions = firebaseSessions;
                                 localStorage.setItem(storageKey, JSON.stringify(firebaseSessions));
@@ -1353,7 +1362,6 @@ async function loadChatSessions() {
             }
         }
 
-        // 🎯 Use data immediately
         chatSessions = Array.isArray(sessions) ? sessions : [];
 
         if (chatSessions.length === 0) {
@@ -1370,13 +1378,6 @@ async function loadChatSessions() {
         createNewChat();
     }
 }
-
-console.log("✅ Part 3/4 loaded - AI Functions, Text Art & Optimized Storage");
-
-// ============================================
-// SMART AI CHAT APP - JS PART 4/4 (UPDATED)
-// Chat Functions, UI & Initialization
-// ============================================
 
 // MESSAGE FORMATTING - MARKDOWN SUPPORT
 function formatAIResponse(text) {
@@ -1485,7 +1486,7 @@ function copyMessage(button) {
     });
 }
 
-// SEND MESSAGE - MAIN FUNCTION (UPDATED)
+// SEND MESSAGE - MAIN FUNCTION
 async function sendMessage() {
     if (isProcessing || isImageLoading || isGeneratingImage) return;
     
@@ -1497,7 +1498,6 @@ async function sendMessage() {
         return;
     }
     
-    // Check if image/text-art generation request (UPDATED)
     if (message && !currentImage) {
         const requestType = isImageGenerationRequest(message);
         if (requestType === 'text-art') {
@@ -1554,8 +1554,6 @@ async function sendMessage() {
     removeImage();
     
     try {
-        console.log("🔄 Getting AI response with history...");
-        
         const historyForAI = session.messages.slice(-11, -1);
         const response = await getAIResponse(messageToSend, imageToSend, historyForAI);
         
@@ -1717,6 +1715,13 @@ function handleInputChange() {
     updateSendButtonState();
 }
 
+console.log("✅ Part 4/5 loaded - Storage & Chat Functions");
+
+// ============================================
+// SMART AI CHAT APP - PART 5/5
+// Session Management & Initialization
+// ============================================
+
 // SESSION MANAGEMENT
 function createNewChat() {
     const sessionId = 'session_' + Date.now();
@@ -1856,7 +1861,6 @@ function renderChatHistory() {
     
     session.messages.forEach(msg => {
         if (msg.isTextArt) {
-            // Extract text art from the stored content
             const match = msg.content.match(/```\n([\s\S]*?)\n```/);
             if (match && match[1]) {
                 displayTextArtMessage(match[1], msg.originalPrompt || 'Text Art');
@@ -1871,7 +1875,7 @@ function renderChatHistory() {
 
 // INITIALIZE APP
 window.addEventListener('load', function() {
-    console.log("🎯 Page loaded - initializing app");
+    console.log("🎯 Page loaded - initializing app with splash screen");
     checkForUpdates();
     initializeFirebase();
     
@@ -1884,8 +1888,9 @@ window.addEventListener('load', function() {
     addUpdateButton();
     
     console.log("✅ Smart AI App initialized - VERSION 1.0.5");
-    console.log("⚡ Features: Optimized Storage + Text Art Generation!");
+    console.log("⚡ Features: Splash Screen + Optimized Storage + Text Art!");
     console.log("💡 Try: 'create text art of a cat' or 'draw using text: sunset'");
 });
 
-console.log("✅ Part 4/4 loaded - All systems ready with Text Art support!");
+console.log("✅ Part 5/5 loaded - All systems ready with Splash Screen integration!");
+console.log("🎉 Complete! Copy all 5 parts into one JS file.");
