@@ -308,14 +308,7 @@ body {
     100% { background-position: -200% 0; }
 }
 
-.splash-footer {
-    position: absolute;
-    bottom: 40px;
-    text-align: center;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-    line-height: 1.8;
-}
+
 
 .splash-developer {
     font-weight: 600;
@@ -489,6 +482,19 @@ body {
     .splash-footer {
         bottom: 20px;
         font-size: 12px;
+       
+    .splash-footer {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    line-height: 1.8;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
     }
    }
 
