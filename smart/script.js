@@ -77,7 +77,7 @@ const firebaseConfig = {
 };
 
 // GEMINI API KEY
-const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
+const GEMINI_API_KEY = 'AIzaSyCsT-cCQ8eQDN7YNvTCGNTMJu-9dE-HjU8';
 
 // APP VERSION
 const APP_VERSION = '1.0.5';
