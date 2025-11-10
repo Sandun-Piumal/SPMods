@@ -1,8 +1,3 @@
-/* ============================================
-   SMART AI CHAT APP - COMPLETE CSS
-   Part 1/3: Base Styles + Splash Screen
-   ============================================ */
-
 * {
     margin: 0;
     padding: 0;
@@ -18,6 +13,8 @@
     --text-gray-dark: #6a6a6a;
     --accent-blue: #4A90E2;
     --accent-green: #10b981;
+    --accent-purple: #8b5cf6;
+    --accent-orange: #f59e0b;
     --border-dark: #333333;
     --sidebar-width: 280px;
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
@@ -30,10 +27,6 @@ body {
     overflow: hidden;
     -webkit-tap-highlight-color: transparent;
 }
-
-/* ============================================
-   SPLASH SCREEN STYLES
-   ============================================ */
 
 #splashScreen {
     position: fixed;
@@ -263,133 +256,6 @@ body {
 .splash-sparkle:nth-child(3) { bottom: 30%; left: 25%; animation-delay: 1s; }
 .splash-sparkle:nth-child(4) { bottom: 20%; right: 20%; animation-delay: 1.5s; }
 
-/* Mobile responsiveness for splash */
-@media (max-width: 768px) {
-    .splash-ai-icon {
-        width: 140px;
-        height: 140px;
-    }
-    
-    .splash-ai-icon::before {
-        width: 160px;
-        height: 160px;
-    }
-    
-    .splash-ai-text {
-        font-size: 60px;
-    }
-    
-    .splash-app-name {
-        font-size: 36px;
-    }
-    
-    .splash-tagline {
-        font-size: 16px;
-        margin-bottom: 40px;
-    }
-    
-    .splash-loading-bar {
-        margin-bottom: 40px;
-    }
-    
-    .splash-footer {
-        bottom: 10px;
-        font-size: 12px;
-        padding: 8px;
-    }
-    
-    .splash-developer {
-        font-size: 13px;
-    }
-    
-    .splash-copyright {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 480px) {
-    .splash-container {
-        padding: 10px;
-    }
-    
-    .splash-logo-container {
-        margin-bottom: 30px;
-    }
-    
-    .splash-ai-icon {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .splash-app-name {
-        font-size: 32px;
-        margin-bottom: 10px;
-    }
-    
-    .splash-tagline {
-        font-size: 14px;
-        margin-bottom: 30px;
-    }
-    
-    .splash-loading-bar {
-        width: 150px;
-        margin-bottom: 30px;
-    }
-    
-    .splash-footer {
-        bottom: 5px;
-        font-size: 11px;
-        line-height: 1.5;
-    }
-    
-    .splash-developer {
-        font-size: 12px;
-    }
-    
-    .splash-copyright {
-        font-size: 10px;
-    }
-}
-
-@media (max-height: 600px) {
-    .splash-ai-icon {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .splash-app-name {
-        font-size: 28px;
-        margin-bottom: 8px;
-    }
-    
-    .splash-tagline {
-        font-size: 14px;
-        margin-bottom: 20px;
-    }
-    
-    .splash-loading-bar {
-        margin-bottom: 20px;
-    }
-    
-    .splash-footer {
-        bottom: 5px;
-        font-size: 11px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .splash-logo-container,
-    .splash-loading-progress,
-    .splash-particle,
-    .splash-sparkle {
-        animation: none !important;
-    }
-}
-
-/* ============================================
-   LOADING OVERLAY
-   ============================================ */
-
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -431,9 +297,54 @@ body {
     color: var(--text-gray);
 }
 
-/* ============================================
-   TEXT ART STYLES
-   ============================================ */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 16px;
+    left: 16px;
+    background: var(--bg-dark-secondary);
+    border: 1px solid var(--border-dark);
+    padding: 14px 18px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translateY(-100px);
+    transition: transform 0.3s;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.notification.show {
+    transform: translateY(0);
+}
+
+.notification.success {
+    border-left: 4px solid #22c55e;
+}
+
+.notification.error {
+    border-left: 4px solid #ef4444;
+}
+
+.notification i {
+    font-size: 18px;
+}
+
+.notification.success i {
+    color: #22c55e;
+}
+
+.notification.error i {
+    color: #ef4444;
+}
+
+.notification span {
+    font-size: 14px;
+    color: var(--text-white);
+}
 
 .text-art-message {
     background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
@@ -473,74 +384,6 @@ body {
     margin: 0;
 }
 
-.text-art-display::-webkit-scrollbar {
-    height: 8px;
-}
-
-.text-art-display::-webkit-scrollbar-track {
-    background: #2a2a2a;
-    border-radius: 4px;
-}
-
-.text-art-display::-webkit-scrollbar-thumb {
-    background: #667eea;
-    border-radius: 4px;
-}
-
-.text-art-display::-webkit-scrollbar-thumb:hover {
-    background: #5568d3;
-}
-
-.text-art-message .download-btn {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-}
-
-.text-art-message .download-btn:hover {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    transform: translateY(-2px);
-}
-
-@media (max-width: 768px) {
-    .text-art-display {
-        font-size: 10px;
-        padding: 15px;
-    }
-    
-    .text-art-title {
-        font-size: 12px;
-        padding: 6px 10px;
-    }
-    
-    .splash-ai-icon {
-        width: 140px;
-        height: 140px;
-    }
-    
-    .splash-ai-icon::before {
-        width: 160px;
-        height: 160px;
-    }
-    
-    .splash-ai-text {
-        font-size: 60px;
-    }
-    
-    .splash-app-name {
-        font-size: 36px;
-    }
-    
-    .splash-tagline {
-        font-size: 16px;
-    }
-}
-
-/* ============================================
-   SMART AI CHAT APP - COMPLETE CSS
-   Part 2/3: Authentication & Chat Interface
-   ============================================ */
-
-/* AUTH STYLES - MOBILE OPTIMIZED */
 #authContainer {
     display: flex;
     align-items: center;
@@ -610,7 +453,6 @@ body {
     transition: all 0.2s;
     background: var(--bg-dark);
     color: var(--text-white);
-    -webkit-appearance: none;
 }
 
 .form-group input:focus {
@@ -698,7 +540,6 @@ body {
     text-decoration: underline;
 }
 
-/* CHAT APP - MOBILE OPTIMIZED */
 #chatApp {
     display: none;
     height: 100vh;
@@ -711,7 +552,6 @@ body {
     height: 100dvh;
 }
 
-/* SIDEBAR OVERLAY */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -727,7 +567,6 @@ body {
     display: block;
 }
 
-/* SIDEBAR - MOBILE OPTIMIZED */
 .chat-sidebar {
     width: var(--sidebar-width);
     background: var(--bg-dark);
@@ -869,11 +708,6 @@ body {
     flex: 1;
     padding: 8px;
     border-radius: 8px;
-    transition: background 0.2s;
-}
-
-.user-info:hover {
-    background: var(--bg-dark-secondary);
 }
 
 .user-avatar {
@@ -930,7 +764,6 @@ body {
     color: var(--text-white);
 }
 
-/* MAIN CHAT - MOBILE OPTIMIZED */
 .chat-main {
     flex: 1;
     display: flex;
@@ -979,6 +812,43 @@ body {
     color: var(--text-white);
 }
 
+.mode-switcher {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-dark-secondary);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--border-dark);
+}
+
+.mode-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-gray);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mode-btn:hover {
+    color: var(--text-white);
+}
+
+.mode-btn.active {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.mode-btn i {
+    font-size: 16px;
+}
+
 .header-action-btn {
     width: 44px;
     height: 44px;
@@ -1000,6 +870,170 @@ body {
 
 .language-btn {
     font-size: 20px;
+}
+
+.code-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-dark);
+    overflow: hidden;
+}
+
+.code-header {
+    padding: 12px 16px;
+    background: var(--bg-dark-secondary);
+    border-bottom: 1px solid var(--border-dark);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.language-select {
+    padding: 8px 12px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-dark);
+    border-radius: 8px;
+    color: var(--text-white);
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.language-select:focus {
+    border-color: var(--accent-blue);
+}
+
+.language-select option {
+    background: var(--bg-dark);
+    color: var(--text-white);
+}
+
+.code-action-btn {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--border-dark);
+    border-radius: 8px;
+    color: var(--text-gray);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.code-action-btn:hover {
+    background: var(--bg-dark-tertiary);
+    color: var(--text-white);
+    border-color: var(--accent-blue);
+}
+
+.code-action-btn:active {
+    transform: scale(0.95);
+}
+
+.code-action-btn i {
+    font-size: 14px;
+}
+
+.code-editor {
+    flex: 1;
+    padding: 20px;
+    background: var(--bg-dark);
+    border: none;
+    color: var(--text-white);
+    font-family: 'Courier New', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    overflow-y: auto;
+}
+
+.code-editor::placeholder {
+    color: var(--text-gray-dark);
+}
+
+.code-editor::-webkit-scrollbar {
+    width: 8px;
+}
+
+.code-editor::-webkit-scrollbar-track {
+    background: var(--bg-dark-secondary);
+}
+
+.code-editor::-webkit-scrollbar-thumb {
+    background: var(--border-dark);
+    border-radius: 4px;
+}
+
+.code-editor::-webkit-scrollbar-thumb:hover {
+    background: var(--text-gray-dark);
+}
+
+.code-output {
+    max-height: 300px;
+    background: var(--bg-dark-secondary);
+    border-top: 1px solid var(--border-dark);
+    display: flex;
+    flex-direction: column;
+}
+
+.output-header {
+    padding: 12px 16px;
+    background: var(--bg-dark-tertiary);
+    border-bottom: 1px solid var(--border-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-white);
+}
+
+.output-header button {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-gray);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.output-header button:hover {
+    background: var(--bg-dark);
+    color: var(--text-white);
+}
+
+.output-content {
+    flex: 1;
+    padding: 16px;
+    margin: 0;
+    overflow-y: auto;
+    font-family: 'Courier New', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-white);
+    background: var(--bg-dark);
+}
+
+.output-content code {
+    background: transparent;
+    color: inherit;
+}
+
+.output-content pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .chat-messages {
@@ -1041,11 +1075,6 @@ body {
     color: var(--text-gray);
     line-height: 1.4;
 }
-
-/* ============================================
-   SMART AI CHAT APP - COMPLETE CSS
-   Part 3/3: Messages, Input & Responsive
-   ============================================ */
 
 .message {
     margin-bottom: 20px;
@@ -1225,17 +1254,6 @@ body {
     background: #dc2626;
 }
 
-.ocr-text {
-    margin-top: 8px;
-    padding: 8px;
-    background: var(--bg-dark);
-    border-radius: 8px;
-    color: var(--text-gray);
-    font-size: 12px;
-    max-height: 80px;
-    overflow-y: auto;
-}
-
 .input-wrapper {
     display: flex;
     gap: 12px;
@@ -1324,91 +1342,9 @@ body {
     cursor: not-allowed;
 }
 
-.input-footer {
-    display: flex;
-    gap: 12px;
-    margin-top: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.footer-btn {
-    background: transparent;
-    border: 1px solid var(--border-dark);
-    padding: 10px 16px;
-    border-radius: 20px;
-    color: var(--text-gray);
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    min-height: 40px;
-}
-
-.footer-btn:hover {
-    background: var(--bg-dark-secondary);
-    color: var(--text-white);
-}
-
-.footer-btn i {
-    font-size: 14px;
-}
-
-/* NOTIFICATION */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 16px;
-    left: 16px;
-    background: var(--bg-dark-secondary);
-    border: 1px solid var(--border-dark);
-    padding: 14px 18px;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    transform: translateY(-100px);
-    transition: transform 0.3s;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.notification.show {
-    transform: translateY(0);
-}
-
-.notification.success {
-    border-left: 4px solid #22c55e;
-}
-
-.notification.error {
-    border-left: 4px solid #ef4444;
-}
-
-.notification i {
-    font-size: 18px;
-}
-
-.notification.success i {
-    color: #22c55e;
-}
-
-.notification.error i {
-    color: #ef4444;
-}
-
-.notification span {
-    font-size: 14px;
-    color: var(--text-white);
-}
-
-/* SCROLLBAR */
 ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -1424,45 +1360,37 @@ body {
     background: var(--border-dark);
 }
 
-/* MOBILE RESPONSIVE ENHANCEMENTS */
 @media (max-width: 768px) {
     :root {
         --sidebar-width: 85vw;
     }
     
-    .auth-box {
-        padding: 20px;
-        margin: 0 8px;
+    .mode-switcher {
+        padding: 3px;
     }
     
-    .auth-header h1 {
-        font-size: 22px;
+    .mode-btn {
+        padding: 6px 12px;
+        font-size: 13px;
     }
     
-    .chat-header {
-        padding: 0 12px;
+    .code-header {
+        padding: 10px 12px;
+        gap: 6px;
+    }
+    
+    .code-action-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .language-select {
+        font-size: 13px;
+        padding: 6px 10px;
     }
     
     .chat-messages {
         padding: 12px;
-        padding-bottom: 0;
-    }
-    
-    .welcome-screen {
-        padding: 24px 12px;
-    }
-    
-    .welcome-screen h1 {
-        font-size: 24px;
-    }
-    
-    .welcome-screen p {
-        font-size: 15px;
-    }
-    
-    .ai-logo svg {
-        width: 60px;
-        height: 60px;
     }
     
     .message-content {
@@ -1479,75 +1407,36 @@ body {
     .message-actions {
         margin-left: 44px;
     }
-    
-    .chat-input-container {
-        padding: 12px;
-        padding-bottom: calc(12px + var(--safe-area-inset-bottom));
-    }
-    
-    .input-wrapper {
-        padding: 10px 14px;
-    }
-    
-    .input-action-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-    }
-    
-    .send-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-    
-    .footer-btn {
-        padding: 8px 14px;
-        font-size: 13px;
-    }
-    
-    .history-item {
-        padding: 12px 14px;
-        min-height: 56px;
-    }
-    
-    .sidebar-footer {
-        padding: 12px;
-    }
-    
-    .user-avatar {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-    }
 }
 
 @media (max-width: 480px) {
-    .auth-box {
-        padding: 16px;
-    }
-    
-    .form-group input {
-        padding: 12px 14px;
-    }
-    
-    .btn {
-        padding: 12px;
-        min-height: 44px;
-    }
-    
     .chat-header {
         height: 56px;
-    }
-    
-    .menu-btn,
-    .header-action-btn {
-        width: 40px;
-        height: 40px;
+        padding: 0 12px;
+        gap: 8px;
     }
     
     .header-title {
         font-size: 16px;
+    }
+    
+    .mode-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .mode-btn i {
+        font-size: 14px;
+    }
+    
+    .code-action-btn {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+    
+    .code-editor {
+        padding: 15px;
+        font-size: 13px;
     }
     
     .welcome-screen h1 {
@@ -1557,73 +1446,16 @@ body {
     .welcome-screen p {
         font-size: 14px;
     }
-    
-    .message-content {
-        margin-left: 40px;
-        padding: 10px 12px;
-        font-size: 15px;
-    }
-    
-    .message-avatar {
-        width: 30px;
-        height: 30px;
-    }
-    
-    .message-actions {
-        margin-left: 40px;
-    }
-    
-    .action-btn {
-        padding: 6px 12px;
-        font-size: 12px;
-    }
-    
-    .input-footer {
-        gap: 8px;
-    }
-    
-    .footer-btn {
-        padding: 8px 12px;
-        font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 
-@media (hover: none) and (pointer: coarse) {
-    .btn, 
-    .menu-btn, 
-    .header-action-btn, 
-    .input-action-btn, 
-    .send-btn, 
-    .footer-btn,
-    .action-btn,
-    .sidebar-action-btn,
-    .close-sidebar-btn,
-    .delete-chat-btn,
-    .remove-image-btn {
-        transition: none;
-    }
-    
-    .btn:active, 
-    .menu-btn:active, 
-    .header-action-btn:active, 
-    .input-action-btn:active, 
-    .send-btn:active, 
-    .footer-btn:active,
-    .action-btn:active,
-    .sidebar-action-btn:active,
-    .close-sidebar-btn:active,
-    .delete-chat-btn:active,
-    .remove-image-btn:active {
-        transform: scale(0.95);
-        opacity: 0.8;
-    }
-    
-    .history-item:active {
-        background: var(--bg-dark-tertiary);
-    }
-}
-
-/* DARK MODE SUPPORT */
 @media (prefers-color-scheme: dark) {
     :root {
         --bg-dark: #0a0a0a;
@@ -1631,41 +1463,3 @@ body {
         --bg-dark-tertiary: #2a2a2a;
     }
 }
-
-/* HIGH CONTRAST MODE SUPPORT */
-@media (prefers-contrast: high) {
-    :root {
-        --text-gray: #ffffff;
-        --text-gray-dark: #cccccc;
-        --border-dark: #555555;
-    }
-}
-
-/* REDUCED MOTION SUPPORT */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-    
-    .ai-logo {
-        animation: none;
-    }
-    
-    .typing-dots span {
-        animation: none;
-        opacity: 0.7;
-    }
-    
-    .splash-logo-container,
-    .splash-loading-progress,
-    .splash-particle,
-    .splash-sparkle {
-        animation: none !important;
-    }
-}
-
-/* ============================================
-   END OF SMART AI COMPLETE CSS
-   ============================================ */
