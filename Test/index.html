@@ -2,76 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart AI Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Smart AI Pro - Chat & Code</title>
     
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
-    <!-- Tesseract.js for OCR -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
     
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="ai.css">
-    
 </head>
 <body>
-    <!-- SPLASH SCREEN -->
-    <div id="splashScreen">
-    <div class="splash-particles" id="splashParticles"></div>
-    
-    <div class="splash-sparkle"></div>
-    <div class="splash-sparkle"></div>
-    <div class="splash-sparkle"></div>
-    <div class="splash-sparkle"></div>
+<div id="splashScreen">
+        <div class="splash-particles" id="splashParticles"></div>
+        <div class="splash-sparkle"></div>
+        <div class="splash-sparkle"></div>
+        <div class="splash-sparkle"></div>
+        <div class="splash-sparkle"></div>
 
-    <div class="splash-container">
-        <div class="splash-logo-container">
-            <div class="splash-ai-icon">
-                <div class="splash-ai-text">AI</div>
+        <div class="splash-container">
+            <div class="splash-logo-container">
+                <div class="splash-ai-icon">
+                    <div class="splash-ai-text">AI</div>
+                </div>
+            </div>
+            <h1 class="splash-app-name">Smart AI Pro</h1>
+            <p class="splash-tagline">Chat & Code Assistant</p>
+            <div class="splash-loading-bar">
+                <div class="splash-loading-progress"></div>
             </div>
         </div>
-
-        <h1 class="splash-app-name">Smart AI</h1>
-        <p class="splash-tagline">Your Intelligent Assistant</p>
-
-        <div class="splash-loading-bar">
-            <div class="splash-loading-progress"></div>
+        <div class="splash-footer">
+            <p class="splash-developer">Developed by Sandun Piumal</p>
+            <p class="splash-copyright">© <span class="splash-spmods">SPMods</span> 2025</p>
         </div>
-    
     </div>
-        
-    <div class="splash-footer">
-        <p class="splash-developer">Developed by Sandun Piumal</p>
-        <p class="splash-copyright">© <span class="splash-spmods">SPMods</span> 2025</p>
-    </div>
-
-        
-</div>
     
-    <!-- NOTIFICATION -->
     <div id="notification" class="notification">
         <i class="fas fa-check-circle"></i>
         <span id="notificationText"></span>
     </div>
 
-    <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner">
             <div class="spinner-icon"></div>
             <p id="loadingText">Processing...</p>
         </div>
     </div>
-
-    <!-- AUTH CONTAINER -->
+    
     <div id="authContainer">
         <div class="auth-box">
-            <!-- LOGIN FORM -->
             <div id="loginForm">
                 <div class="auth-header">
                     <div class="auth-logo">
@@ -85,37 +72,34 @@
                             <circle cx="30" cy="30" r="28" fill="url(#logoGrad)"/>
                             <path d="M20 25 L30 15 L40 25 L35 25 L35 40 L25 40 L25 25 Z" fill="white" opacity="0.9"/>
                             <circle cx="30" cy="44" r="3" fill="white" opacity="0.9"/>
-                            <path d="M15 30 Q15 20, 25 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
-                            <path d="M45 30 Q45 20, 35 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
                         </svg>
                     </div>
-                    <h1 data-i18n="appTitle">Smart AI</h1>
-                    <p data-i18n="appSubtitle">Powered by Gemini AI</p>
+                    <h1>Smart AI Pro</h1>
+                    <p>Chat & Code Assistant</p>
                 </div>
                 
                 <div id="loginError" class="error-message"></div>
                 
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> <span data-i18n="email">Email</span></label>
-                        <input type="email" id="loginEmail" data-i18n-placeholder="enterEmail" placeholder="Enter your email" required autocomplete="email">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-lock"></i> <span data-i18n="password">Password</span></label>
-                        <input type="password" id="loginPassword" data-i18n-placeholder="enterPassword" placeholder="Enter your password" required autocomplete="current-password">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
                     </div>
                     <button type="submit" class="btn btn-primary" id="loginBtn">
                         <span id="loginLoader" class="loader"></span>
-                        <span id="loginText" data-i18n="login">Login</span>
+                        <span id="loginText">Login</span>
                     </button>
                 </form>
                 
                 <div class="toggle-link">
-                    <span data-i18n="noAccount">Don't have an account?</span> <a onclick="showSignup()" data-i18n="signUp">Sign Up</a>
+                    Don't have an account? <a onclick="showSignup()">Sign Up</a>
                 </div>
             </div>
 
-            <!-- SIGNUP FORM -->
             <div id="signupForm" style="display: none;">
                 <div class="auth-header">
                     <div class="auth-logo">
@@ -129,12 +113,10 @@
                             <circle cx="30" cy="30" r="28" fill="url(#logoGrad2)"/>
                             <path d="M20 25 L30 15 L40 25 L35 25 L35 40 L25 40 L25 25 Z" fill="white" opacity="0.9"/>
                             <circle cx="30" cy="44" r="3" fill="white" opacity="0.9"/>
-                            <path d="M15 30 Q15 20, 25 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
-                            <path d="M45 30 Q45 20, 35 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
                         </svg>
                     </div>
-                    <h1 data-i18n="appTitle">Smart AI</h1>
-                    <p data-i18n="createAccount">Create Your Account</p>
+                    <h1>Smart AI Pro</h1>
+                    <p>Create Your Account</p>
                 </div>
                 
                 <div id="signupError" class="error-message"></div>
@@ -142,37 +124,34 @@
                 
                 <form onsubmit="handleSignup(event)">
                     <div class="form-group">
-                        <label><i class="fas fa-user"></i> <span data-i18n="name">Name</span></label>
-                        <input type="text" id="signupName" data-i18n-placeholder="enterName" placeholder="Enter your name" required autocomplete="name">
+                        <label><i class="fas fa-user"></i> Name</label>
+                        <input type="text" id="signupName" placeholder="Enter your name" required>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> <span data-i18n="email">Email</span></label>
-                        <input type="email" id="signupEmail" data-i18n-placeholder="enterEmail" placeholder="Enter your email" required autocomplete="email">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="signupEmail" placeholder="Enter your email" required>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-lock"></i> <span data-i18n="password">Password</span></label>
-                        <input type="password" id="signupPassword" data-i18n-placeholder="createPassword" placeholder="Create a password (min 6 characters)" required minlength="6" autocomplete="new-password">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)" required minlength="6">
                     </div>
                     <button type="submit" class="btn btn-primary" id="signupBtn">
                         <span id="signupLoader" class="loader"></span>
-                        <span id="signupText" data-i18n="signUp">Sign Up</span>
+                        <span id="signupText">Sign Up</span>
                     </button>
                 </form>
                 
                 <div class="toggle-link">
-                    <span data-i18n="haveAccount">Already have an account?</span> <a onclick="showLogin()" data-i18n="login">Login</a>
+                    Already have an account? <a onclick="showLogin()">Login</a>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- CHAT APP -->
+    
     <div id="chatApp">
-        <!-- Sidebar Overlay for Mobile -->
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
         <div class="chat-container">
-            <!-- SIDEBAR -->
             <div class="chat-sidebar" id="chatSidebar">
                 <div class="sidebar-header">
                     <button class="close-sidebar-btn" onclick="closeSidebar()">
@@ -180,9 +159,7 @@
                     </button>
                 </div>
                 
-                <div class="chat-history" id="chatHistory">
-                    <!-- History items will be inserted here -->
-                </div>
+                <div class="chat-history" id="chatHistory"></div>
 
                 <div class="sidebar-footer">
                     <div class="user-info">
@@ -194,23 +171,32 @@
                             <div class="user-email" id="userEmail">user@email.com</div>
                         </div>
                     </div>
-                    <button class="sidebar-action-btn" onclick="handleLogout()" data-i18n-title="logout" title="Logout">
+                    <button class="sidebar-action-btn" onclick="handleLogout()" title="Logout">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
             </div>
-
-            <!-- MAIN CHAT -->
+            
             <div class="chat-main">
                 <div class="chat-header">
                     <button class="menu-btn" onclick="toggleSidebar()">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="header-title" data-i18n="newChat">New chat</div>
+                    <div class="header-title">Smart AI Pro</div>
+                    
+                    <div class="mode-switcher">
+                        <button class="mode-btn active" id="chatModeBtn" onclick="switchToMode('chat')">
+                            <i class="fas fa-comments"></i> Chat
+                        </button>
+                        <button class="mode-btn" id="codeModeBtn" onclick="switchToMode('code')">
+                            <i class="fas fa-code"></i> Code
+                        </button>
+                    </div>
+                    
                     <button class="header-action-btn language-btn" onclick="toggleLanguage()" title="Change Language">
                         <i class="fas fa-language"></i>
                     </button>
-                    <button class="header-action-btn" onclick="createNewChat()" data-i18n-title="newChat" title="New Chat">
+                    <button class="header-action-btn" onclick="createNewChat()" title="New Chat">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -228,12 +214,48 @@
                                 <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
                                 <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
                                 <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
-                                <path d="M18 40 Q18 28, 32 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
-                                <path d="M62 40 Q62 28, 48 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
                             </svg>
                         </div>
-                        <h1 id="welcomeTitle" data-i18n="welcomeTitle">Hi, I'm Smart AI.</h1>
-                        <p id="welcomeSubtitle" data-i18n="welcomeSubtitle">How can I help you today?</p>
+                        <h1>Hi, I'm Smart AI Pro</h1>
+                        <p>Chat or Code - Your choice!</p>
+                    </div>
+                </div>
+
+                <div id="codePanel" class="code-panel" style="display: none;">
+                    <div class="code-header">
+                        <select id="languageSelect" class="language-select">
+                            <option value="javascript">JavaScript</option>
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                        </select>
+                        <button class="code-action-btn" onclick="generateCode()" title="Generate Code">
+                            <i class="fas fa-magic"></i> Generate
+                        </button>
+                        <button class="code-action-btn" onclick="explainCode()" title="Explain Code">
+                            <i class="fas fa-lightbulb"></i> Explain
+                        </button>
+                        <button class="code-action-btn" onclick="fixCode()" title="Fix Bugs">
+                            <i class="fas fa-bug"></i> Fix
+                        </button>
+                        <button class="code-action-btn" onclick="optimizeCode()" title="Optimize">
+                            <i class="fas fa-bolt"></i> Optimize
+                        </button>
+                        <button class="code-action-btn" onclick="downloadCode()" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                    
+                    <textarea id="codeEditor" class="code-editor" placeholder="Write or paste your code here..."></textarea>
+                    
+                    <div id="codeOutput" class="code-output" style="display: none;">
+                        <div class="output-header">
+                            <span>Output:</span>
+                            <button onclick="closeCodeOutput()"><i class="fas fa-times"></i></button>
+                        </div>
+                        <pre id="outputContent" class="output-content"></pre>
                     </div>
                 </div>
 
@@ -246,7 +268,6 @@
                 </div>
 
                 <div class="chat-input-container">
-                    <!-- Image Preview -->
                     <div id="imagePreview" class="image-preview" style="display: none;">
                         <div class="preview-content">
                             <img id="previewImage" src="" alt="Preview">
@@ -254,27 +275,16 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <div id="ocrText" class="ocr-text"></div>
                     </div>
 
                     <div class="input-wrapper">
-                        <input type="text" 
-                            id="messageInput" 
-                            data-i18n-placeholder="messagePlaceholder"
-                            placeholder="Message Smart AI"
-                            onkeydown="handleKeyPress(event)"
-                            oninput="handleInputChange()"
-                        />
+                        <input type="text" id="messageInput" placeholder="Message Smart AI Pro" onkeydown="handleKeyPress(event)" oninput="handleInputChange()"/>
                         
                         <div class="input-actions">
-                            <button class="input-action-btn" onclick="document.getElementById('imageInput').click()" data-i18n-title="uploadImage" title="Upload Image">
+                            <button class="input-action-btn" onclick="document.getElementById('imageInput').click()" title="Upload Image">
                                 <i class="fas fa-image"></i>
                             </button>
                             <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-                            
-                            <!--button class="input-action-btn" data-i18n-title="moreOptions" title="More options">
-                                <i class="fas fa-ellipsis-h"></i>
-                        </button-->
                             
                             <button id="sendButton" class="send-btn" onclick="sendMessage()">
                                 <i class="fas fa-arrow-up"></i>
@@ -285,9 +295,7 @@
             </div>
         </div>
     </div>
-
     
-    <!-- Custom JavaScript -->
     <script src="ai.js"></script>
 </body>
 </html>
