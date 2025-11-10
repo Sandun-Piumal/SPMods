@@ -1,8 +1,7 @@
 // ============================================
-// SPLASH SCREEN MANAGER - FIRST PRIORITY
+// SPLASH SCREEN MANAGER
 // ============================================
 
-// Create floating particles for splash
 (function() {
     const particlesContainer = document.getElementById('splashParticles');
     if (particlesContainer) {
@@ -17,58 +16,46 @@
     }
 })();
 
-// Splash timing control
 let minSplashTimeElapsed = false;
 let authCheckComplete = false;
-const MIN_SPLASH_DURATION = 2500; // 2.5 seconds
+const MIN_SPLASH_DURATION = 2500;
 
-// Start minimum splash timer
 setTimeout(() => {
     console.log("⏱️ Minimum splash time elapsed");
     minSplashTimeElapsed = true;
     checkReadyToShowApp();
 }, MIN_SPLASH_DURATION);
 
-// Check if ready to show app
 function checkReadyToShowApp() {
     if (minSplashTimeElapsed && authCheckComplete) {
         console.log("✅ Ready to show app!");
         showMainApp();
     } else {
-        console.log("⏳ Waiting... minTime:", minSplashTimeElapsed, "authCheck:", authCheckComplete);
+        console.log("⏳ Waiting...");
     }
 }
 
-// Transition to main app
 function showMainApp() {
     const splashScreen = document.getElementById('splashScreen');
     const mainApp = document.getElementById('mainAppContainer');
-    
-    console.log("🎬 Transitioning to main app...");
     
     if (splashScreen) splashScreen.classList.add('hidden');
     
     setTimeout(() => {
         if (mainApp) mainApp.classList.add('visible');
-        console.log("✨ Main app visible!");
     }, 500);
 }
 
-// Mark auth check complete
 function markAuthCheckComplete() {
     console.log("🔐 Auth check complete");
     authCheckComplete = true;
     checkReadyToShowApp();
 }
 
-console.log("✅ Splash Screen Manager loaded");
-
 // ============================================
-// SMART AI CHAT APP - PART 1/5
-// Firebase Config & Core Variables
+// FIREBASE CONFIG & VARIABLES
 // ============================================
 
-// FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyAP7X4CZh-E5S9Qfpi-hWxDO1R_PvXC8yg",
     authDomain: "smart-ai-chat-app.firebaseapp.com",
@@ -76,14 +63,10 @@ const firebaseConfig = {
     databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com"
 };
 
-// GEMINI API KEY
 const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
-
-// APP VERSION
-const APP_VERSION = '1.0.5';
+const APP_VERSION = '2.0.0';
 const VERSION_KEY = 'smartai-version';
 
-// STATE VARIABLES
 let auth = null;
 let database = null;
 let isProcessing = false;
@@ -93,149 +76,319 @@ let currentImage = null;
 let currentLanguage = 'en';
 let isGeneratingImage = false;
 let isImageLoading = false;
+let currentMode = 'chat';
 
-// TRANSLATIONS
 const translations = {
     en: {
-        appTitle: "Smart AI",
-        appSubtitle: "Powered by Gemini AI",
-        email: "Email",
-        password: "Password",
-        name: "Name",
-        login: "Login",
-        signUp: "Sign Up",
-        noAccount: "Don't have an account?",
-        haveAccount: "Already have an account?",
-        enterEmail: "Enter your email",
-        enterPassword: "Enter your password",
-        enterName: "Enter your name",
-        createPassword: "Create a password (min 6 characters)",
-        createAccount: "Create Your Account",
-        newChat: "New chat",
-        welcomeTitle: "Hi, I'm Smart AI.",
-        welcomeSubtitle: "How can I help you today?",
-        messagePlaceholder: "Message Smart AI",
-        uploadImage: "Upload Image",
-        moreOptions: "More options",
-        deepThink: "DeepThink",
-        search: "Search",
-        logout: "Logout",
-        processing: "Processing...",
-        imageUploaded: "Image uploaded!",
-        textExtracted: "Text extracted!",
-        chatCleared: "Chat cleared!",
+        appTitle: "Smart AI Pro",
+        chatMode: "Chat",
+        codeMode: "Code",
+        generate: "Generate",
+        explain: "Explain",
+        fix: "Fix Bugs",
+        optimize: "Optimize",
+        download: "Download",
+        copied: "Copied!",
         loginSuccess: "Login successful!",
         logoutSuccess: "Logged out successfully!",
-        chatDeleted: "Chat deleted!",
-        deleteConfirm: "Delete this chat?",
-        extractingText: "Extracting text...",
-        processingImage: "Processing image...",
-        analyzingImage: "Analyzing image content...",
-        imageAnalyzed: "Image analyzed!",
-        checkUpdates: "Check for Updates",
-        updatesAvailable: "New version available!",
-        latestVersion: "You have the latest version!",
-        generateImage: "Generate Image",
-        generatingImage: "Generating image...",
-        imageGenerated: "Image generated!",
-        downloadImage: "Download Image",
-        imageDownloaded: "Image downloaded!",
-        describeImage: "Describe the image you want",
-        createImagePrompt: "Example: A sunset over mountains..."
     },
     si: {
-        appTitle: "Smart AI",
-        appSubtitle: "Gemini AI මගින් බලගන්වා ඇත",
-        email: "විද්‍යුත් ලිපිනය",
-        password: "මුරපදය",
-        name: "නම",
-        login: "ඇතුල් වන්න",
-        signUp: "ලියාපදිංචි වන්න",
-        noAccount: "ගිණුමක් නැද්ද?",
-        haveAccount: "දැනටමත් ගිණුමක් තිබේද?",
-        enterEmail: "ඔබගේ විද්‍යුත් ලිපිනය ඇතුළත් කරන්න",
-        enterPassword: "ඔබගේ මුරපදය ඇතුළත් කරන්න",
-        enterName: "ඔබගේ නම ඇතුළත් කරන්න",
-        createPassword: "මුරපදයක් සාදන්න (අවම අක්ෂර 6ක්)",
-        createAccount: "ඔබගේ ගිණුම සාදන්න",
-        newChat: "නව සංවාදය",
-        welcomeTitle: "හායි, මම Smart AI.",
-        welcomeSubtitle: "අද මට ඔබට උදව් කරන්නේ කෙසේද?",
-        messagePlaceholder: "Smart AI වෙත පණිවිඩයක්",
-        uploadImage: "පින්තූරය උඩුගත කරන්න",
-        moreOptions: "තවත් විකල්ප",
-        deepThink: "ගැඹුරු චින්තනය",
-        search: "සොයන්න",
-        logout: "ඉවත් වන්න",
-        processing: "සැකසෙමින්...",
-        imageUploaded: "පින්තූරය උඩුගත විය!",
-        textExtracted: "පෙළ උපුටා ගන්නා ලදී!",
-        chatCleared: "සංවාදය මකා දමන ලදී!",
+        appTitle: "Smart AI Pro",
+        chatMode: "චැට්",
+        codeMode: "කෝඩ්",
+        generate: "සාදන්න",
+        explain: "පැහැදිලි කරන්න",
+        fix: "දෝෂ හරවන්න",
+        optimize: "වැඩිදියුණු කරන්න",
+        download: "බාගන්න",
+        copied: "පිටපත් විය!",
         loginSuccess: "පිවිසුම සාර්ථකයි!",
         logoutSuccess: "සාර්ථකව ඉවත් විය!",
-        chatDeleted: "සංවාදය මකා දමන ලදී!",
-        deleteConfirm: "මෙම සංවාදය මකන්න ද?",
-        extractingText: "පෙළ උපුටා ගනිමින්...",
-        processingImage: "පින්තූරය සකසමින්...",
-        analyzingImage: "පින්තූරය විශ්ලේෂණය කරමින්...",
-        imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!",
-        checkUpdates: "යාවත්කාලීන පරීක්ෂා කරන්න",
-        updatesAvailable: "නව අනුවාදයක් තිබේ!",
-        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!",
-        generateImage: "පින්තූරය සාදන්න",
-        generatingImage: "පින්තූරය සාදමින්...",
-        imageGenerated: "පින්තූරය සාදන ලදී!",
-        downloadImage: "පින්තූරය බාගන්න",
-        imageDownloaded: "පින්තූරය බාගත විය!",
-        describeImage: "ඔබට අවශ්‍ය පින්තූරය විස්තර කරන්න",
-        createImagePrompt: "උදාහරණය: කඳු මත හිරු බැස යෑම..."
     }
 };
 
-console.log("✅ Part 1/5 loaded - Splash Manager, Config & Variables");
+console.log("✅ Smart AI Pro - Initialized");
 
 // ============================================
-// SMART AI CHAT APP - PART 2/5
-// Helper Functions, Language & Firebase Init
+// MODE SWITCHING - CHAT & CODE
 // ============================================
 
-// VERSION CONTROL
-function checkForUpdates() {
-    const savedVersion = localStorage.getItem(VERSION_KEY);
+function switchToMode(mode) {
+    console.log("🔄 Switching to mode:", mode);
+    currentMode = mode;
     
-    if (savedVersion !== APP_VERSION) {
-        console.log('🔄 New version detected, clearing cache...');
+    const chatModeBtn = document.getElementById('chatModeBtn');
+    const codeModeBtn = document.getElementById('codeModeBtn');
+    const chatMessages = document.getElementById('chatMessages');
+    const codePanel = document.getElementById('codePanel');
+    const chatInput = document.querySelector('.chat-input-container');
+    
+    if (mode === 'chat') {
+        if (chatModeBtn) {
+            chatModeBtn.classList.add('active');
+            codeModeBtn.classList.remove('active');
+        }
+        if (chatMessages) chatMessages.style.display = 'block';
+        if (codePanel) codePanel.style.display = 'none';
+        if (chatInput) chatInput.style.display = 'block';
+    } else if (mode === 'code') {
+        if (codeModeBtn) {
+            codeModeBtn.classList.add('active');
+            chatModeBtn.classList.remove('active');
+        }
+        if (chatMessages) chatMessages.style.display = 'none';
+        if (codePanel) codePanel.style.display = 'flex';
+        if (chatInput) chatInput.style.display = 'none';
+    }
+}
+
+// ============================================
+// CODE EDITOR FUNCTIONS
+// ============================================
+
+async function generateCode() {
+    const editor = document.getElementById('codeEditor');
+    const language = document.getElementById('languageSelect').value;
+    const prompt = editor.value.trim();
+    
+    if (!prompt) {
+        showNotification('Please describe what code you want to generate', 'error');
+        return;
+    }
+    
+    showLoading('Generating code...');
+    
+    try {
+        const enhancedPrompt = `Generate clean, well-commented ${language} code for: ${prompt}
         
-        if ('caches' in window) {
-            caches.keys().then(function(cacheNames) {
-                cacheNames.forEach(function(cacheName) {
-                    caches.delete(cacheName);
-                });
-            });
+        Requirements:
+        - Write production-ready code
+        - Include comments
+        - Follow best practices
+        - Make it efficient and readable
+        
+        Output ONLY the code, no explanations.`;
+        
+        const response = await callGeminiAPI(enhancedPrompt);
+        
+        hideLoading();
+        
+        const codeMatch = response.match(/```[\w]*\n([\s\S]*?)```/);
+        const code = codeMatch ? codeMatch[1] : response;
+        
+        editor.value = code.trim();
+        
+        showNotification('Code generated successfully!', 'success');
+        highlightCode();
+        
+    } catch (error) {
+        console.error('Generate code error:', error);
+        hideLoading();
+        showNotification('Failed to generate code', 'error');
+    }
+}
+
+async function explainCode() {
+    const editor = document.getElementById('codeEditor');
+    const code = editor.value.trim();
+    
+    if (!code) {
+        showNotification('Please write or paste some code first', 'error');
+        return;
+    }
+    
+    showLoading('Analyzing code...');
+    
+    try {
+        const prompt = `Explain this code in detail:
+
+\`\`\`
+${code}
+\`\`\`
+
+Provide:
+1. What the code does
+2. How it works (step by step)
+3. Key concepts used
+4. Potential improvements`;
+        
+        const explanation = await callGeminiAPI(prompt);
+        
+        hideLoading();
+        showCodeOutput(explanation);
+        showNotification('Code explained!', 'success');
+        
+    } catch (error) {
+        console.error('Explain code error:', error);
+        hideLoading();
+        showNotification('Failed to explain code', 'error');
+    }
+}
+
+async function fixCode() {
+    const editor = document.getElementById('codeEditor');
+    const code = editor.value.trim();
+    
+    if (!code) {
+        showNotification('Please write or paste some code first', 'error');
+        return;
+    }
+    
+    showLoading('Finding and fixing bugs...');
+    
+    try {
+        const prompt = `Analyze this code for bugs and fix them:
+
+\`\`\`
+${code}
+\`\`\`
+
+Provide:
+1. List of bugs found
+2. Fixed code
+3. Explanation of fixes
+
+Output the fixed code in a code block.`;
+        
+        const response = await callGeminiAPI(prompt);
+        
+        hideLoading();
+        
+        const codeMatch = response.match(/```[\w]*\n([\s\S]*?)```/);
+        if (codeMatch) {
+            editor.value = codeMatch[1].trim();
+            showCodeOutput(response);
+        } else {
+            showCodeOutput(response);
         }
         
-        localStorage.setItem(VERSION_KEY, APP_VERSION);
+        showNotification('Code analyzed and fixed!', 'success');
+        highlightCode();
         
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
+    } catch (error) {
+        console.error('Fix code error:', error);
+        hideLoading();
+        showNotification('Failed to fix code', 'error');
     }
 }
 
-function checkForAppUpdates() {
-    const currentVersion = localStorage.getItem(VERSION_KEY);
-    if (currentVersion !== APP_VERSION) {
-        showNotification(getTranslation('updatesAvailable'), 'info');
-        setTimeout(() => {
-            localStorage.setItem(VERSION_KEY, APP_VERSION);
-            window.location.reload();
-        }, 2000);
-    } else {
-        showNotification(getTranslation('latestVersion'), 'success');
+async function optimizeCode() {
+    const editor = document.getElementById('codeEditor');
+    const code = editor.value.trim();
+    
+    if (!code) {
+        showNotification('Please write or paste some code first', 'error');
+        return;
+    }
+    
+    showLoading('Optimizing code...');
+    
+    try {
+        const prompt = `Optimize this code for better performance and readability:
+
+\`\`\`
+${code}
+\`\`\`
+
+Provide:
+1. Optimized code
+2. What was improved
+3. Performance benefits
+
+Output the optimized code in a code block.`;
+        
+        const response = await callGeminiAPI(prompt);
+        
+        hideLoading();
+        
+        const codeMatch = response.match(/```[\w]*\n([\s\S]*?)```/);
+        if (codeMatch) {
+            editor.value = codeMatch[1].trim();
+            showCodeOutput(response);
+        } else {
+            showCodeOutput(response);
+        }
+        
+        showNotification('Code optimized!', 'success');
+        highlightCode();
+        
+    } catch (error) {
+        console.error('Optimize code error:', error);
+        hideLoading();
+        showNotification('Failed to optimize code', 'error');
     }
 }
 
-// LANGUAGE FUNCTIONS
+function downloadCode() {
+    const editor = document.getElementById('codeEditor');
+    const code = editor.value.trim();
+    const language = document.getElementById('languageSelect').value;
+    
+    if (!code) {
+        showNotification('No code to download', 'error');
+        return;
+    }
+    
+    const extensions = {
+        javascript: 'js',
+        python: 'py',
+        java: 'java',
+        cpp: 'cpp',
+        html: 'html',
+        css: 'css'
+    };
+    
+    const ext = extensions[language] || 'txt';
+    const filename = `code-${Date.now()}.${ext}`;
+    
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Code downloaded!', 'success');
+}
+
+function showCodeOutput(content) {
+    const outputDiv = document.getElementById('codeOutput');
+    const outputContent = document.getElementById('outputContent');
+    
+    if (outputDiv && outputContent) {
+        outputContent.innerHTML = formatAIResponse(content);
+        outputDiv.style.display = 'flex';
+        
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAllUnder(outputContent);
+        }
+    }
+}
+
+function closeCodeOutput() {
+    const outputDiv = document.getElementById('codeOutput');
+    if (outputDiv) {
+        outputDiv.style.display = 'none';
+    }
+}
+
+function highlightCode() {
+    if (typeof Prism !== 'undefined') {
+        const editor = document.getElementById('codeEditor');
+        if (editor && editor.value) {
+            console.log('✨ Code highlighted');
+        }
+    }
+}
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
 function getTranslation(key) {
     return translations[currentLanguage][key] || translations.en[key] || key;
 }
@@ -248,23 +401,6 @@ function updateLanguage() {
             element.textContent = translation;
         }
     });
-
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        const translation = getTranslation(key);
-        if (translation) {
-            element.placeholder = translation;
-        }
-    });
-
-    document.querySelectorAll('[data-i18n-title]').forEach(element => {
-        const key = element.getAttribute('data-i18n-title');
-        const translation = getTranslation(key);
-        if (translation) {
-            element.title = translation;
-        }
-    });
-
     localStorage.setItem('smartai-language', currentLanguage);
 }
 
@@ -282,7 +418,6 @@ function loadLanguagePreference() {
     updateLanguage();
 }
 
-// UI HELPER FUNCTIONS
 function showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');
     const text = document.getElementById('notificationText');
@@ -341,6 +476,82 @@ function closeSidebar() {
     if (overlay) overlay.classList.remove('active');
 }
 
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getTimeString(timestamp) {
+    if (!timestamp) return '';
+    
+    const now = Date.now();
+    const diff = now - timestamp;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (currentLanguage === 'si') {
+        if (days === 0) return 'අද';
+        if (days === 1) return 'ඊයේ';
+        if (days < 7) return `දින ${days}කට පෙර`;
+        return new Date(timestamp).toLocaleDateString('si-LK');
+    } else {
+        if (days === 0) return 'Today';
+        if (days === 1) return 'Yesterday';
+        if (days < 7) return `${days} days ago`;
+        return new Date(timestamp).toLocaleDateString();
+    }
+}
+
+// ============================================
+// FIREBASE INITIALIZATION
+// ============================================
+
+function initializeFirebase() {
+    try {
+        console.log("🔄 Initializing Firebase...");
+        
+        if (typeof firebase === 'undefined') {
+            console.error('❌ Firebase SDK not loaded');
+            showNotification('Please check your internet connection', 'error');
+            markAuthCheckComplete();
+            return;
+        }
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        } else {
+            firebase.app();
+        }
+        
+        auth = firebase.auth();
+        database = firebase.database();
+        
+        console.log("✅ Firebase initialized successfully");
+
+        auth.onAuthStateChanged((user) => {
+            console.log("🔐 Auth state changed:", user ? user.email : "No user");
+            
+            markAuthCheckComplete();
+            
+            if (user) {
+                showChatApp();
+                loadChatSessions();
+                updateUserProfile(user);
+            } else {
+                showAuthContainer();
+            }
+        });
+
+        loadLanguagePreference();
+        
+    } catch (error) {
+        console.error("❌ Firebase init error:", error);
+        markAuthCheckComplete();
+        showNotification("Failed to initialize app", "error");
+    }
+}
+
 function updateUserProfile(user) {
     const userNameElement = document.getElementById('userName');
     const userEmailElement = document.getElementById('userEmail');
@@ -397,140 +608,10 @@ function hideMessages() {
     if (signupSuccess) signupSuccess.style.display = 'none';
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function getTimeString(timestamp) {
-    if (!timestamp) return '';
-    
-    const now = Date.now();
-    const diff = now - timestamp;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
-    
-    if (currentLanguage === 'si') {
-        if (days === 0) return 'අද';
-        if (days === 1) return 'ඊයේ';
-        if (days < 7) return `දින ${days}කට පෙර`;
-        return new Date(timestamp).toLocaleDateString('si-LK');
-    } else {
-        if (days === 0) return 'Today';
-        if (days === 1) return 'Yesterday';
-        if (days < 7) return `${days} days ago`;
-        return new Date(timestamp).toLocaleDateString();
-    }
-}
-
-function toggleSettings() {
-    const settingsMenu = document.querySelector('.settings-menu');
-    if (settingsMenu) {
-        settingsMenu.classList.toggle('active');
-    }
-}
-
-function addUpdateButton() {
-    const settingsMenu = document.querySelector('.settings-menu');
-    if (!settingsMenu) return;
-    
-    const updateBtn = document.createElement('button');
-    updateBtn.className = 'action-btn';
-    updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> ' + getTranslation('checkUpdates');
-    updateBtn.onclick = checkForAppUpdates;
-    
-    settingsMenu.appendChild(updateBtn);
-}
-
-// FIREBASE INITIALIZATION (⭐ MODIFIED FOR SPLASH)
-function initializeFirebase() {
-    try {
-        console.log("🔄 Initializing Firebase...");
-        
-        if (typeof firebase === 'undefined') {
-            console.error('❌ Firebase SDK not loaded');
-            showNotification('Please check your internet connection', 'error');
-            markAuthCheckComplete(); // ⭐ IMPORTANT
-            return;
-        }
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        } else {
-            firebase.app();
-        }
-        
-        auth = firebase.auth();
-        database = firebase.database();
-        
-        console.log("✅ Firebase initialized successfully");
-
-        auth.onAuthStateChanged((user) => {
-            console.log("🔐 Auth state changed:", user ? user.email : "No user");
-            
-            // ⭐⭐⭐ CRITICAL: Mark auth check complete ⭐⭐⭐
-            markAuthCheckComplete();
-            
-            if (user) {
-                showChatApp();
-                loadChatSessions();
-                updateUserProfile(user);
-            } else {
-                showAuthContainer();
-            }
-        });
-
-        loadLanguagePreference();
-        
-    } catch (error) {
-        console.error("❌ Firebase init error:", error);
-        markAuthCheckComplete(); // ⭐ IMPORTANT
-        showNotification("Failed to initialize app", "error");
-    }
-}
-
-// FIREBASE DATABASE FUNCTIONS
-async function saveUserToDatabase(userId, name, email) {
-    try {
-        const userData = {
-            name: name,
-            email: email,
-            createdAt: Date.now(),
-            lastLogin: Date.now()
-        };
-        
-        const userRef = database.ref('users/' + userId);
-        await userRef.set(userData);
-        
-        console.log("✅ User data saved to Firebase Database");
-        return true;
-        
-    } catch (error) {
-        console.error("❌ Error saving user to database:", error);
-        throw error;
-    }
-}
-
-async function updateUserInDatabase() {
-    try {
-        const user = auth.currentUser;
-        if (!user) return;
-        
-        const userRef = database.ref('users/' + user.uid);
-        await userRef.update({
-            lastLogin: Date.now()
-        });
-        
-        console.log("✅ User last login updated");
-        
-    } catch (error) {
-        console.error("❌ Error updating user in database:", error);
-    }
-}
-
+// ============================================
 // AUTH HANDLERS
+// ============================================
+
 async function handleLogin(event) {
     if (event) event.preventDefault();
     if (isProcessing) return;
@@ -556,8 +637,7 @@ async function handleLogin(event) {
     hideMessages();
     
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email.value, password.value);
-        await updateUserInDatabase();
+        await auth.signInWithEmailAndPassword(email.value, password.value);
         showNotification(getTranslation('loginSuccess'));
         if (email) email.value = '';
         if (password) password.value = '';
@@ -568,13 +648,13 @@ async function handleLogin(event) {
         
         if (errorMsg) {
             if (error.code === 'auth/user-not-found') {
-                errorMsg.textContent = 'No account found with this email. Please sign up.';
+                errorMsg.textContent = 'No account found with this email.';
             } else if (error.code === 'auth/wrong-password') {
-                errorMsg.textContent = 'Incorrect password. Please try again.';
+                errorMsg.textContent = 'Incorrect password.';
             } else if (error.code === 'auth/invalid-email') {
                 errorMsg.textContent = 'Invalid email address.';
             } else {
-                errorMsg.textContent = 'Login failed. Please check your credentials.';
+                errorMsg.textContent = 'Login failed. Please try again.';
             }
             errorMsg.style.display = 'block';
         }
@@ -585,7 +665,7 @@ async function handleLogin(event) {
             const loader = btn.querySelector('.loader');
             const loginText = btn.querySelector('#loginText');
             if (loader) loader.style.display = 'none';
-            if (loginText) loginText.textContent = getTranslation('login');
+            if (loginText) loginText.textContent = 'Login';
         }
     }
 }
@@ -628,11 +708,9 @@ async function handleSignup(event) {
             displayName: name.value 
         });
         
-        await saveUserToDatabase(user.uid, name.value, email.value);
-        
         const successMsg = document.getElementById('signupSuccess');
         if (successMsg) {
-            successMsg.textContent = 'Registration successful! Redirecting...';
+            successMsg.textContent = 'Registration successful!';
             successMsg.style.display = 'block';
         }
         
@@ -650,9 +728,9 @@ async function handleSignup(event) {
         
         if (errorMsg) {
             if (error.code === 'auth/email-already-in-use') {
-                errorMsg.textContent = 'This email is already registered. Please login.';
+                errorMsg.textContent = 'This email is already registered.';
             } else if (error.code === 'auth/weak-password') {
-                errorMsg.textContent = 'Password is too weak. Please use a stronger password.';
+                errorMsg.textContent = 'Password is too weak.';
             } else if (error.code === 'auth/invalid-email') {
                 errorMsg.textContent = 'Invalid email address.';
             } else {
@@ -667,7 +745,7 @@ async function handleSignup(event) {
             const loader = btn.querySelector('.loader');
             const signupText = btn.querySelector('#signupText');
             if (loader) loader.style.display = 'none';
-            if (signupText) signupText.textContent = getTranslation('signUp');
+            if (signupText) signupText.textContent = 'Sign Up';
         }
     }
 }
@@ -684,504 +762,29 @@ async function handleLogout() {
     }
 }
 
-console.log("✅ Part 2/5 loaded - Helpers & Firebase with Splash Integration");
-
 // ============================================
-// SMART AI CHAT APP - PART 3/5
-// AI Functions, Text Art & Image Generation
+// GEMINI AI API CALLS
 // ============================================
 
-// IMAGE GENERATION DETECTION
-function isImageGenerationRequest(message) {
-    if (isTextArtRequest(message)) {
-        return 'text-art';
-    }
-    
-    const lowerMessage = message.toLowerCase().trim();
-    const cleaned = lowerMessage.replace(/^(can you|could you|please|i want to|i need to|help me)\s+/i, '').trim();
-    
-    const englishPatterns = [
-        /^create\s+(an?\s+)?(image|picture|photo|illustration)/i,
-        /^generate\s+(an?\s+)?(image|picture|photo|illustration)/i,
-        /^draw\s+(me\s+)?(an?\s+)?(image|picture)/i,
-        /^make\s+(me\s+)?(an?\s+)?(image|picture|photo)/i,
-        /^design\s+(an?\s+)?(image|picture)/i,
-        /^paint\s+(an?\s+)?(image|picture)/i,
-        /^illustrate/i,
-        /^sketch\s+(an?\s+)?(image|picture)/i
-    ];
-    
-    const sinhalaPatterns = [
-        /පින්තූරයක්\s+(හදන්න|සාදන්න|ඇඳන්න)/i,
-        /පින්තූරය\s+(හදන්න|සාදන්න|ඇඳන්න)/i,
-        /(හදන්න|සාදන්න)\s+පින්තූරයක්/i
-    ];
-    
-    const matchesEnglish = englishPatterns.some(pattern => pattern.test(cleaned));
-    const matchesSinhala = sinhalaPatterns.some(pattern => pattern.test(lowerMessage));
-    
-    if (matchesEnglish || matchesSinhala) {
-        return 'image-description';
-    }
-    
-    return false;
-}
-
-// TEXT ART DETECTION
-function isTextArtRequest(message) {
-    const lowerMessage = message.toLowerCase().trim();
-    
-    const textArtPatterns = [
-        /text\s+(art|image|picture)/i,
-        /ascii\s+(art|image)/i,
-        /draw\s+(with|using)?\s*(text|ascii|characters)/i,
-        /create.*using\s+(text|characters|ascii)/i,
-        /make.*text\s+(art|image)/i,
-        /අකුරු\s*(පින්තූර|කලාව)/i,
-        /text\s*පින්තූර/i,
-    ];
-    
-    return textArtPatterns.some(pattern => pattern.test(lowerMessage));
-}
-
-// GENERATE TEXT ART WITH GEMINI
-async function generateTextArt(prompt) {
+async function callGeminiAPI(prompt, imageData = null) {
     try {
-        console.log("🎨 Generating text art for:", prompt);
-        
-        const loadingMsg = currentLanguage === 'si' ? 'Text art එක සාදමින්...' : 'Creating text art...';
-        showLoading(loadingMsg);
-        isGeneratingImage = true;
-
-        const enhancedPrompt = `You are an expert ASCII/Text artist. Create a detailed text-based image/ASCII art of: "${prompt}"
-
-IMPORTANT INSTRUCTIONS:
-1. Use ASCII characters, Unicode box-drawing characters, or emojis
-2. Make it visually appealing and detailed
-3. The art should be at least 15-30 lines tall for good detail
-4. Use creative spacing and characters
-5. Add a title and description
-
-Example format:
-
-╔═══════════════════════════════════╗
-║        [TITLE OF YOUR ART]        ║
-╚═══════════════════════════════════╝
-
-[Your ASCII/Text Art Here - Be Creative!]
-Use characters like: ░▒▓█▀▄│─┌┐└┘├┤┬┴┼
-Or emojis: 🌟✨💫⭐🌙☀️🌈🎨
-Or traditional ASCII: @#$%&*()_+-=[]{}|;:'"<>,.?/
-
-Description: [Brief description of what you created]
-
-Be creative and make it beautiful! The more detailed, the better!`;
-
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
         
-        const requestBody = {
-            contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
-            generationConfig: {
-                temperature: 1.0,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 8192,
-            }
-        };
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to generate text art');
-        }
-
-        const data = await response.json();
-        const textArt = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        hideLoading();
-        isGeneratingImage = false;
+        let requestBody;
         
-        if (textArt) {
-            console.log("✅ Text art generated successfully!");
-            return textArt;
-        } else {
-            throw new Error('Empty response from AI');
-        }
-
-    } catch (error) {
-        console.error('❌ Text art generation error:', error);
-        hideLoading();
-        isGeneratingImage = false;
-        
-        const errorMsg = currentLanguage === 'si'
-            ? 'මට කණගාටුයි, text art එක සෑදීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
-            : 'Sorry, I could not generate the text art. Please try again.';
-        
-        showNotification(errorMsg, 'error');
-        return null;
-    }
-}
-
-// TEXT ART GENERATION FLOW
-async function handleTextArtFlow(userMessage) {
-    const session = getCurrentSession();
-    if (!session) {
-        createNewChat();
-        return;
-    }
-
-    const input = document.getElementById('messageInput');
-    if (input) input.value = '';
-
-    displayMessage(userMessage, true);
-    
-    session.messages.push({
-        content: userMessage,
-        isUser: true,
-        timestamp: Date.now()
-    });
-
-    if (session.messages.filter(m => m.isUser).length === 1) {
-        const titleText = userMessage.replace(/<[^>]*>/g, '').substring(0, 30);
-        session.title = titleText + (titleText.length >= 30 ? '...' : '');
-    }
-
-    session.updatedAt = Date.now();
-    saveChatSessions();
-    renderSessions();
-
-    const typing = document.getElementById('typingIndicator');
-    if (typing) typing.style.display = 'flex';
-
-    let artPrompt = userMessage;
-    const commandPatterns = [
-        /^(create|generate|draw|make)\s+(a\s+)?text\s+(art|image|picture)\s+(of\s+)?/i,
-        /^(create|generate|draw|make)\s+.*using\s+(text|ascii|characters)\s*:?\s*/i,
-        /^ascii\s+art\s+(of\s+)?/i,
-        /^අකුරු\s*පින්තූර\s*/i,
-    ];
-    
-    for (const pattern of commandPatterns) {
-        artPrompt = artPrompt.replace(pattern, '').trim();
-    }
-
-    const textArt = await generateTextArt(artPrompt);
-
-    if (typing) typing.style.display = 'none';
-
-    if (textArt) {
-        const headerNote = currentLanguage === 'si'
-            ? `## 🎨 Text Art - අකුරු පින්තූරය\n\n`
-            : `## 🎨 Text Art Generated\n\n`;
-        
-        const fullResponse = headerNote + '```\n' + textArt + '\n```';
-        
-        displayTextArtMessage(textArt, artPrompt);
-        
-        session.messages.push({
-            content: fullResponse,
-            isUser: false,
-            isTextArt: true,
-            originalPrompt: artPrompt,
-            timestamp: Date.now()
-        });
-
-        session.updatedAt = Date.now();
-        saveChatSessions();
-        
-        showNotification(currentLanguage === 'si' ? 'Text art එක සාදන ලදී!' : 'Text art created!', 'success');
-    } else {
-        const errorMsg = currentLanguage === 'si' ? 'මට කණගාටුයි, text art එක සෑදීමට නොහැකි විය.' : 'Sorry, I could not generate the text art.';
-        displayMessage(errorMsg, false);
-        session.messages.push({ content: errorMsg, isUser: false, timestamp: Date.now() });
-        saveChatSessions();
-    }
-}
-
-// DISPLAY TEXT ART MESSAGE
-function displayTextArtMessage(textArt, prompt) {
-    const messagesDiv = document.getElementById('chatMessages');
-    if (!messagesDiv) return;
-    
-    const welcome = messagesDiv.querySelector('.welcome-screen');
-    if (welcome) welcome.remove();
-    
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message ai-message text-art-message';
-    
-    const copyBtnText = currentLanguage === 'si' ? 'පිටපත් කරන්න' : 'Copy Art';
-    const downloadBtnText = currentLanguage === 'si' ? 'බාගන්න' : 'Download';
-    
-    messageDiv.innerHTML = `
-        <div class="message-header">
-            <div class="message-avatar"><i class="fas fa-robot"></i></div>
-            <span>Smart AI</span>
-        </div>
-        <div class="message-content">
-            <div class="text-art-container">
-                <div class="text-art-title">
-                    🎨 ${currentLanguage === 'si' ? 'අකුරු පින්තූරය' : 'Text Art'}: ${escapeHtml(prompt)}
-                </div>
-                <pre class="text-art-display">${escapeHtml(textArt)}</pre>
-            </div>
-        </div>
-        <div class="message-actions">
-            <button class="action-btn copy-btn" onclick="copyTextArt(this, \`${textArt.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">
-                <i class="fas fa-copy"></i> ${copyBtnText}
-            </button>
-            <button class="action-btn download-btn" onclick="downloadTextArt(\`${textArt.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, '${escapeHtml(prompt)}')">
-                <i class="fas fa-download"></i> ${downloadBtnText}
-            </button>
-        </div>
-    `;
-    
-    messagesDiv.appendChild(messageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-// COPY TEXT ART
-function copyTextArt(button, textArt) {
-    navigator.clipboard.writeText(textArt).then(() => {
-        const originalHTML = button.innerHTML;
-        button.innerHTML = `<i class="fas fa-check"></i> ${currentLanguage === 'si' ? 'පිටපත් විය!' : 'Copied!'}`;
-        button.style.background = '#10b981';
-        
-        setTimeout(() => {
-            button.innerHTML = originalHTML;
-            button.style.background = '';
-        }, 2000);
-    }).catch(err => {
-        console.error('Copy failed:', err);
-        showNotification('Copy failed', 'error');
-    });
-}
-
-// DOWNLOAD TEXT ART AS TXT FILE
-function downloadTextArt(textArt, prompt) {
-    try {
-        const filename = `text-art-${prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
-        const blob = new Blob([textArt], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        showNotification(currentLanguage === 'si' ? 'බාගත විය!' : 'Downloaded!', 'success');
-    } catch (error) {
-        console.error('Download failed:', error);
-        showNotification('Download failed', 'error');
-    }
-}
-
-// GENERATE DETAILED IMAGE DESCRIPTION
-async function generateDetailedImageDescription(prompt) {
-    try {
-        console.log("🎨 Generating detailed image description for:", prompt);
-        
-        const loadingMsg = currentLanguage === 'si' 
-            ? 'AI භාවිතයෙන් පින්තූරයේ විස්තරය සාදමින්...' 
-            : 'Creating detailed image description with AI...';
-        
-        showLoading(loadingMsg);
-        isGeneratingImage = true;
-
-        const enhancedPrompt = `You are an expert artist and visual designer. The user wants an image of: "${prompt}"
-
-Please provide a comprehensive description including:
-
-**🎨 Visual Description:**
-- Main subject and composition
-- Colors and color palette
-- Mood and atmosphere
-- Lighting conditions
-- Style (realistic, cartoon, abstract, etc.)
-- Key visual elements and details
-
-**📐 Technical Details:**
-- Recommended composition layout
-- Perspective and angle
-- Background elements
-- Foreground elements
-
-**🔗 Where to Find Similar Images:**
-Provide direct search links to these free image sources:
-- Unsplash: https://unsplash.com/s/photos/${encodeURIComponent(prompt.replace(/\s+/g, '-'))}
-- Pexels: https://www.pexels.com/search/${encodeURIComponent(prompt.replace(/\s+/g, '%20'))}
-- Pixabay: https://pixabay.com/images/search/${encodeURIComponent(prompt.replace(/\s+/g, '-'))}
-
-**💡 Design Tips:**
-Give 3-4 creative suggestions to enhance this image concept.
-
-Format your response beautifully using markdown with emojis for visual appeal.`;
-
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-        
-        const requestBody = {
-            contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
-            generationConfig: {
-                temperature: 0.9,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 8192,
-            }
-        };
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to generate description');
-        }
-
-        const data = await response.json();
-        const description = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        hideLoading();
-        isGeneratingImage = false;
-        
-        if (description) {
-            console.log("✅ Description generated successfully!");
-            return description;
-        } else {
-            throw new Error('Empty response from AI');
-        }
-
-    } catch (error) {
-        console.error('❌ Description generation error:', error);
-        hideLoading();
-        isGeneratingImage = false;
-        
-        const errorMsg = currentLanguage === 'si'
-            ? 'මට කණගාටුයි, විස්තරය සෑදීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
-            : 'Sorry, I could not generate the description. Please try again.';
-        
-        showNotification(errorMsg, 'error');
-        return null;
-    }
-}
-
-// IMAGE GENERATION FLOW
-async function handleImageGenerationFlow(userMessage) {
-    const session = getCurrentSession();
-    if (!session) {
-        createNewChat();
-        return;
-    }
-
-    const input = document.getElementById('messageInput');
-    if (input) input.value = '';
-    displayMessage(userMessage, true);
-    
-    session.messages.push({ content: userMessage, isUser: true, timestamp: Date.now() });
-
-    if (session.messages.filter(m => m.isUser).length === 1) {
-        const titleText = userMessage.replace(/<[^>]*>/g, '').substring(0, 30);
-        session.title = titleText + (titleText.length >= 30 ? '...' : '');
-    }
-
-    session.updatedAt = Date.now();
-    saveChatSessions();
-    renderSessions();
-
-    const typing = document.getElementById('typingIndicator');
-    if (typing) typing.style.display = 'flex';
-
-    let imagePrompt = userMessage;
-    const commandPatterns = [
-        /^(create|generate|draw|make|design|paint|sketch)\s+(an?\s+)?(image|picture|photo)\s+(of\s+)?/i,
-        /^(හදන්න|සාදන්න|ඇඳන්න)\s+පින්තූරයක්\s+/i,
-        /^පින්තූරයක්\s+(හදන්න|සාදන්න|ඇඳන්න)\s+/i
-    ];
-    
-    for (const pattern of commandPatterns) {
-        imagePrompt = imagePrompt.replace(pattern, '').trim();
-    }
-
-    const description = await generateDetailedImageDescription(imagePrompt);
-
-    if (typing) typing.style.display = 'none';
-
-    if (description) {
-        const headerNote = currentLanguage === 'si'
-            ? `## 📝 පින්තූරයේ සවිස්තරාත්මක විස්තරය\n\n> **සටහන:** මට සැබෑ පින්තූරය සෑදීමට Imagen API access නැත. ඒ වෙනුවට මම ඔබට:\n> - සවිස්තරාත්මක විස්තරයක් 🎨\n> - නොමිලේ පින්තූර සොයාගත හැකි සබැඳි 🔗\n> - නිර්මාණාත්මක යෝජනා 💡\n\n---\n\n`
-            : `## 📝 Detailed Image Description\n\n> **Note:** I don't have access to Imagen API to generate actual images. Instead, I'm providing:\n> - Detailed visual description 🎨\n> - Links to free image sources 🔗\n> - Creative design suggestions 💡\n\n---\n\n`;
-        
-        const fullResponse = headerNote + description;
-        displayMessage(fullResponse, false);
-        
-        session.messages.push({
-            content: fullResponse,
-            isUser: false,
-            isImageDescription: true,
-            originalPrompt: imagePrompt,
-            timestamp: Date.now()
-        });
-
-        session.updatedAt = Date.now();
-        saveChatSessions();
-        
-        showNotification(
-            currentLanguage === 'si' 
-                ? 'විස්තරය සාදන ලදී! Links මගින් නොමිලේ පින්තූර සොයන්න.' 
-                : 'Description created! Use the links to find free images.',
-            'success'
-        );
-    } else {
-        const errorMsg = currentLanguage === 'si' 
-            ? 'මට කණගාටුයි, විස්තරය සෑදීමට නොහැකි විය.'
-            : 'Sorry, I could not generate the description.';
-        
-        displayMessage(errorMsg, false);
-        session.messages.push({ content: errorMsg, isUser: false, timestamp: Date.now() });
-        saveChatSessions();
-    }
-}
-
-// GEMINI AI TEXT RESPONSE
-async function getAIResponse(userMessage, imageData = null, conversationHistory = []) {
-    console.log("🤖 Getting AI response...", { 
-        userMessage: userMessage.substring(0, 50), 
-        hasImage: !!imageData,
-        historyLength: conversationHistory.length 
-    });
-    
-    try {
-        let apiUrl, requestBody;
-
         if (imageData) {
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-            
-            const parts = [];
-            
-            if (conversationHistory.length > 0) {
-                const historyText = conversationHistory.map(msg => 
-                    `${msg.isUser ? 'User' : 'Assistant'}: ${msg.content}`
-                ).join('\n');
-                parts.push({ text: historyText + '\n\nCurrent question:\n' });
-            }
-            
-            parts.push({ text: userMessage });
-            parts.push({
-                inline_data: {
-                    mime_type: "image/jpeg",
-                    data: imageData.split(',')[1]
-                }
-            });
-            
             requestBody = {
-                contents: [{ parts: parts }],
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        {
+                            inline_data: {
+                                mime_type: "image/jpeg",
+                                data: imageData.split(',')[1]
+                            }
+                        }
+                    ]
+                }],
                 generationConfig: {
                     temperature: 0.7,
                     topK: 40,
@@ -1190,25 +793,11 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
                 }
             };
         } else {
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-            
-            const contents = [];
-            
-            for (let i = 0; i < conversationHistory.length; i++) {
-                const msg = conversationHistory[i];
-                contents.push({
-                    role: msg.isUser ? "user" : "model",
-                    parts: [{ text: msg.content }]
-                });
-            }
-            
-            contents.push({
-                role: "user",
-                parts: [{ text: userMessage }]
-            });
-            
             requestBody = {
-                contents: contents,
+                contents: [{
+                    role: "user",
+                    parts: [{ text: prompt }]
+                }],
                 generationConfig: {
                     temperature: 0.9,
                     topK: 40,
@@ -1235,28 +824,233 @@ async function getAIResponse(userMessage, imageData = null, conversationHistory 
             throw new Error('Empty response from AI');
         }
         
-        console.log("✅ AI response successful");
         return aiResponse;
+        
+    } catch (error) {
+        console.error('❌ Gemini API Error:', error);
+        throw error;
+    }
+}
+
+async function getAIResponse(userMessage, imageData = null, conversationHistory = []) {
+    console.log("🤖 Getting AI response...");
+    
+    try {
+        let prompt = userMessage;
+        
+        if (conversationHistory.length > 0) {
+            const historyText = conversationHistory.map(msg => 
+                `${msg.isUser ? 'User' : 'Assistant'}: ${msg.content}`
+            ).join('\n');
+            prompt = historyText + '\n\nCurrent question:\n' + userMessage;
+        }
+        
+        const response = await callGeminiAPI(prompt, imageData);
+        
+        console.log("✅ AI response successful");
+        return response;
         
     } catch (error) {
         console.error('❌ AI Error:', error);
         
         if (currentLanguage === 'si') {
-            return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.';
+            return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.';
         } else {
-            return 'I apologize, but I encountered an error. Please try again in a moment.';
+            return 'I apologize, but I encountered an error. Please try again.';
         }
     }
 }
-
-console.log("✅ Part 3/5 loaded - AI Functions & Text Art");
-
 // ============================================
-// SMART AI CHAT APP - PART 4/5
-// Storage & Chat Functions
+// TEXT ART FUNCTIONS
 // ============================================
 
-// OPTIMIZED STORAGE - LOCAL FIRST, FIREBASE BACKGROUND
+function isTextArtRequest(message) {
+    const lowerMessage = message.toLowerCase().trim();
+    
+    const textArtPatterns = [
+        /text\s+(art|image|picture)/i,
+        /ascii\s+(art|image)/i,
+        /draw\s+(with|using)?\s*(text|ascii|characters)/i,
+        /create.*using\s+(text|characters|ascii)/i,
+        /make.*text\s+(art|image)/i,
+        /අකුරු\s*(පින්තූර|කලාව)/i,
+    ];
+    
+    return textArtPatterns.some(pattern => pattern.test(lowerMessage));
+}
+
+async function generateTextArt(prompt) {
+    try {
+        console.log("🎨 Generating text art for:", prompt);
+        
+        const loadingMsg = currentLanguage === 'si' ? 'Text art එක සාදමින්...' : 'Creating text art...';
+        showLoading(loadingMsg);
+        isGeneratingImage = true;
+
+        const enhancedPrompt = `You are an expert ASCII/Text artist. Create a detailed text-based image/ASCII art of: "${prompt}"
+
+IMPORTANT:
+1. Use ASCII characters, Unicode box-drawing characters, or emojis
+2. Make it visually appealing and detailed
+3. The art should be at least 15-30 lines tall
+4. Use creative spacing and characters
+5. Add a title and description
+
+Be creative and make it beautiful!`;
+
+        const textArt = await callGeminiAPI(enhancedPrompt);
+
+        hideLoading();
+        isGeneratingImage = false;
+        
+        if (textArt) {
+            console.log("✅ Text art generated!");
+            return textArt;
+        } else {
+            throw new Error('Empty response');
+        }
+
+    } catch (error) {
+        console.error('❌ Text art error:', error);
+        hideLoading();
+        isGeneratingImage = false;
+        
+        const errorMsg = currentLanguage === 'si'
+            ? 'මට කණගාටුයි, text art එක සෑදීමට නොහැකි විය.'
+            : 'Sorry, I could not generate the text art.';
+        
+        showNotification(errorMsg, 'error');
+        return null;
+    }
+}
+
+async function handleTextArtFlow(userMessage) {
+    const session = getCurrentSession();
+    if (!session) {
+        createNewChat();
+        return;
+    }
+
+    const input = document.getElementById('messageInput');
+    if (input) input.value = '';
+
+    displayMessage(userMessage, true);
+    
+    session.messages.push({
+        content: userMessage,
+        isUser: true,
+        timestamp: Date.now()
+    });
+
+    if (session.messages.filter(m => m.isUser).length === 1) {
+        const titleText = userMessage.substring(0, 30);
+        session.title = titleText + (titleText.length >= 30 ? '...' : '');
+    }
+
+    session.updatedAt = Date.now();
+    saveChatSessions();
+    renderSessions();
+
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.style.display = 'flex';
+
+    let artPrompt = userMessage.replace(/^(create|generate|draw|make)\s+(a\s+)?text\s+(art|image)\s+(of\s+)?/i, '').trim();
+
+    const textArt = await generateTextArt(artPrompt);
+
+    if (typing) typing.style.display = 'none';
+
+    if (textArt) {
+        displayTextArtMessage(textArt, artPrompt);
+        
+        session.messages.push({
+            content: textArt,
+            isUser: false,
+            isTextArt: true,
+            originalPrompt: artPrompt,
+            timestamp: Date.now()
+        });
+
+        session.updatedAt = Date.now();
+        saveChatSessions();
+        
+        showNotification(currentLanguage === 'si' ? 'Text art එක සාදන ලදී!' : 'Text art created!', 'success');
+    }
+}
+
+function displayTextArtMessage(textArt, prompt) {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+    
+    const welcome = messagesDiv.querySelector('.welcome-screen');
+    if (welcome) welcome.remove();
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ai-message text-art-message';
+    
+    const copyBtnText = currentLanguage === 'si' ? 'පිටපත්' : 'Copy';
+    const downloadBtnText = currentLanguage === 'si' ? 'බාගන්න' : 'Download';
+    
+    messageDiv.innerHTML = `
+        <div class="message-header">
+            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            <span>Smart AI</span>
+        </div>
+        <div class="message-content">
+            <div class="text-art-container">
+                <div class="text-art-title">
+                    🎨 Text Art: ${escapeHtml(prompt)}
+                </div>
+                <pre class="text-art-display">${escapeHtml(textArt)}</pre>
+            </div>
+        </div>
+        <div class="message-actions">
+            <button class="action-btn" onclick="copyTextArt(this, \`${textArt.replace(/`/g, '\\`')}\`)">
+                <i class="fas fa-copy"></i> ${copyBtnText}
+            </button>
+            <button class="action-btn" onclick="downloadTextArt(\`${textArt.replace(/`/g, '\\`')}\`, '${escapeHtml(prompt)}')">
+                <i class="fas fa-download"></i> ${downloadBtnText}
+            </button>
+        </div>
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function copyTextArt(button, textArt) {
+    navigator.clipboard.writeText(textArt).then(() => {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = `<i class="fas fa-check"></i> ${getTranslation('copied')}`;
+        button.style.background = '#10b981';
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.style.background = '';
+        }, 2000);
+    });
+}
+
+function downloadTextArt(textArt, prompt) {
+    const filename = `text-art-${prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
+    const blob = new Blob([textArt], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Downloaded!', 'success');
+}
+
+// ============================================
+// STORAGE FUNCTIONS
+// ============================================
+
 function getStorageKey() {
     const userId = auth && auth.currentUser ? auth.currentUser.uid : 'anonymous';
     return `smartai-sessions-${userId}`;
@@ -1267,26 +1061,23 @@ async function saveChatSessions() {
         const userId = auth && auth.currentUser ? auth.currentUser.uid : null;
         const storageKey = getStorageKey();
         
-        // 🚀 INSTANT: Save to localStorage first (no delay)
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
-        console.log("⚡ Instantly saved to localStorage");
+        console.log("⚡ Saved to localStorage");
         
-        // 🔄 BACKGROUND: Then sync to Firebase (won't block UI)
         if (userId && database) {
             const sessionsArray = chatSessions.map((session, index) => ({
                 ...session,
                 index: index
             }));
             
-            // Don't await - let it sync in background
             database.ref('users/' + userId + '/chatSessions')
                 .set(sessionsArray)
                 .then(() => console.log("☁️ Synced to Firebase"))
-                .catch(err => console.log("⚠️ Firebase sync failed (localStorage still works):", err));
+                .catch(err => console.log("⚠️ Firebase sync failed:", err));
         }
         
     } catch (error) {
-        console.error('❌ Save sessions error:', error);
+        console.error('❌ Save error:', error);
     }
 }
 
@@ -1298,23 +1089,21 @@ async function loadChatSessions() {
         let sessions = [];
         let loadedFromLocalStorage = false;
 
-        // 🚀 PRIORITY 1: Load from localStorage FIRST (instant)
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             try {
                 sessions = JSON.parse(saved);
                 loadedFromLocalStorage = true;
-                console.log("⚡ Loaded from localStorage instantly:", sessions.length, "chats");
+                console.log("⚡ Loaded from localStorage:", sessions.length, "chats");
             } catch (parseError) {
-                console.error("❌ Failed to parse localStorage:", parseError);
+                console.error("❌ Parse error:", parseError);
                 sessions = [];
             }
         }
 
-        // 🔄 PRIORITY 2: Check Firebase (for first load or sync across devices)
         if (userId && database) {
             if (!loadedFromLocalStorage) {
-                console.log("📥 No localStorage, loading from Firebase...");
+                console.log("📥 Loading from Firebase...");
                 try {
                     const snapshot = await database.ref('users/' + userId + '/chatSessions').once('value');
                     
@@ -1327,38 +1116,6 @@ async function loadChatSessions() {
                 } catch (firebaseError) {
                     console.log("⚠️ Firebase load failed:", firebaseError);
                 }
-            } else {
-                // Background sync if localStorage exists
-                database.ref('users/' + userId + '/chatSessions')
-                    .once('value')
-                    .then(snapshot => {
-                        if (snapshot.exists()) {
-                            const firebaseData = snapshot.val();
-                            const firebaseSessions = Array.isArray(firebaseData) ? firebaseData : Object.values(firebaseData);
-                            
-                            if (firebaseSessions.length > 0 && sessions.length > 0) {
-                                const firebaseLatest = Math.max(...firebaseSessions.map(s => s.updatedAt || 0));
-                                const localLatest = Math.max(...sessions.map(s => s.updatedAt || 0));
-                                
-                                if (firebaseLatest > localLatest) {
-                                    console.log("☁️ Firebase has newer data, syncing...");
-                                    chatSessions = firebaseSessions;
-                                    localStorage.setItem(storageKey, JSON.stringify(firebaseSessions));
-                                    renderSessions();
-                                    renderChatHistory();
-                                } else {
-                                    console.log("✅ localStorage is up to date");
-                                }
-                            } else if (firebaseSessions.length > sessions.length) {
-                                console.log("☁️ Firebase has more chats, syncing...");
-                                chatSessions = firebaseSessions;
-                                localStorage.setItem(storageKey, JSON.stringify(firebaseSessions));
-                                renderSessions();
-                                renderChatHistory();
-                            }
-                        }
-                    })
-                    .catch(err => console.log("⚠️ Background Firebase sync failed:", err));
             }
         }
 
@@ -1374,18 +1131,22 @@ async function loadChatSessions() {
         renderSessions();
 
     } catch (error) {
-        console.error('❌ Load sessions error:', error);
+        console.error('❌ Load error:', error);
         createNewChat();
     }
 }
 
-// MESSAGE FORMATTING - MARKDOWN SUPPORT
+
+// ============================================
+// MESSAGE FORMATTING
+// ============================================
+
 function formatAIResponse(text) {
     if (!text) return '';
     
     text = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
-        return `<pre><code class="code-block">${code.trim()}</code></pre>`;
+        return `<pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`;
     });
     text = text.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
     text = text.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
@@ -1393,24 +1154,19 @@ function formatAIResponse(text) {
     text = text.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
     text = text.replace(/_([^_]+)_/g, '<em>$1</em>');
     text = text.replace(/~~([^~]+)~~/g, '<del>$1</del>');
-    text = text.replace(/^### (.*$)/gm, '<h3 class="md-h3">$1</h3>');
-    text = text.replace(/^## (.*$)/gm, '<h2 class="md-h2">$1</h2>');
-    text = text.replace(/^# (.*$)/gm, '<h1 class="md-h1">$1</h1>');
-    text = text.replace(/^\* (.*$)/gm, '<li class="md-li">$1</li>');
-    text = text.replace(/^- (.*$)/gm, '<li class="md-li">$1</li>');
-    text = text.replace(/^\d+\. (.*$)/gm, '<li class="md-li-ordered">$1</li>');
-    text = text.replace(/(<li class="md-li">.*<\/li>\n?)+/g, '<ul class="md-ul">$&</ul>');
-    text = text.replace(/(<li class="md-li-ordered">.*<\/li>\n?)+/g, '<ol class="md-ol">$&</ol>');
-    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" class="md-link">$1</a>');
-    text = text.replace(/^&gt; (.*$)/gm, '<blockquote class="md-blockquote">$1</blockquote>');
-    text = text.replace(/^---$/gm, '<hr class="md-hr">');
-    text = text.replace(/^\*\*\*$/gm, '<hr class="md-hr">');
+    text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+    text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+    text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+    text = text.replace(/^\* (.*$)/gm, '<li>$1</li>');
+    text = text.replace(/^- (.*$)/gm, '<li>$1</li>');
+    text = text.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
+    text = text.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
     text = text.replace(/\n/g, '<br>');
     
     return text;
 }
 
-// DISPLAY MESSAGES
 function displayMessage(content, isUser, imageData = null) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
@@ -1427,14 +1183,13 @@ function displayMessage(content, isUser, imageData = null) {
     
     const messageLabel = isUser ? 
         (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
-        'Smart AI';
+        'Smart AI Pro';
     
     let imageHTML = '';
     if (imageData) {
         imageHTML = `
             <div class="image-container">
                 <img src="${imageData}" alt="Uploaded image" class="message-image">
-                <div class="image-caption">${currentLanguage === 'si' ? 'ඔබ උඩුගත කළ පින්තූරය' : 'Image you uploaded'}</div>
             </div>
         `;
     }
@@ -1461,6 +1216,10 @@ function displayMessage(content, isUser, imageData = null) {
     
     messagesDiv.appendChild(messageDiv);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    if (typeof Prism !== 'undefined') {
+        Prism.highlightAllUnder(messageDiv);
+    }
 }
 
 function copyMessage(button) {
@@ -1474,7 +1233,7 @@ function copyMessage(button) {
     
     navigator.clipboard.writeText(textContent).then(() => {
         const originalHTML = button.innerHTML;
-        button.innerHTML = `<i class="fas fa-check"></i> ${currentLanguage === 'si' ? 'පිටපත් විය!' : 'Copied!'}`;
+        button.innerHTML = `<i class="fas fa-check"></i> ${getTranslation('copied')}`;
         button.style.background = '#10b981';
         
         setTimeout(() => {
@@ -1486,7 +1245,10 @@ function copyMessage(button) {
     });
 }
 
-// SEND MESSAGE - MAIN FUNCTION
+// ============================================
+// SEND MESSAGE FUNCTION
+// ============================================
+
 async function sendMessage() {
     if (isProcessing || isImageLoading || isGeneratingImage) return;
     
@@ -1499,12 +1261,8 @@ async function sendMessage() {
     }
     
     if (message && !currentImage) {
-        const requestType = isImageGenerationRequest(message);
-        if (requestType === 'text-art') {
+        if (isTextArtRequest(message)) {
             await handleTextArtFlow(message);
-            return;
-        } else if (requestType === 'image-description') {
-            await handleImageGenerationFlow(message);
             return;
         }
     }
@@ -1529,7 +1287,7 @@ async function sendMessage() {
     });
     
     if (session.messages.filter(m => m.isUser).length === 1) {
-        const titleText = messageToSend.replace(/<[^>]*>/g, '').substring(0, 30);
+        const titleText = messageToSend.substring(0, 30);
         session.title = titleText + (titleText.length >= 30 ? '...' : '');
     }
     
@@ -1572,7 +1330,7 @@ async function sendMessage() {
         renderSessions();
         
         if (imageToSend) {
-            showNotification(getTranslation('imageAnalyzed'));
+            showNotification('Image analyzed!');
         }
         
     } catch (error) {
@@ -1580,8 +1338,8 @@ async function sendMessage() {
         if (typing) typing.style.display = 'none';
         
         const errorMsg = currentLanguage === 'si' 
-            ? 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර නැවත උත්සාහ කරන්න.'
-            : 'Sorry, an error occurred. Please try again.';
+            ? 'මට කණගාටුයි, දෝෂයක් ඇතිවිය.'
+            : 'Sorry, an error occurred.';
         
         displayMessage(errorMsg, false);
         
@@ -1609,7 +1367,6 @@ function handleKeyPress(event) {
     }
 }
 
-// IMAGE UPLOAD
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1621,7 +1378,7 @@ function handleImageUpload(event) {
     
     isImageLoading = true;
     updateSendButtonState();
-    showLoading(getTranslation('processingImage'));
+    showLoading('Processing image...');
     
     const reader = new FileReader();
     
@@ -1634,15 +1391,13 @@ function handleImageUpload(event) {
         if (preview && previewImage) {
             previewImage.src = currentImage;
             preview.style.display = 'block';
-            preview.classList.add('loading');
             
             const img = new Image();
             img.onload = function() {
                 isImageLoading = false;
-                preview.classList.remove('loading');
                 hideLoading();
                 updateSendButtonState();
-                showNotification(getTranslation('imageUploaded'));
+                showNotification('Image uploaded!');
                 
                 const messageInput = document.getElementById('messageInput');
                 if (messageInput) messageInput.focus();
@@ -1652,7 +1407,6 @@ function handleImageUpload(event) {
                 isImageLoading = false;
                 currentImage = null;
                 preview.style.display = 'none';
-                preview.classList.remove('loading');
                 hideLoading();
                 updateSendButtonState();
                 showNotification('Failed to load image', 'error');
@@ -1666,7 +1420,7 @@ function handleImageUpload(event) {
         isImageLoading = false;
         updateSendButtonState();
         hideLoading();
-        showNotification('Failed to read image file', 'error');
+        showNotification('Failed to read image', 'error');
     };
     
     reader.readAsDataURL(file);
@@ -1682,7 +1436,6 @@ function removeImage() {
     
     if (preview) {
         preview.style.display = 'none';
-        preview.classList.remove('loading');
     }
     if (previewImage) previewImage.src = '';
     
@@ -1715,20 +1468,16 @@ function handleInputChange() {
     updateSendButtonState();
 }
 
-console.log("✅ Part 4/5 loaded - Storage & Chat Functions");
-
 // ============================================
-// SMART AI CHAT APP - PART 5/5
-// Session Management & Initialization
-// ============================================
-
 // SESSION MANAGEMENT
+// ============================================
+
 function createNewChat() {
     const sessionId = 'session_' + Date.now();
     
     const newSession = {
         id: sessionId,
-        title: getTranslation('newChat'),
+        title: 'New chat',
         messages: [],
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -1767,8 +1516,8 @@ function clearMessages() {
                     <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
                 </svg>
             </div>
-            <h1>${getTranslation('welcomeTitle')}</h1>
-            <p>${getTranslation('welcomeSubtitle')}</p>
+            <h1>Hi, I'm Smart AI Pro</h1>
+            <p>Chat or Code - Your choice!</p>
         </div>
     `;
 }
@@ -1793,10 +1542,10 @@ function renderSessions() {
         const timeStr = getTimeString(session.updatedAt);
         
         item.innerHTML = `
-            <div class="history-title">${escapeHtml(session.title || getTranslation('newChat'))}</div>
+            <div class="history-title">${escapeHtml(session.title || 'New chat')}</div>
             <div class="history-preview">${escapeHtml((lastMessage || '').substring(0, 40))}${(lastMessage || '').length > 40 ? '...' : ''}</div>
             <div class="history-time">${timeStr}</div>
-            <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="${currentLanguage === 'si' ? 'මකන්න' : 'Delete'}">
+            <button class="delete-chat-btn" onclick="deleteChat('${session.id}', event)" title="Delete">
                 <i class="fas fa-trash"></i>
             </button>
         `;
@@ -1821,7 +1570,7 @@ function switchToSession(sessionId) {
 function deleteChat(sessionId, event) {
     if (event) event.stopPropagation();
     
-    const confirmMsg = getTranslation('deleteConfirm');
+    const confirmMsg = 'Delete this chat?';
     if (!confirm(confirmMsg)) return;
     
     const index = chatSessions.findIndex(s => s.id === sessionId);
@@ -1840,7 +1589,7 @@ function deleteChat(sessionId, event) {
     
     saveChatSessions();
     renderSessions();
-    showNotification(getTranslation('chatDeleted'));
+    showNotification('Chat deleted!');
 }
 
 function getCurrentSession() {
@@ -1860,23 +1609,21 @@ function renderChatHistory() {
     }
     
     session.messages.forEach(msg => {
-        if (msg.isTextArt) {
-            const match = msg.content.match(/```\n([\s\S]*?)\n```/);
-            if (match && match[1]) {
-                displayTextArtMessage(match[1], msg.originalPrompt || 'Text Art');
-            } else {
-                displayMessage(msg.content, msg.isUser, msg.imageData);
-            }
+        if (msg.isTextArt && msg.originalPrompt) {
+            displayTextArtMessage(msg.content, msg.originalPrompt);
         } else {
             displayMessage(msg.content, msg.isUser, msg.imageData);
         }
     });
 }
 
-// INITIALIZE APP
+// ============================================
+// APP INITIALIZATION
+// ============================================
+
 window.addEventListener('load', function() {
-    console.log("🎯 Page loaded - initializing app with splash screen");
-    checkForUpdates();
+    console.log("🎯 Smart AI Pro - Loading...");
+    
     initializeFirebase();
     
     const loginForm = document.getElementById('loginForm');
@@ -1885,12 +1632,28 @@ window.addEventListener('load', function() {
     if (loginForm) loginForm.addEventListener('submit', handleLogin);
     if (signupForm) signupForm.addEventListener('submit', handleSignup);
     
-    addUpdateButton();
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('input', handleInputChange);
+        messageInput.addEventListener('keydown', handleKeyPress);
+    }
     
-    console.log("✅ Smart AI App initialized - VERSION 1.0.5");
-    console.log("⚡ Features: Splash Screen + Optimized Storage + Text Art!");
-    console.log("💡 Try: 'create text art of a cat' or 'draw using text: sunset'");
+    const imageInput = document.getElementById('imageInput');
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImageUpload);
+    }
+    
+    const languageSelect = document.getElementById('languageSelect');
+    if (languageSelect) {
+        languageSelect.addEventListener('change', highlightCode);
+    }
+    
+    switchToMode('chat');
+    
+    console.log("✅ Smart AI Pro v2.0.0 - Ready!");
+    console.log("💬 Chat Mode + 💻 Code Mode");
+    console.log("🎨 Text Art Support");
+    console.log("🚀 Powered by Gemini AI");
 });
 
-console.log("✅ Part 5/5 loaded - All systems ready with Splash Screen integration!");
-console.log("🎉 Complete! Copy all 5 parts into one JS file.");
+console.log("🎉 Smart AI Pro - Complete!");
