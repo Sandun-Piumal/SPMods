@@ -63,7 +63,7 @@ const firebaseConfig = {
     databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com"
 };
 
-const GEMINI_API_KEY = 'AIzaSyAJhruzaSUiKhP8GP7ZLg2h25GBTSKq1gs';
+const GEMINI_API_KEY = 'AIzaSyCsT-cCQ8eQDN7YNvTCGNTMJu-9dE-HjU8';
 const APP_VERSION = '2.0.0';
 const VERSION_KEY = 'smartai-version';
 
