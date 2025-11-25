@@ -1,8 +1,8 @@
 // ============================================
-// SPLASH SCREEN MANAGER - FIRST PRIORITY
+// PART 1 - SPLASH SCREEN & CONFIG
 // ============================================
 
-// Create floating particles for splash
+// SPLASH SCREEN MANAGER
 (function() {
     const particlesContainer = document.getElementById('splashParticles');
     if (particlesContainer) {
@@ -17,56 +17,38 @@
     }
 })();
 
-// Splash timing control
 let minSplashTimeElapsed = false;
 let authCheckComplete = false;
-const MIN_SPLASH_DURATION = 2500; // 2.5 seconds
+const MIN_SPLASH_DURATION = 2500;
 
-// Start minimum splash timer
 setTimeout(() => {
     console.log("⏱️ Minimum splash time elapsed");
     minSplashTimeElapsed = true;
     checkReadyToShowApp();
 }, MIN_SPLASH_DURATION);
 
-// Check if ready to show app
 function checkReadyToShowApp() {
     if (minSplashTimeElapsed && authCheckComplete) {
         console.log("✅ Ready to show app!");
         showMainApp();
-    } else {
-        console.log("⏳ Waiting... minTime:", minSplashTimeElapsed, "authCheck:", authCheckComplete);
     }
 }
 
-// Transition to main app
 function showMainApp() {
     const splashScreen = document.getElementById('splashScreen');
     const mainApp = document.getElementById('mainAppContainer');
     
-    console.log("🎬 Transitioning to main app...");
-    
     if (splashScreen) splashScreen.classList.add('hidden');
-    
     setTimeout(() => {
         if (mainApp) mainApp.classList.add('visible');
-        console.log("✨ Main app visible!");
     }, 500);
 }
 
-// Mark auth check complete
 function markAuthCheckComplete() {
     console.log("🔐 Auth check complete");
     authCheckComplete = true;
     checkReadyToShowApp();
 }
-
-console.log("✅ Splash Screen Manager loaded");
-
-// ============================================
-// SMART AI CHAT APP - PART 1/5
-// Firebase Config & Core Variables
-// ============================================
 
 // FIREBASE CONFIG
 const firebaseConfig = {
@@ -76,11 +58,12 @@ const firebaseConfig = {
     databaseURL: "https://smart-ai-chat-app-default-rtdb.firebaseio.com"
 };
 
-// GEMINI API KEY
-const GEMINI_API_KEY = 'AIzaSyCsT-cCQ8eQDN7YNvTCGNTMJu-9dE-HjU8';
+// GROQ API CONFIG
+const GROQ_API_KEY = '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';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // APP VERSION
-const APP_VERSION = '1.0.5';
+const APP_VERSION = '1.1.0';
 const VERSION_KEY = 'smartai-version';
 
 // STATE VARIABLES
@@ -94,11 +77,16 @@ let currentLanguage = 'en';
 let isGeneratingImage = false;
 let isImageLoading = false;
 
-// TRANSLATIONS
+console.log("✅ Part 1 loaded - Splash & Config");
+
+// ============================================
+// PART 2 - TRANSLATIONS
+// ============================================
+
 const translations = {
     en: {
         appTitle: "Smart AI",
-        appSubtitle: "Powered by Gemini AI",
+        appSubtitle: "Powered by Groq AI",
         email: "Email",
         password: "Password",
         name: "Name",
@@ -134,18 +122,11 @@ const translations = {
         imageAnalyzed: "Image analyzed!",
         checkUpdates: "Check for Updates",
         updatesAvailable: "New version available!",
-        latestVersion: "You have the latest version!",
-        generateImage: "Generate Image",
-        generatingImage: "Generating image...",
-        imageGenerated: "Image generated!",
-        downloadImage: "Download Image",
-        imageDownloaded: "Image downloaded!",
-        describeImage: "Describe the image you want",
-        createImagePrompt: "Example: A sunset over mountains..."
+        latestVersion: "You have the latest version!"
     },
     si: {
         appTitle: "Smart AI",
-        appSubtitle: "Gemini AI මගින් බලගන්වා ඇත",
+        appSubtitle: "Groq AI මගින් බලගන්වා ඇත",
         email: "විද්‍යුත් ලිපිනය",
         password: "මුරපදය",
         name: "නම",
@@ -181,31 +162,20 @@ const translations = {
         imageAnalyzed: "පින්තූරය විශ්ලේෂණය කරන ලදී!",
         checkUpdates: "යාවත්කාලීන පරීක්ෂා කරන්න",
         updatesAvailable: "නව අනුවාදයක් තිබේ!",
-        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!",
-        generateImage: "පින්තූරය සාදන්න",
-        generatingImage: "පින්තූරය සාදමින්...",
-        imageGenerated: "පින්තූරය සාදන ලදී!",
-        downloadImage: "පින්තූරය බාගන්න",
-        imageDownloaded: "පින්තූරය බාගත විය!",
-        describeImage: "ඔබට අවශ්‍ය පින්තූරය විස්තර කරන්න",
-        createImagePrompt: "උදාහරණය: කඳු මත හිරු බැස යෑම..."
+        latestVersion: "ඔබට නවතම අනුවාදය තිබේ!"
     }
 };
 
-console.log("✅ Part 1/5 loaded - Splash Manager, Config & Variables");
+console.log("✅ Part 2 loaded - Translations");
 
 // ============================================
-// SMART AI CHAT APP - PART 2/5
-// Helper Functions, Language & Firebase Init
+// PART 3 - HELPER FUNCTIONS
 // ============================================
 
-// VERSION CONTROL
 function checkForUpdates() {
     const savedVersion = localStorage.getItem(VERSION_KEY);
-    
     if (savedVersion !== APP_VERSION) {
         console.log('🔄 New version detected, clearing cache...');
-        
         if ('caches' in window) {
             caches.keys().then(function(cacheNames) {
                 cacheNames.forEach(function(cacheName) {
@@ -213,29 +183,11 @@ function checkForUpdates() {
                 });
             });
         }
-        
         localStorage.setItem(VERSION_KEY, APP_VERSION);
-        
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
+        setTimeout(() => window.location.reload(), 1000);
     }
 }
 
-function checkForAppUpdates() {
-    const currentVersion = localStorage.getItem(VERSION_KEY);
-    if (currentVersion !== APP_VERSION) {
-        showNotification(getTranslation('updatesAvailable'), 'info');
-        setTimeout(() => {
-            localStorage.setItem(VERSION_KEY, APP_VERSION);
-            window.location.reload();
-        }, 2000);
-    } else {
-        showNotification(getTranslation('latestVersion'), 'success');
-    }
-}
-
-// LANGUAGE FUNCTIONS
 function getTranslation(key) {
     return translations[currentLanguage][key] || translations.en[key] || key;
 }
@@ -244,27 +196,13 @@ function updateLanguage() {
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
         const translation = getTranslation(key);
-        if (translation) {
-            element.textContent = translation;
-        }
+        if (translation) element.textContent = translation;
     });
-
     document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
         const translation = getTranslation(key);
-        if (translation) {
-            element.placeholder = translation;
-        }
+        if (translation) element.placeholder = translation;
     });
-
-    document.querySelectorAll('[data-i18n-title]').forEach(element => {
-        const key = element.getAttribute('data-i18n-title');
-        const translation = getTranslation(key);
-        if (translation) {
-            element.title = translation;
-        }
-    });
-
     localStorage.setItem('smartai-language', currentLanguage);
 }
 
@@ -282,11 +220,9 @@ function loadLanguagePreference() {
     updateLanguage();
 }
 
-// UI HELPER FUNCTIONS
 function showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');
     const text = document.getElementById('notificationText');
-    
     if (!notification || !text) return;
     
     const icon = notification.querySelector('i');
@@ -294,24 +230,16 @@ function showNotification(message, type = 'success') {
     text.textContent = message;
     
     if (icon) {
-        if (type === 'success') {
-            icon.className = 'fas fa-check-circle';
-        } else {
-            icon.className = 'fas fa-exclamation-circle';
-        }
+        icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
     }
     
     notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
+    setTimeout(() => notification.classList.remove('show'), 3000);
 }
 
 function showLoading(text) {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
-    
     if (overlay && loadingText) {
         loadingText.textContent = text;
         overlay.classList.add('show');
@@ -320,15 +248,12 @@ function showLoading(text) {
 
 function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.classList.remove('show');
-    }
+    if (overlay) overlay.classList.remove('show');
 }
 
 function toggleSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    
     if (sidebar) sidebar.classList.toggle('active');
     if (overlay) overlay.classList.toggle('active');
 }
@@ -336,7 +261,6 @@ function toggleSidebar() {
 function closeSidebar() {
     const sidebar = document.getElementById('chatSidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    
     if (sidebar) sidebar.classList.remove('active');
     if (overlay) overlay.classList.remove('active');
 }
@@ -344,7 +268,6 @@ function closeSidebar() {
 function updateUserProfile(user) {
     const userNameElement = document.getElementById('userName');
     const userEmailElement = document.getElementById('userEmail');
-    
     if (userNameElement) {
         userNameElement.textContent = user.displayName || user.email.split('@')[0] || 'User';
     }
@@ -356,7 +279,6 @@ function updateUserProfile(user) {
 function showLogin() {
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
-    
     if (loginForm) loginForm.style.display = 'block';
     if (signupForm) signupForm.style.display = 'none';
     hideMessages();
@@ -365,7 +287,6 @@ function showLogin() {
 function showSignup() {
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
-    
     if (loginForm) loginForm.style.display = 'none';
     if (signupForm) signupForm.style.display = 'block';
     hideMessages();
@@ -374,7 +295,6 @@ function showSignup() {
 function showAuthContainer() {
     const authContainer = document.getElementById('authContainer');
     const chatApp = document.getElementById('chatApp');
-    
     if (authContainer) authContainer.style.display = 'flex';
     if (chatApp) chatApp.style.display = 'none';
 }
@@ -382,7 +302,6 @@ function showAuthContainer() {
 function showChatApp() {
     const authContainer = document.getElementById('authContainer');
     const chatApp = document.getElementById('chatApp');
-    
     if (authContainer) authContainer.style.display = 'none';
     if (chatApp) chatApp.style.display = 'block';
 }
@@ -391,7 +310,6 @@ function hideMessages() {
     const loginError = document.getElementById('loginError');
     const signupError = document.getElementById('signupError');
     const signupSuccess = document.getElementById('signupSuccess');
-    
     if (loginError) loginError.style.display = 'none';
     if (signupError) signupError.style.display = 'none';
     if (signupSuccess) signupSuccess.style.display = 'none';
@@ -406,11 +324,9 @@ function escapeHtml(text) {
 
 function getTimeString(timestamp) {
     if (!timestamp) return '';
-    
     const now = Date.now();
     const diff = now - timestamp;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     
     if (currentLanguage === 'si') {
         if (days === 0) return 'අද';
@@ -425,26 +341,12 @@ function getTimeString(timestamp) {
     }
 }
 
-function toggleSettings() {
-    const settingsMenu = document.querySelector('.settings-menu');
-    if (settingsMenu) {
-        settingsMenu.classList.toggle('active');
-    }
-}
+console.log("✅ Part 3 loaded - Helper Functions");
 
-function addUpdateButton() {
-    const settingsMenu = document.querySelector('.settings-menu');
-    if (!settingsMenu) return;
-    
-    const updateBtn = document.createElement('button');
-    updateBtn.className = 'action-btn';
-    updateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> ' + getTranslation('checkUpdates');
-    updateBtn.onclick = checkForAppUpdates;
-    
-    settingsMenu.appendChild(updateBtn);
-}
+// ============================================
+// PART 4 - FIREBASE & AUTH
+// ============================================
 
-// FIREBASE INITIALIZATION (⭐ MODIFIED FOR SPLASH)
 function initializeFirebase() {
     try {
         console.log("🔄 Initializing Firebase...");
@@ -452,7 +354,7 @@ function initializeFirebase() {
         if (typeof firebase === 'undefined') {
             console.error('❌ Firebase SDK not loaded');
             showNotification('Please check your internet connection', 'error');
-            markAuthCheckComplete(); // ⭐ IMPORTANT
+            markAuthCheckComplete();
             return;
         }
 
@@ -469,8 +371,6 @@ function initializeFirebase() {
 
         auth.onAuthStateChanged((user) => {
             console.log("🔐 Auth state changed:", user ? user.email : "No user");
-            
-            // ⭐⭐⭐ CRITICAL: Mark auth check complete ⭐⭐⭐
             markAuthCheckComplete();
             
             if (user) {
@@ -486,12 +386,11 @@ function initializeFirebase() {
         
     } catch (error) {
         console.error("❌ Firebase init error:", error);
-        markAuthCheckComplete(); // ⭐ IMPORTANT
+        markAuthCheckComplete();
         showNotification("Failed to initialize app", "error");
     }
 }
 
-// FIREBASE DATABASE FUNCTIONS
 async function saveUserToDatabase(userId, name, email) {
     try {
         const userData = {
@@ -503,10 +402,8 @@ async function saveUserToDatabase(userId, name, email) {
         
         const userRef = database.ref('users/' + userId);
         await userRef.set(userData);
-        
         console.log("✅ User data saved to Firebase Database");
         return true;
-        
     } catch (error) {
         console.error("❌ Error saving user to database:", error);
         throw error;
@@ -519,18 +416,13 @@ async function updateUserInDatabase() {
         if (!user) return;
         
         const userRef = database.ref('users/' + user.uid);
-        await userRef.update({
-            lastLogin: Date.now()
-        });
-        
+        await userRef.update({ lastLogin: Date.now() });
         console.log("✅ User last login updated");
-        
     } catch (error) {
         console.error("❌ Error updating user in database:", error);
     }
 }
 
-// AUTH HANDLERS
 async function handleLogin(event) {
     if (event) event.preventDefault();
     if (isProcessing) return;
@@ -556,16 +448,14 @@ async function handleLogin(event) {
     hideMessages();
     
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email.value, password.value);
+        await auth.signInWithEmailAndPassword(email.value, password.value);
         await updateUserInDatabase();
         showNotification(getTranslation('loginSuccess'));
         if (email) email.value = '';
         if (password) password.value = '';
-        
     } catch (error) {
         console.error("Login error:", error);
         const errorMsg = document.getElementById('loginError');
-        
         if (errorMsg) {
             if (error.code === 'auth/user-not-found') {
                 errorMsg.textContent = 'No account found with this email. Please sign up.';
@@ -624,10 +514,7 @@ async function handleSignup(event) {
         const userCredential = await auth.createUserWithEmailAndPassword(email.value, password.value);
         const user = userCredential.user;
         
-        await user.updateProfile({ 
-            displayName: name.value 
-        });
-        
+        await user.updateProfile({ displayName: name.value });
         await saveUserToDatabase(user.uid, name.value, email.value);
         
         const successMsg = document.getElementById('signupSuccess');
@@ -640,14 +527,10 @@ async function handleSignup(event) {
         if (email) email.value = '';
         if (password) password.value = '';
         
-        setTimeout(() => {
-            showLogin();
-        }, 2000);
-        
+        setTimeout(() => showLogin(), 2000);
     } catch (error) {
         console.error("Signup error:", error);
         const errorMsg = document.getElementById('signupError');
-        
         if (errorMsg) {
             if (error.code === 'auth/email-already-in-use') {
                 errorMsg.textContent = 'This email is already registered. Please login.';
@@ -684,50 +567,78 @@ async function handleLogout() {
     }
 }
 
-console.log("✅ Part 2/5 loaded - Helpers & Firebase with Splash Integration");
+console.log("✅ Part 4 loaded - Firebase & Auth");
 
 // ============================================
-// SMART AI CHAT APP - PART 3/5
-// AI Functions, Text Art & Image Generation
+// PART 5 - GROQ AI FUNCTIONS
 // ============================================
 
-// IMAGE GENERATION DETECTION
-function isImageGenerationRequest(message) {
-    if (isTextArtRequest(message)) {
-        return 'text-art';
+async function getGroqAIResponse(userMessage, conversationHistory = []) {
+    console.log("🤖 Getting Groq AI response...");
+    
+    try {
+        const messages = [];
+        
+        // Add conversation history
+        for (let i = 0; i < conversationHistory.length; i++) {
+            const msg = conversationHistory[i];
+            messages.push({
+                role: msg.isUser ? "user" : "assistant",
+                content: msg.content
+            });
+        }
+        
+        // Add current message
+        messages.push({
+            role: "user",
+            content: userMessage
+        });
+        
+        const requestBody = {
+            model: "llama-3.3-70b-versatile",
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 8192,
+            top_p: 0.9,
+            stream: false
+        };
+        
+        const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_API_KEY}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Groq API Error:', errorData);
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const aiResponse = data.choices?.[0]?.message?.content;
+        
+        if (!aiResponse) {
+            throw new Error('Empty response from AI');
+        }
+        
+        console.log("✅ Groq AI response successful");
+        return aiResponse;
+        
+    } catch (error) {
+        console.error('❌ Groq AI Error:', error);
+        
+        if (currentLanguage === 'si') {
+            return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.';
+        } else {
+            return 'I apologize, but I encountered an error. Please try again in a moment.';
+        }
     }
-    
-    const lowerMessage = message.toLowerCase().trim();
-    const cleaned = lowerMessage.replace(/^(can you|could you|please|i want to|i need to|help me)\s+/i, '').trim();
-    
-    const englishPatterns = [
-        /^create\s+(an?\s+)?(image|picture|photo|illustration)/i,
-        /^generate\s+(an?\s+)?(image|picture|photo|illustration)/i,
-        /^draw\s+(me\s+)?(an?\s+)?(image|picture)/i,
-        /^make\s+(me\s+)?(an?\s+)?(image|picture|photo)/i,
-        /^design\s+(an?\s+)?(image|picture)/i,
-        /^paint\s+(an?\s+)?(image|picture)/i,
-        /^illustrate/i,
-        /^sketch\s+(an?\s+)?(image|picture)/i
-    ];
-    
-    const sinhalaPatterns = [
-        /පින්තූරයක්\s+(හදන්න|සාදන්න|ඇඳන්න)/i,
-        /පින්තූරය\s+(හදන්න|සාදන්න|ඇඳන්න)/i,
-        /(හදන්න|සාදන්න)\s+පින්තූරයක්/i
-    ];
-    
-    const matchesEnglish = englishPatterns.some(pattern => pattern.test(cleaned));
-    const matchesSinhala = sinhalaPatterns.some(pattern => pattern.test(lowerMessage));
-    
-    if (matchesEnglish || matchesSinhala) {
-        return 'image-description';
-    }
-    
-    return false;
 }
 
-// TEXT ART DETECTION
 function isTextArtRequest(message) {
     const lowerMessage = message.toLowerCase().trim();
     
@@ -744,7 +655,6 @@ function isTextArtRequest(message) {
     return textArtPatterns.some(pattern => pattern.test(lowerMessage));
 }
 
-// GENERATE TEXT ART WITH GEMINI
 async function generateTextArt(prompt) {
     try {
         console.log("🎨 Generating text art for:", prompt);
@@ -777,21 +687,22 @@ Description: [Brief description of what you created]
 
 Be creative and make it beautiful! The more detailed, the better!`;
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
+        const messages = [{ role: "user", content: enhancedPrompt }];
         
         const requestBody = {
-            contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
-            generationConfig: {
-                temperature: 1.0,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 8192,
-            }
+            model: "llama-3.3-70b-versatile",
+            messages: messages,
+            temperature: 1.0,
+            max_tokens: 8192,
+            top_p: 0.95
         };
 
-        const response = await fetch(apiUrl, {
+        const response = await fetch(GROQ_API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_API_KEY}`
+            },
             body: JSON.stringify(requestBody)
         });
 
@@ -800,7 +711,7 @@ Be creative and make it beautiful! The more detailed, the better!`;
         }
 
         const data = await response.json();
-        const textArt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const textArt = data.choices?.[0]?.message?.content;
 
         hideLoading();
         isGeneratingImage = false;
@@ -826,7 +737,6 @@ Be creative and make it beautiful! The more detailed, the better!`;
     }
 }
 
-// TEXT ART GENERATION FLOW
 async function handleTextArtFlow(userMessage) {
     const session = getCurrentSession();
     if (!session) {
@@ -902,7 +812,12 @@ async function handleTextArtFlow(userMessage) {
     }
 }
 
-// DISPLAY TEXT ART MESSAGE
+console.log("✅ Part 5 loaded - Groq AI Functions");
+
+// ============================================
+// PART 6 - TEXT ART DISPLAY
+// ============================================
+
 function displayTextArtMessage(textArt, prompt) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
@@ -943,7 +858,6 @@ function displayTextArtMessage(textArt, prompt) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// COPY TEXT ART
 function copyTextArt(button, textArt) {
     navigator.clipboard.writeText(textArt).then(() => {
         const originalHTML = button.innerHTML;
@@ -960,7 +874,6 @@ function copyTextArt(button, textArt) {
     });
 }
 
-// DOWNLOAD TEXT ART AS TXT FILE
 function downloadTextArt(textArt, prompt) {
     try {
         const filename = `text-art-${prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
@@ -982,281 +895,12 @@ function downloadTextArt(textArt, prompt) {
     }
 }
 
-// GENERATE DETAILED IMAGE DESCRIPTION
-async function generateDetailedImageDescription(prompt) {
-    try {
-        console.log("🎨 Generating detailed image description for:", prompt);
-        
-        const loadingMsg = currentLanguage === 'si' 
-            ? 'AI භාවිතයෙන් පින්තූරයේ විස්තරය සාදමින්...' 
-            : 'Creating detailed image description with AI...';
-        
-        showLoading(loadingMsg);
-        isGeneratingImage = true;
-
-        const enhancedPrompt = `You are an expert artist and visual designer. The user wants an image of: "${prompt}"
-
-Please provide a comprehensive description including:
-
-**🎨 Visual Description:**
-- Main subject and composition
-- Colors and color palette
-- Mood and atmosphere
-- Lighting conditions
-- Style (realistic, cartoon, abstract, etc.)
-- Key visual elements and details
-
-**📐 Technical Details:**
-- Recommended composition layout
-- Perspective and angle
-- Background elements
-- Foreground elements
-
-**🔗 Where to Find Similar Images:**
-Provide direct search links to these free image sources:
-- Unsplash: https://unsplash.com/s/photos/${encodeURIComponent(prompt.replace(/\s+/g, '-'))}
-- Pexels: https://www.pexels.com/search/${encodeURIComponent(prompt.replace(/\s+/g, '%20'))}
-- Pixabay: https://pixabay.com/images/search/${encodeURIComponent(prompt.replace(/\s+/g, '-'))}
-
-**💡 Design Tips:**
-Give 3-4 creative suggestions to enhance this image concept.
-
-Format your response beautifully using markdown with emojis for visual appeal.`;
-
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-        
-        const requestBody = {
-            contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
-            generationConfig: {
-                temperature: 0.9,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 8192,
-            }
-        };
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to generate description');
-        }
-
-        const data = await response.json();
-        const description = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        hideLoading();
-        isGeneratingImage = false;
-        
-        if (description) {
-            console.log("✅ Description generated successfully!");
-            return description;
-        } else {
-            throw new Error('Empty response from AI');
-        }
-
-    } catch (error) {
-        console.error('❌ Description generation error:', error);
-        hideLoading();
-        isGeneratingImage = false;
-        
-        const errorMsg = currentLanguage === 'si'
-            ? 'මට කණගාටුයි, විස්තරය සෑදීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.'
-            : 'Sorry, I could not generate the description. Please try again.';
-        
-        showNotification(errorMsg, 'error');
-        return null;
-    }
-}
-
-// IMAGE GENERATION FLOW
-async function handleImageGenerationFlow(userMessage) {
-    const session = getCurrentSession();
-    if (!session) {
-        createNewChat();
-        return;
-    }
-
-    const input = document.getElementById('messageInput');
-    if (input) input.value = '';
-    displayMessage(userMessage, true);
-    
-    session.messages.push({ content: userMessage, isUser: true, timestamp: Date.now() });
-
-    if (session.messages.filter(m => m.isUser).length === 1) {
-        const titleText = userMessage.replace(/<[^>]*>/g, '').substring(0, 30);
-        session.title = titleText + (titleText.length >= 30 ? '...' : '');
-    }
-
-    session.updatedAt = Date.now();
-    saveChatSessions();
-    renderSessions();
-
-    const typing = document.getElementById('typingIndicator');
-    if (typing) typing.style.display = 'flex';
-
-    let imagePrompt = userMessage;
-    const commandPatterns = [
-        /^(create|generate|draw|make|design|paint|sketch)\s+(an?\s+)?(image|picture|photo)\s+(of\s+)?/i,
-        /^(හදන්න|සාදන්න|ඇඳන්න)\s+පින්තූරයක්\s+/i,
-        /^පින්තූරයක්\s+(හදන්න|සාදන්න|ඇඳන්න)\s+/i
-    ];
-    
-    for (const pattern of commandPatterns) {
-        imagePrompt = imagePrompt.replace(pattern, '').trim();
-    }
-
-    const description = await generateDetailedImageDescription(imagePrompt);
-
-    if (typing) typing.style.display = 'none';
-
-    if (description) {
-        const headerNote = currentLanguage === 'si'
-            ? `## 📝 පින්තූරයේ සවිස්තරාත්මක විස්තරය\n\n> **සටහන:** මට සැබෑ පින්තූරය සෑදීමට Imagen API access නැත. ඒ වෙනුවට මම ඔබට:\n> - සවිස්තරාත්මක විස්තරයක් 🎨\n> - නොමිලේ පින්තූර සොයාගත හැකි සබැඳි 🔗\n> - නිර්මාණාත්මක යෝජනා 💡\n\n---\n\n`
-            : `## 📝 Detailed Image Description\n\n> **Note:** I don't have access to Imagen API to generate actual images. Instead, I'm providing:\n> - Detailed visual description 🎨\n> - Links to free image sources 🔗\n> - Creative design suggestions 💡\n\n---\n\n`;
-        
-        const fullResponse = headerNote + description;
-        displayMessage(fullResponse, false);
-        
-        session.messages.push({
-            content: fullResponse,
-            isUser: false,
-            isImageDescription: true,
-            originalPrompt: imagePrompt,
-            timestamp: Date.now()
-        });
-
-        session.updatedAt = Date.now();
-        saveChatSessions();
-        
-        showNotification(
-            currentLanguage === 'si' 
-                ? 'විස්තරය සාදන ලදී! Links මගින් නොමිලේ පින්තූර සොයන්න.' 
-                : 'Description created! Use the links to find free images.',
-            'success'
-        );
-    } else {
-        const errorMsg = currentLanguage === 'si' 
-            ? 'මට කණගාටුයි, විස්තරය සෑදීමට නොහැකි විය.'
-            : 'Sorry, I could not generate the description.';
-        
-        displayMessage(errorMsg, false);
-        session.messages.push({ content: errorMsg, isUser: false, timestamp: Date.now() });
-        saveChatSessions();
-    }
-}
-
-// GEMINI AI TEXT RESPONSE
-async function getAIResponse(userMessage, imageData = null, conversationHistory = []) {
-    console.log("🤖 Getting AI response...", { 
-        userMessage: userMessage.substring(0, 50), 
-        hasImage: !!imageData,
-        historyLength: conversationHistory.length 
-    });
-    
-    try {
-        let apiUrl, requestBody;
-
-        if (imageData) {
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-            
-            const parts = [];
-            
-            if (conversationHistory.length > 0) {
-                const historyText = conversationHistory.map(msg => 
-                    `${msg.isUser ? 'User' : 'Assistant'}: ${msg.content}`
-                ).join('\n');
-                parts.push({ text: historyText + '\n\nCurrent question:\n' });
-            }
-            
-            parts.push({ text: userMessage });
-            parts.push({
-                inline_data: {
-                    mime_type: "image/jpeg",
-                    data: imageData.split(',')[1]
-                }
-            });
-            
-            requestBody = {
-                contents: [{ parts: parts }],
-                generationConfig: {
-                    temperature: 0.7,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 8192,
-                }
-            };
-        } else {
-            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-            
-            const contents = [];
-            
-            for (let i = 0; i < conversationHistory.length; i++) {
-                const msg = conversationHistory[i];
-                contents.push({
-                    role: msg.isUser ? "user" : "model",
-                    parts: [{ text: msg.content }]
-                });
-            }
-            
-            contents.push({
-                role: "user",
-                parts: [{ text: userMessage }]
-            });
-            
-            requestBody = {
-                contents: contents,
-                generationConfig: {
-                    temperature: 0.9,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 8192,
-                }
-            };
-        }
-        
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        if (!aiResponse) {
-            throw new Error('Empty response from AI');
-        }
-        
-        console.log("✅ AI response successful");
-        return aiResponse;
-        
-    } catch (error) {
-        console.error('❌ AI Error:', error);
-        
-        if (currentLanguage === 'si') {
-            return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.';
-        } else {
-            return 'I apologize, but I encountered an error. Please try again in a moment.';
-        }
-    }
-}
-
-console.log("✅ Part 3/5 loaded - AI Functions & Text Art");
+console.log("✅ Part 6 loaded - Text Art Display");
 
 // ============================================
-// SMART AI CHAT APP - PART 4/5
-// Storage & Chat Functions
+// PART 7 - STORAGE FUNCTIONS
 // ============================================
 
-// OPTIMIZED STORAGE - LOCAL FIRST, FIREBASE BACKGROUND
 function getStorageKey() {
     const userId = auth && auth.currentUser ? auth.currentUser.uid : 'anonymous';
     return `smartai-sessions-${userId}`;
@@ -1267,22 +911,21 @@ async function saveChatSessions() {
         const userId = auth && auth.currentUser ? auth.currentUser.uid : null;
         const storageKey = getStorageKey();
         
-        // 🚀 INSTANT: Save to localStorage first (no delay)
+        // Save to localStorage instantly
         localStorage.setItem(storageKey, JSON.stringify(chatSessions));
         console.log("⚡ Instantly saved to localStorage");
         
-        // 🔄 BACKGROUND: Then sync to Firebase (won't block UI)
+        // Sync to Firebase in background
         if (userId && database) {
             const sessionsArray = chatSessions.map((session, index) => ({
                 ...session,
                 index: index
             }));
             
-            // Don't await - let it sync in background
             database.ref('users/' + userId + '/chatSessions')
                 .set(sessionsArray)
                 .then(() => console.log("☁️ Synced to Firebase"))
-                .catch(err => console.log("⚠️ Firebase sync failed (localStorage still works):", err));
+                .catch(err => console.log("⚠️ Firebase sync failed:", err));
         }
         
     } catch (error) {
@@ -1298,20 +941,20 @@ async function loadChatSessions() {
         let sessions = [];
         let loadedFromLocalStorage = false;
 
-        // 🚀 PRIORITY 1: Load from localStorage FIRST (instant)
+        // Load from localStorage first
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             try {
                 sessions = JSON.parse(saved);
                 loadedFromLocalStorage = true;
-                console.log("⚡ Loaded from localStorage instantly:", sessions.length, "chats");
+                console.log("⚡ Loaded from localStorage:", sessions.length, "chats");
             } catch (parseError) {
                 console.error("❌ Failed to parse localStorage:", parseError);
                 sessions = [];
             }
         }
 
-        // 🔄 PRIORITY 2: Check Firebase (for first load or sync across devices)
+        // Check Firebase if no localStorage
         if (userId && database) {
             if (!loadedFromLocalStorage) {
                 console.log("📥 No localStorage, loading from Firebase...");
@@ -1327,38 +970,6 @@ async function loadChatSessions() {
                 } catch (firebaseError) {
                     console.log("⚠️ Firebase load failed:", firebaseError);
                 }
-            } else {
-                // Background sync if localStorage exists
-                database.ref('users/' + userId + '/chatSessions')
-                    .once('value')
-                    .then(snapshot => {
-                        if (snapshot.exists()) {
-                            const firebaseData = snapshot.val();
-                            const firebaseSessions = Array.isArray(firebaseData) ? firebaseData : Object.values(firebaseData);
-                            
-                            if (firebaseSessions.length > 0 && sessions.length > 0) {
-                                const firebaseLatest = Math.max(...firebaseSessions.map(s => s.updatedAt || 0));
-                                const localLatest = Math.max(...sessions.map(s => s.updatedAt || 0));
-                                
-                                if (firebaseLatest > localLatest) {
-                                    console.log("☁️ Firebase has newer data, syncing...");
-                                    chatSessions = firebaseSessions;
-                                    localStorage.setItem(storageKey, JSON.stringify(firebaseSessions));
-                                    renderSessions();
-                                    renderChatHistory();
-                                } else {
-                                    console.log("✅ localStorage is up to date");
-                                }
-                            } else if (firebaseSessions.length > sessions.length) {
-                                console.log("☁️ Firebase has more chats, syncing...");
-                                chatSessions = firebaseSessions;
-                                localStorage.setItem(storageKey, JSON.stringify(firebaseSessions));
-                                renderSessions();
-                                renderChatHistory();
-                            }
-                        }
-                    })
-                    .catch(err => console.log("⚠️ Background Firebase sync failed:", err));
             }
         }
 
@@ -1379,7 +990,12 @@ async function loadChatSessions() {
     }
 }
 
-// MESSAGE FORMATTING - MARKDOWN SUPPORT
+console.log("✅ Part 7 loaded - Storage Functions");
+
+// ============================================
+// PART 8 - MESSAGE DISPLAY
+// ============================================
+
 function formatAIResponse(text) {
     if (!text) return '';
     
@@ -1410,8 +1026,7 @@ function formatAIResponse(text) {
     return text;
 }
 
-// DISPLAY MESSAGES
-function displayMessage(content, isUser, imageData = null) {
+function displayMessage(content, isUser) {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
     
@@ -1429,16 +1044,6 @@ function displayMessage(content, isUser, imageData = null) {
         (currentLanguage === 'si' ? 'ඔබ' : 'You') : 
         'Smart AI';
     
-    let imageHTML = '';
-    if (imageData) {
-        imageHTML = `
-            <div class="image-container">
-                <img src="${imageData}" alt="Uploaded image" class="message-image">
-                <div class="image-caption">${currentLanguage === 'si' ? 'ඔබ උඩුගත කළ පින්තූරය' : 'Image you uploaded'}</div>
-            </div>
-        `;
-    }
-    
     const formattedContent = isUser ? content.replace(/\n/g, '<br>') : formatAIResponse(content);
     
     messageDiv.innerHTML = `
@@ -1447,7 +1052,6 @@ function displayMessage(content, isUser, imageData = null) {
             <span>${messageLabel}</span>
         </div>
         <div class="message-content">
-            ${imageHTML}
             <div class="message-text">${formattedContent}</div>
         </div>
         ${!isUser ? `
@@ -1486,32 +1090,30 @@ function copyMessage(button) {
     });
 }
 
-// SEND MESSAGE - MAIN FUNCTION
+console.log("✅ Part 8 loaded - Message Display");
+
+
+
+// ============================================
+// PART 9 - SEND MESSAGE FUNCTION
+// ============================================
+
 async function sendMessage() {
-    if (isProcessing || isImageLoading || isGeneratingImage) return;
+    if (isProcessing || isGeneratingImage) return;
     
     const input = document.getElementById('messageInput');
     const message = input ? input.value.trim() : '';
     
-    if (!message && !currentImage) {
-        showNotification('Please enter a message or upload an image', 'error');
+    if (!message) {
+        showNotification('Please enter a message', 'error');
         return;
     }
     
-    if (message && !currentImage) {
-        const requestType = isImageGenerationRequest(message);
-        if (requestType === 'text-art') {
-            await handleTextArtFlow(message);
-            return;
-        } else if (requestType === 'image-description') {
-            await handleImageGenerationFlow(message);
-            return;
-        }
+    // Check for text art request
+    if (isTextArtRequest(message)) {
+        await handleTextArtFlow(message);
+        return;
     }
-    
-    const messageToSend = message || (currentLanguage === 'si' ? 
-        'මෙම පින්තූරය ගැන මට කියන්න' : 
-        'Tell me about this image');
     
     const session = getCurrentSession();
     if (!session) {
@@ -1519,17 +1121,16 @@ async function sendMessage() {
         return;
     }
     
-    displayMessage(messageToSend, true, currentImage);
+    displayMessage(message, true);
     
     session.messages.push({
-        content: messageToSend,
+        content: message,
         isUser: true,
-        imageData: currentImage,
         timestamp: Date.now()
     });
     
     if (session.messages.filter(m => m.isUser).length === 1) {
-        const titleText = messageToSend.replace(/<[^>]*>/g, '').substring(0, 30);
+        const titleText = message.replace(/<[^>]*>/g, '').substring(0, 30);
         session.title = titleText + (titleText.length >= 30 ? '...' : '');
     }
     
@@ -1549,13 +1150,9 @@ async function sendMessage() {
     }
     if (typing) typing.style.display = 'flex';
     
-    const imageToSend = currentImage;
-    currentImage = null;
-    removeImage();
-    
     try {
         const historyForAI = session.messages.slice(-11, -1);
-        const response = await getAIResponse(messageToSend, imageToSend, historyForAI);
+        const response = await getGroqAIResponse(message, historyForAI);
         
         if (typing) typing.style.display = 'none';
         
@@ -1570,10 +1167,6 @@ async function sendMessage() {
         session.updatedAt = Date.now();
         saveChatSessions();
         renderSessions();
-        
-        if (imageToSend) {
-            showNotification(getTranslation('imageAnalyzed'));
-        }
         
     } catch (error) {
         console.error("❌ Error in sendMessage:", error);
@@ -1603,90 +1196,10 @@ async function sendMessage() {
 function handleKeyPress(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
-        if (!isProcessing && !isImageLoading && !isGeneratingImage) {
+        if (!isProcessing && !isGeneratingImage) {
             sendMessage();
         }
     }
-}
-
-// IMAGE UPLOAD
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    if (!file.type.startsWith('image/')) {
-        showNotification('Please upload an image file', 'error');
-        return;
-    }
-    
-    isImageLoading = true;
-    updateSendButtonState();
-    showLoading(getTranslation('processingImage'));
-    
-    const reader = new FileReader();
-    
-    reader.onload = function(e) {
-        currentImage = e.target.result;
-        
-        const preview = document.getElementById('imagePreview');
-        const previewImage = document.getElementById('previewImage');
-        
-        if (preview && previewImage) {
-            previewImage.src = currentImage;
-            preview.style.display = 'block';
-            preview.classList.add('loading');
-            
-            const img = new Image();
-            img.onload = function() {
-                isImageLoading = false;
-                preview.classList.remove('loading');
-                hideLoading();
-                updateSendButtonState();
-                showNotification(getTranslation('imageUploaded'));
-                
-                const messageInput = document.getElementById('messageInput');
-                if (messageInput) messageInput.focus();
-            };
-            
-            img.onerror = function() {
-                isImageLoading = false;
-                currentImage = null;
-                preview.style.display = 'none';
-                preview.classList.remove('loading');
-                hideLoading();
-                updateSendButtonState();
-                showNotification('Failed to load image', 'error');
-            };
-            
-            img.src = currentImage;
-        }
-    };
-    
-    reader.onerror = function() {
-        isImageLoading = false;
-        updateSendButtonState();
-        hideLoading();
-        showNotification('Failed to read image file', 'error');
-    };
-    
-    reader.readAsDataURL(file);
-    event.target.value = '';
-}
-
-function removeImage() {
-    currentImage = null;
-    isImageLoading = false;
-    
-    const preview = document.getElementById('imagePreview');
-    const previewImage = document.getElementById('previewImage');
-    
-    if (preview) {
-        preview.style.display = 'none';
-        preview.classList.remove('loading');
-    }
-    if (previewImage) previewImage.src = '';
-    
-    updateSendButtonState();
 }
 
 function updateSendButtonState() {
@@ -1696,9 +1209,7 @@ function updateSendButtonState() {
     if (!sendBtn) return;
     
     const hasMessage = input && input.value.trim().length > 0;
-    const hasImage = currentImage !== null;
-    
-    const shouldEnable = !isProcessing && !isImageLoading && !isGeneratingImage && (hasMessage || hasImage);
+    const shouldEnable = !isProcessing && !isGeneratingImage && hasMessage;
     
     sendBtn.disabled = !shouldEnable;
     
@@ -1715,14 +1226,12 @@ function handleInputChange() {
     updateSendButtonState();
 }
 
-console.log("✅ Part 4/5 loaded - Storage & Chat Functions");
+console.log("✅ Part 9 loaded - Send Message Function");
 
 // ============================================
-// SMART AI CHAT APP - PART 5/5
-// Session Management & Initialization
+// PART 10 - SESSION MANAGEMENT & INIT
 // ============================================
 
-// SESSION MANAGEMENT
 function createNewChat() {
     const sessionId = 'session_' + Date.now();
     
@@ -1865,10 +1374,10 @@ function renderChatHistory() {
             if (match && match[1]) {
                 displayTextArtMessage(match[1], msg.originalPrompt || 'Text Art');
             } else {
-                displayMessage(msg.content, msg.isUser, msg.imageData);
+                displayMessage(msg.content, msg.isUser);
             }
         } else {
-            displayMessage(msg.content, msg.isUser, msg.imageData);
+            displayMessage(msg.content, msg.isUser);
         }
     });
 }
@@ -1885,12 +1394,10 @@ window.addEventListener('load', function() {
     if (loginForm) loginForm.addEventListener('submit', handleLogin);
     if (signupForm) signupForm.addEventListener('submit', handleSignup);
     
-    addUpdateButton();
-    
-    console.log("✅ Smart AI App initialized - VERSION 1.0.5");
-    console.log("⚡ Features: Splash Screen + Optimized Storage + Text Art!");
-    console.log("💡 Try: 'create text art of a cat' or 'draw using text: sunset'");
+    console.log("✅ Smart AI App initialized - VERSION 1.1.0");
+    console.log("⚡ Features: Groq API + Splash Screen + Text Art!");
+    console.log("💡 Try: 'create text art of a cat' or 'What is AI?'");
 });
 
-console.log("✅ Part 5/5 loaded - All systems ready with Splash Screen integration!");
-console.log("🎉 Complete! Copy all 5 parts into one JS file.");
+console.log("✅ Part 10 loaded - Session Management & Init");
+console.log("🎉 ALL PARTS COMPLETE! Copy all 10 parts into one JS file.");
