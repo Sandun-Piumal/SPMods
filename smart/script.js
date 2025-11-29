@@ -1,18 +1,27 @@
 // ============================================
-// SMART AI - 100% REAL AI CHAT APP
+// SMART AI - 100% REAL AI CHAT APP - FIXED
 // script.js - Part 1/10: Configuration & Initialization
 // ============================================
 
 // ============================================
-// API CONFIGURATIONS - 100% REAL AI
+// API CONFIGURATIONS - WORKING API KEYS
 // ============================================
 
-// Groq API - Real AI Chat & Coding
-const GROQ_API_KEY = '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';
+// Groq API - Free & Working
+const GROQ_API_KEY = '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+// Alternative Groq API Keys (if first fails)
+const GROQ_API_KEYS = [
+    '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',
+    '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',
+];
+
+let currentApiKeyIndex = 0;
+
 // Groq Vision Model - Real Image Analysis
-const GROQ_VISION_MODEL = 'llama-3.2-90b-vision-preview';
+const GROQ_VISION_MODEL = 'llama-3.2-11b-vision-preview';
+const GROQ_CHAT_MODEL = 'llama-3.3-70b-versatile';
 
 // Pollinations AI - Real Image Generation
 const POLLINATIONS_API = 'https://image.pollinations.ai/prompt/';
@@ -218,11 +227,20 @@ function loadLanguagePreference() {
     updateLanguage();
 }
 
-console.log("✅ Part 1 loaded - Config & Init");
+// ============================================
+// API KEY ROTATION (If one fails, try next)
+// ============================================
 
-// ============================================
-// script.js - Part 2/10: Firebase & Authentication
-// ============================================
+function getNextApiKey() {
+    currentApiKeyIndex = (currentApiKeyIndex + 1) % GROQ_API_KEYS.length;
+    return GROQ_API_KEYS[currentApiKeyIndex];
+}
+
+function getCurrentApiKey() {
+    return GROQ_API_KEYS[currentApiKeyIndex];
+}
+
+console.log("✅ Part 1 loaded - Config & Init (FIXED)");
 
 // ============================================
 // FIREBASE INITIALIZATION
@@ -513,90 +531,112 @@ function updateUserProfile(user) {
 console.log("✅ Part 2 loaded - Firebase & Auth");
 
 // ============================================
-// script.js - Part 3/10: Real AI Chat with Groq
+// script.js FIXED - Part 3/10: Real AI Chat with Error Handling
 // ============================================
 
 // ============================================
-// GROQ AI CHAT - 100% REAL AI
+// GROQ AI CHAT - WITH BETTER ERROR HANDLING
 // ============================================
 
 async function getGroqAIResponse(userMessage, conversationHistory = []) {
     console.log("🤖 Getting REAL Groq AI response...");
     
-    try {
-        const messages = [];
-        
-        // System prompt for better AI behavior
-        messages.push({
-            role: "system",
-            content: `You are Smart AI, a highly intelligent and helpful AI assistant. You excel at:
+    let attempts = 0;
+    const maxAttempts = GROQ_API_KEYS.length;
+    
+    while (attempts < maxAttempts) {
+        try {
+            const messages = [];
+            
+            // System prompt
+            messages.push({
+                role: "system",
+                content: `You are Smart AI, a highly intelligent and helpful AI assistant. You excel at:
 - Writing and explaining code in multiple programming languages
-- Analyzing images and describing their content
-- Creative problem solving
+- Solving complex problems
 - Clear and detailed explanations
 - Being friendly and professional
 
-Always provide accurate, helpful, and well-structured responses. Format code with proper syntax highlighting using markdown code blocks.`
-        });
-        
-        // Add conversation history
-        for (let i = 0; i < conversationHistory.length; i++) {
-            const msg = conversationHistory[i];
-            messages.push({
-                role: msg.isUser ? "user" : "assistant",
-                content: msg.content
+Always provide accurate, helpful, and well-structured responses.`
             });
-        }
-        
-        // Add current message
-        messages.push({
-            role: "user",
-            content: userMessage
-        });
-        
-        const requestBody = {
-            model: "llama-3.3-70b-versatile", // Best model for coding and chat
-            messages: messages,
-            temperature: 0.7,
-            max_tokens: 8192,
-            top_p: 0.9,
-            stream: false
-        };
-        
-        console.log("📤 Sending request to Groq API...");
-        
-        const response = await fetch(GROQ_API_URL, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY}`
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('❌ Groq API Error:', errorData);
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const aiResponse = data.choices?.[0]?.message?.content;
-        
-        if (!aiResponse) {
-            throw new Error('Empty response from AI');
-        }
-        
-        console.log("✅ Groq AI response successful");
-        return aiResponse;
-        
-    } catch (error) {
-        console.error('❌ Groq AI Error:', error);
-        
-        if (currentLanguage === 'si') {
-            return 'මට කණගාටුයි, දෝෂයක් ඇතිවිය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.';
-        } else {
-            return 'I apologize, but I encountered an error. Please try again in a moment.';
+            
+            // Add conversation history
+            for (let i = 0; i < conversationHistory.length; i++) {
+                const msg = conversationHistory[i];
+                messages.push({
+                    role: msg.isUser ? "user" : "assistant",
+                    content: msg.content
+                });
+            }
+            
+            // Add current message
+            messages.push({
+                role: "user",
+                content: userMessage
+            });
+            
+            const requestBody = {
+                model: GROQ_CHAT_MODEL,
+                messages: messages,
+                temperature: 0.7,
+                max_tokens: 4096,
+                top_p: 0.9,
+                stream: false
+            };
+            
+            console.log(`📤 Attempt ${attempts + 1}: Sending to Groq API...`);
+            
+            const response = await fetch(GROQ_API_URL, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCurrentApiKey()}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error(`❌ Groq API Error (Attempt ${attempts + 1}):`, errorData);
+                
+                // If rate limited or auth error, try next key
+                if (response.status === 429 || response.status === 401) {
+                    console.log('⚠️ Trying next API key...');
+                    getNextApiKey();
+                    attempts++;
+                    continue;
+                }
+                
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+            
+            const data = await response.json();
+            const aiResponse = data.choices?.[0]?.message?.content;
+            
+            if (!aiResponse) {
+                throw new Error('Empty response from AI');
+            }
+            
+            console.log("✅ Groq AI response successful");
+            return aiResponse;
+            
+        } catch (error) {
+            console.error(`❌ Groq AI Error (Attempt ${attempts + 1}):`, error);
+            attempts++;
+            
+            // If last attempt, return error message
+            if (attempts >= maxAttempts) {
+                console.error('❌ All API keys failed');
+                
+                if (currentLanguage === 'si') {
+                    return 'මට කණගාටුයි, දැන් AI service එක ලබා ගත නොහැක. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.\n\nඔබට:\n- නැවත උත්සාහ කළ හැක\n- මොහොතකින් පසු උත්සාහ කරන්න\n- විවිධ ප්‍රශ්නයක් අහන්න';
+                } else {
+                    return 'I apologize, the AI service is temporarily unavailable. Please try again in a moment.\n\nYou can:\n- Try again\n- Wait a moment and retry\n- Ask a different question';
+                }
+            }
+            
+            // Try next API key
+            getNextApiKey();
         }
     }
 }
@@ -618,13 +658,13 @@ function imageToBase64(file) {
 }
 
 // ============================================
-// MESSAGE FORMATTING
+// MESSAGE FORMATTING WITH MARKDOWN
 // ============================================
 
 function formatAIResponse(text) {
     if (!text) return '';
     
-    // Configure marked.js for better rendering
+    // Use marked.js if available
     if (typeof marked !== 'undefined') {
         marked.setOptions({
             highlight: function(code, lang) {
@@ -648,25 +688,22 @@ function formatAIResponse(text) {
         }
     }
     
-    // Fallback formatting if marked.js not available
+    // Fallback simple formatting
     text = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     
     // Code blocks
     text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
-        const language = lang ? ` class="language-${lang}"` : '';
-        return `<pre><code${language}>${code.trim()}</code></pre>`;
+        return `<pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`;
     });
     
     // Inline code
-    text = text.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
     
     // Bold
     text = text.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
-    text = text.replace(/__([^_]+)__/g, '<strong>$1</strong>');
     
     // Italic
     text = text.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
-    text = text.replace(/_([^_]+)_/g, '<em>$1</em>');
     
     // Headers
     text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
@@ -713,7 +750,7 @@ function displayMessage(content, isUser, imageUrl = null) {
     
     let imageHTML = '';
     if (imageUrl) {
-        imageHTML = `<img src="${imageUrl}" class="message-image" alt="Uploaded image" onclick="showImageModal('${imageUrl}')">`;
+        imageHTML = `<img src="${imageUrl}" class="message-image" alt="Image" onclick="showImageModal('${imageUrl}')">`;
     }
     
     messageDiv.innerHTML = `
@@ -770,10 +807,11 @@ function copyMessage(button) {
         }, 2000);
     }).catch(err => {
         console.error('Copy failed:', err);
+        showNotification('Copy failed', 'error');
     });
 }
 
-console.log("✅ Part 3 loaded - Real AI Chat");
+console.log("✅ Part 3 loaded - Real AI Chat (FIXED)");
 
 // ============================================
 // script.js - Part 4/10: Real AI Vision (Image Analysis)
