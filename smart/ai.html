@@ -3,53 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart AI - 100% Real AI</title>
+    <title>Smart AI Chat</title>
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
-    <!-- Marked.js for Markdown -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-    
-    <!-- Highlight.js for Code Syntax -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
+    
 </head>
 <body>
     <!-- SPLASH SCREEN -->
     <div id="splashScreen">
-        <div class="splash-particles" id="splashParticles"></div>
-        <div class="splash-sparkle"></div>
-        <div class="splash-sparkle"></div>
-        <div class="splash-sparkle"></div>
-        <div class="splash-sparkle"></div>
+    <div class="splash-particles" id="splashParticles"></div>
+    
+    <div class="splash-sparkle"></div>
+    <div class="splash-sparkle"></div>
+    <div class="splash-sparkle"></div>
+    <div class="splash-sparkle"></div>
 
-        <div class="splash-container">
-            <div class="splash-logo-container">
-                <div class="splash-ai-icon">
-                    <div class="splash-ai-text">AI</div>
-                </div>
-            </div>
-            <h1 class="splash-app-name">Smart AI</h1>
-            <p class="splash-tagline">100% Real AI Assistant</p>
-            <div class="splash-loading-bar">
-                <div class="splash-loading-progress"></div>
+    <div class="splash-container">
+        <div class="splash-logo-container">
+            <div class="splash-ai-icon">
+                <div class="splash-ai-text">AI</div>
             </div>
         </div>
-        
-        <div class="splash-footer">
-            <p class="splash-developer">Developed by Sandun Piumal</p>
-            <p class="splash-copyright">© <span class="splash-spmods">SPMods</span> 2025</p>
+
+        <h1 class="splash-app-name">Smart AI</h1>
+        <p class="splash-tagline">Your Intelligent Assistant</p>
+
+        <div class="splash-loading-bar">
+            <div class="splash-loading-progress"></div>
         </div>
+    
     </div>
+        
+    <div class="splash-footer">
+        <p class="splash-developer">Developed by Sandun Piumal</p>
+        <p class="splash-copyright">© <span class="splash-spmods">SPMods</span> 2025</p>
+    </div>
+
+        
+</div>
     
     <!-- NOTIFICATION -->
     <div id="notification" class="notification">
@@ -64,7 +67,7 @@
             <p id="loadingText">Processing...</p>
         </div>
     </div>
-    
+
     <!-- AUTH CONTAINER -->
     <div id="authContainer">
         <div class="auth-box">
@@ -72,40 +75,43 @@
             <div id="loginForm">
                 <div class="auth-header">
                     <div class="auth-logo">
-                        <svg width="60" height="60" viewBox="0 0 60 60">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
-                                <linearGradient id="logoGrad">
-                                    <stop offset="0%" style="stop-color:#4A90E2"/>
-                                    <stop offset="100%" style="stop-color:#357ABD"/>
+                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
                                 </linearGradient>
                             </defs>
                             <circle cx="30" cy="30" r="28" fill="url(#logoGrad)"/>
-                            <text x="30" y="40" text-anchor="middle" fill="white" font-size="24" font-weight="bold">AI</text>
+                            <path d="M20 25 L30 15 L40 25 L35 25 L35 40 L25 40 L25 25 Z" fill="white" opacity="0.9"/>
+                            <circle cx="30" cy="44" r="3" fill="white" opacity="0.9"/>
+                            <path d="M15 30 Q15 20, 25 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+                            <path d="M45 30 Q45 20, 35 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
                         </svg>
                     </div>
-                    <h1>Smart AI</h1>
-                    <p>100% Real AI Assistant</p>
+                    <h1 data-i18n="appTitle">Smart AI</h1>
+                    <p data-i18n="appSubtitle">Powered by Gemini AI</p>
                 </div>
                 
                 <div id="loginError" class="error-message"></div>
                 
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                        <label><i class="fas fa-envelope"></i> <span data-i18n="email">Email</span></label>
+                        <input type="email" id="loginEmail" data-i18n-placeholder="enterEmail" placeholder="Enter your email" required autocomplete="email">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-lock"></i> Password</label>
-                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                        <label><i class="fas fa-lock"></i> <span data-i18n="password">Password</span></label>
+                        <input type="password" id="loginPassword" data-i18n-placeholder="enterPassword" placeholder="Enter your password" required autocomplete="current-password">
                     </div>
                     <button type="submit" class="btn btn-primary" id="loginBtn">
                         <span id="loginLoader" class="loader"></span>
-                        <span id="loginText">Login</span>
+                        <span id="loginText" data-i18n="login">Login</span>
                     </button>
                 </form>
                 
                 <div class="toggle-link">
-                    Don't have an account? <a onclick="showSignup()">Sign Up</a>
+                    <span data-i18n="noAccount">Don't have an account?</span> <a onclick="showSignup()" data-i18n="signUp">Sign Up</a>
                 </div>
             </div>
 
@@ -113,13 +119,22 @@
             <div id="signupForm" style="display: none;">
                 <div class="auth-header">
                     <div class="auth-logo">
-                        <svg width="60" height="60" viewBox="0 0 60 60">
-                            <circle cx="30" cy="30" r="28" fill="#4A90E2"/>
-                            <text x="30" y="40" text-anchor="middle" fill="white" font-size="24" font-weight="bold">AI</text>
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="30" cy="30" r="28" fill="url(#logoGrad2)"/>
+                            <path d="M20 25 L30 15 L40 25 L35 25 L35 40 L25 40 L25 25 Z" fill="white" opacity="0.9"/>
+                            <circle cx="30" cy="44" r="3" fill="white" opacity="0.9"/>
+                            <path d="M15 30 Q15 20, 25 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+                            <path d="M45 30 Q45 20, 35 15" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
                         </svg>
                     </div>
-                    <h1>Smart AI</h1>
-                    <p>Create Your Account</p>
+                    <h1 data-i18n="appTitle">Smart AI</h1>
+                    <p data-i18n="createAccount">Create Your Account</p>
                 </div>
                 
                 <div id="signupError" class="error-message"></div>
@@ -127,33 +142,33 @@
                 
                 <form onsubmit="handleSignup(event)">
                     <div class="form-group">
-                        <label><i class="fas fa-user"></i> Name</label>
-                        <input type="text" id="signupName" placeholder="Enter your name" required>
+                        <label><i class="fas fa-user"></i> <span data-i18n="name">Name</span></label>
+                        <input type="text" id="signupName" data-i18n-placeholder="enterName" placeholder="Enter your name" required autocomplete="name">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                        <label><i class="fas fa-envelope"></i> <span data-i18n="email">Email</span></label>
+                        <input type="email" id="signupEmail" data-i18n-placeholder="enterEmail" placeholder="Enter your email" required autocomplete="email">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-lock"></i> Password</label>
-                        <input type="password" id="signupPassword" placeholder="Min 6 characters" required minlength="6">
+                        <label><i class="fas fa-lock"></i> <span data-i18n="password">Password</span></label>
+                        <input type="password" id="signupPassword" data-i18n-placeholder="createPassword" placeholder="Create a password (min 6 characters)" required minlength="6" autocomplete="new-password">
                     </div>
                     <button type="submit" class="btn btn-primary" id="signupBtn">
                         <span id="signupLoader" class="loader"></span>
-                        <span id="signupText">Sign Up</span>
+                        <span id="signupText" data-i18n="signUp">Sign Up</span>
                     </button>
                 </form>
                 
                 <div class="toggle-link">
-                    Already have an account? <a onclick="showLogin()">Login</a>
+                    <span data-i18n="haveAccount">Already have an account?</span> <a onclick="showLogin()" data-i18n="login">Login</a>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- CHAT APP -->
     <div id="chatApp">
-        <!-- Sidebar Overlay -->
+        <!-- Sidebar Overlay for Mobile -->
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
         <div class="chat-container">
@@ -179,7 +194,7 @@
                             <div class="user-email" id="userEmail">user@email.com</div>
                         </div>
                     </div>
-                    <button class="sidebar-action-btn" onclick="handleLogout()" title="Logout">
+                    <button class="sidebar-action-btn" onclick="handleLogout()" data-i18n-title="logout" title="Logout">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
@@ -191,11 +206,11 @@
                     <button class="menu-btn" onclick="toggleSidebar()">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="header-title">Smart AI - 100% Real</div>
-                    <button class="header-action-btn language-btn" onclick="toggleLanguage()" title="Language">
+                    <div class="header-title" data-i18n="newChat">New chat</div>
+                    <button class="header-action-btn language-btn" onclick="toggleLanguage()" title="Change Language">
                         <i class="fas fa-language"></i>
                     </button>
-                    <button class="header-action-btn" onclick="createNewChat()" title="New Chat">
+                    <button class="header-action-btn" onclick="createNewChat()" data-i18n-title="newChat" title="New Chat">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -203,24 +218,22 @@
                 <div id="chatMessages" class="chat-messages">
                     <div class="welcome-screen">
                         <div class="ai-logo">
-                            <svg width="80" height="80" viewBox="0 0 80 80">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
-                                    <linearGradient id="logoGrad3">
-                                        <stop offset="0%" style="stop-color:#4A90E2"/>
-                                        <stop offset="100%" style="stop-color:#357ABD"/>
+                                    <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
                                     </linearGradient>
                                 </defs>
                                 <circle cx="40" cy="40" r="38" fill="url(#logoGrad3)"/>
-                                <text x="40" y="52" text-anchor="middle" fill="white" font-size="32" font-weight="bold">AI</text>
+                                <path d="M25 35 L40 20 L55 35 L48 35 L48 55 L32 55 L32 35 Z" fill="white" opacity="0.9"/>
+                                <circle cx="40" cy="60" r="4" fill="white" opacity="0.9"/>
+                                <path d="M18 40 Q18 28, 32 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
+                                <path d="M62 40 Q62 28, 48 20" stroke="white" stroke-width="2.5" fill="none" opacity="0.5"/>
                             </svg>
                         </div>
-                        <h1 id="welcomeTitle">Hi, I'm Smart AI</h1>
-                        <p id="welcomeSubtitle">100% Real AI Assistant</p>
-                        <div class="feature-badges">
-                            <span class="badge"><i class="fas fa-code"></i> Real Coding</span>
-                            <span class="badge"><i class="fas fa-image"></i> Image Analysis</span>
-                            <span class="badge"><i class="fas fa-magic"></i> AI Art</span>
-                        </div>
+                        <h1 id="welcomeTitle" data-i18n="welcomeTitle">Hi, I'm Smart AI.</h1>
+                        <p id="welcomeSubtitle" data-i18n="welcomeSubtitle">How can I help you today?</p>
                     </div>
                 </div>
 
@@ -241,21 +254,27 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
+                        <div id="ocrText" class="ocr-text"></div>
                     </div>
 
                     <div class="input-wrapper">
                         <input type="text" 
                             id="messageInput" 
-                            placeholder="Ask me anything... (Coding, Image Analysis, AI Art)"
+                            data-i18n-placeholder="messagePlaceholder"
+                            placeholder="Message Smart AI"
                             onkeydown="handleKeyPress(event)"
                             oninput="handleInputChange()"
                         />
                         
                         <div class="input-actions">
-                            <button class="input-action-btn" onclick="document.getElementById('imageInput').click()" title="Upload Image">
+                            <button class="input-action-btn" onclick="document.getElementById('imageInput').click()" data-i18n-title="uploadImage" title="Upload Image">
                                 <i class="fas fa-image"></i>
                             </button>
                             <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                            
+                            <!--button class="input-action-btn" data-i18n-title="moreOptions" title="More options">
+                                <i class="fas fa-ellipsis-h"></i>
+                        </button-->
                             
                             <button id="sendButton" class="send-btn" onclick="sendMessage()">
                                 <i class="fas fa-arrow-up"></i>
@@ -266,29 +285,9 @@
             </div>
         </div>
     </div>
+
     
     <!-- Custom JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
-
-<!-- 
-    මෙය HTML file එකේ අවසාන කොටස.
-    
-    සම්පූර්ණ HTML file එක සෑදීමට:
-    1. Part 1 copy කරන්න
-    2. Part 2 එකට paste කරන්න
-    3. Part 3 එකට paste කරන්න
-    4. Part 4 එකට paste කරන්න (මේ කොටස)
-    
-    ඉන්පසු index.html ලෙස save කරන්න.
-    
-    Features:
-    ✅ 100% Real AI with Groq API
-    ✅ Real Coding Help
-    ✅ Image Analysis (Vision API)
-    ✅ AI Art Generation
-    ✅ Firebase Authentication
-    ✅ Chat History
-    ✅ Sinhala + English Support
--->
