@@ -93,6 +93,37 @@
             overflow-x: hidden;
             background: #000;
         }
+        /*snow*/
+
+        .snowflakes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.snowflake {
+    position: absolute;
+    top: -10px;
+    color: #fff;
+    font-size: 1em;
+    text-shadow: 0 0 5px rgba(0,0,0,0.3);
+    animation: fall linear infinite;
+}
+
+@keyframes fall {
+    0% {
+        top: -10%;
+        opacity: 1;
+    }
+    100% {
+        top: 100%;
+        opacity: 0.3;
+    }
+            }
 
         /* Animated Gradient Background */
         .gradient-bg {
@@ -688,6 +719,7 @@
 </style>
 </head>
 <body>
+    <div class="snowflakes" id="snowflakes"></div>
     <!-- Animated Background -->
     
     <div class="animated-bg">
@@ -855,6 +887,35 @@
                 }
             });
         });
+    </script>
+    <script>
+
+function createSnowflakes() {
+    const snowflakesContainer = document.getElementById('snowflakes');
+    const snowflakeCount = 50; // හිම කැබලි ගණන
+
+    for (let i = 0; i < snowflakeCount; i++) {
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
+        snowflake.innerHTML = '❄';
+        
+      
+        const randomLeft = Math.random() * 100;
+        const randomSize = Math.random() * 1 + 0.5;
+        const randomDuration = Math.random() * 10 + 10;
+        const randomDelay = Math.random() * 5;
+        
+        snowflake.style.left = randomLeft + '%';
+        snowflake.style.fontSize = randomSize + 'em';
+        snowflake.style.animationDuration = randomDuration + 's';
+        snowflake.style.animationDelay = randomDelay + 's';
+        
+        snowflakesContainer.appendChild(snowflake);
+    }
+}
+
+
+window.addEventListener('load', createSnowflakes);
     </script>
 </body>
 </html>
