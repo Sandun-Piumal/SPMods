@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Pro - Download Latest Version</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+        <script src="https://fpyf8.com/88/tag.min.js" data-zone="161357" async data-cfasync="false"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+            background: #000;
+        }
+
+        .animated-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            overflow: hidden;
+            will-change: transform;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.5;
+            animation: float 25s infinite ease-in-out;
+            will-change: transform;
+        }
+
+        .orb1 {
+            width: 280px;
+            height: 280px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            top: -80px;
+            left: -80px;
+        }
+
+        .orb2 {
+            width: 320px;
+            height: 320px;
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            bottom: -120px;
+            right: -120px;
+            animation-delay: 8s;
+        }
+
+        .orb3 {
+            width: 240px;
+            height: 240px;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            top: 50%;
+            left: 50%;
+            animation-delay: 15s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0);
+            }
+            50% {
+                transform: translate(20px, -20px);
+            }
+        }
+
+        header {
+            position: fixed;
+            width: 100%;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        header.scrolled {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .join-channel-btn {
+            padding: 10px 25px;
+            background: linear-gradient(45deg, #25D366, #128C7E);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .join-channel-btn i {
+            font-size: 15px;
+        }
+
+        .join-channel-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.5);
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 20px 40px;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 38px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 15px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-subtitle {
+            text-align: center;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.2s forwards;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 28px;
+            padding: 40px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.4s forwards;
+        }
+
+        .app-preview {
+            position: relative;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .icon-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 25px;
+        }
+
+        .glow-ring {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 0, 0, 0.4), transparent 70%);
+            filter: blur(15px);
+            opacity: 0.7;
+        }
+
+        .app-icon {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 50px rgba(255, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .app-icon svg {
+            width: 65px;
+            height: 65px;
+            fill: white;
+        }
+
+        .app-name {
+            font-size: 30px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        .app-tagline {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 25px rgba(255, 0, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        .download-section {
+            text-align: center;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(45deg, #e73c7e, #23a6d5);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 12px 35px rgba(231, 60, 126, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn i {
+            font-size: 18px;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(231, 60, 126, 0.5);
+        }
+
+        .download-btn:hover::before {
+            left: 100%;
+        }
+
+        .file-info {
+            margin-top: 12px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .features {
+            margin-top: 50px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 38px;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .feature-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+        }
+
+        footer {
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .footer-logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #FF0000, #CC0000);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+        }
+
+        .footer-logo-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .footer-logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 14px;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        .footer-info {
+            margin-top: 18px;
+        }
+
+        .footer-info p {
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 12px 18px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            .logo svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .join-channel-btn {
+                padding: 8px 18px;
+                font-size: 12px;
+            }
+
+            .container {
+                padding: 90px 18px 30px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .page-subtitle {
+                font-size: 14px;
+            }
+
+            .main-card {
+                padding: 28px 18px;
+                border-radius: 20px;
+            }
+
+            .app-icon {
+                width: 100px;
+                height: 100px;
+                border-radius: 24px;
+            }
+
+            .app-icon svg {
+                width: 50px;
+                height: 50px;
+            }
+
+            .glow-ring {
+                width: 140px;
+                height: 140px;
+            }
+
+            .app-name {
+                font-size: 24px;
+            }
+
+            .app-tagline {
+                font-size: 13px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-icon {
+                font-size: 28px;
+            }
+
+            .stat-value {
+                font-size: 18px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+            }
+
+            .download-btn {
+                width: 100%;
+                padding: 14px 30px;
+                font-size: 14px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .feature-card {
+                padding: 20px;
+            }
+
+            .feature-icon {
+                font-size: 32px;
+            }
+
+            .feature-title {
+                font-size: 16px;
+            }
+
+            .feature-desc {
+                font-size: 12px;
+            }
+
+            .footer-links {
+                flex-direction: row;
+                gap: 18px;
+            }
+
+            .footer-links a {
+                font-size: 13px;
+            }
+
+            .footer-info p {
+                font-size: 12px;
+            }
+
+            .orb1, .orb2, .orb3 {
+                width: 180px;
+                height: 180px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }    
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="mainHeader">
+        <a href="#" class="logo">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#FF0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            SPMods
+        </a>
+        <a href="https://t.me/SPModsSandun" class="join-channel-btn">
+            <span>📢</span>
+            Join Channel
+        </a>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="page-title">Download YouTube Pro</h1>
+        <p class="page-subtitle">
+            Experience YouTube like never before with premium features, ad-free playback, background play, and advanced video downloading capabilities
+        </p>
+
+        <div class="main-card">
+            <div class="app-preview">
+                <div class="icon-wrapper">
+                    <div class="glow-ring"></div>
+                    <div class="app-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </div>
+                </div>
+                <h2 class="app-name">YouTube Pro</h2>
+                <p class="app-tagline">
+                    The ultimate YouTube mod with ad-free experience, background playback, video downloads, and premium features unlocked for free
+                </p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-icon">📦</span>
+                    <span class="stat-value">1MB</span>
+                    <span class="stat-label">File Size</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">🚀</span>
+                    <span class="stat-value">v1.0</span>
+                    <span class="stat-label">Latest Version</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">🛡️</span>
+                    <span class="stat-value">Verified</span>
+                    <span class="stat-label">Safe & Secure</span>
+                </div>
+            </div>
+
+            <div class="download-section">
+                <a href="ytpro.html" class="download-btn">
+                    <span>⬇️</span>
+                    Download YouTube Pro
+                </a>
+                <div class="file-info">
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <h2 class="section-title">✨ Premium Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚫</div>
+                    <div class="feature-title">Ad-Free Experience</div>
+                    <div class="feature-desc">Watch videos without any interruptions from ads, banners, or pop-ups</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎵</div>
+                    <div class="feature-title">Background Playback</div>
+                    <div class="feature-desc">Listen to videos with screen off or while using other apps</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⬇️</div>
+                    <div class="feature-title">Video Downloads</div>
+                    <div class="feature-desc">Download videos in multiple formats and qualities up to 4K resolution</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <div class="feature-title">Custom Themes</div>
+                    <div class="feature-desc">Dark mode, AMOLED black, and customizable interface colors</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⏭️</div>
+                    <div class="feature-title">SponsorBlock</div>
+                    <div class="feature-desc">Automatically skip sponsored segments, intros, and outros in videos</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔊</div>
+                    <div class="feature-title">Volume & Brightness</div>
+                    <div class="feature-desc">Swipe gestures to control volume and screen brightness while watching</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="https://t.me/SPModsSandun">
+                    <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121L7.773 13.73l-2.89-.903c-.63-.196-.64-.63.135-.93l11.26-4.34c.524-.19.982.12.816.664z"/>
+                    </svg>
+                    Telegram
+                </a>
+                <a href="https://whatsapp.com/channel/0029VbBohwr0lwgn5GA9Cr08">
+                    <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                    YouTube
+                </a>
+                <a href="mailto:spmodsofficial@gmail.com">
+                    <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                    Email
+                </a>
+            </div>
+            <div class="footer-info">
+                <p>Copyright © 2026 SPMods. All Rights Reserved.</p>
+                <p>Design: Sandun Piumal</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sticky header scroll effect
+        const header = document.getElementById('mainHeader');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
