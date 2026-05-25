@@ -1,5 +1,5 @@
 /* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
     --primary-color: #0066cc;
@@ -11,7 +11,8 @@
     --text-muted: #64748b;
     --border-color: #e2e8f0;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
     --max-width: 1200px;
 }
 
@@ -26,6 +27,24 @@ body {
     background-color: var(--bg-color);
     color: var(--text-main);
     line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Animations Definitions */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 header {
@@ -34,6 +53,7 @@ header {
     position: sticky;
     top: 0;
     z-index: 1000;
+    animation: fadeIn 0.8s ease-out;
 }
 
 .nav-container {
@@ -58,6 +78,11 @@ header {
 .logo-svg {
     width: 40px;
     height: 40px;
+    transition: transform 0.3s ease;
+}
+
+.logo-area:hover .logo-svg {
+    transform: rotate(10deg) scale(1.05);
 }
 
 .nav-links {
@@ -70,11 +95,28 @@ header {
     text-decoration: none;
     color: var(--text-muted);
     font-weight: 500;
-    transition: color 0.2s;
+    transition: color 0.2s ease;
+    position: relative;
+    padding: 0.25rem 0;
 }
 
 .nav-links a:hover, .nav-links a.active {
     color: var(--primary-color);
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after, .nav-links a.active::after {
+    width: 100%;
 }
 
 .hero {
@@ -82,6 +124,7 @@ header {
     padding: 5rem 2rem;
     text-align: center;
     border-bottom: 1px solid var(--border-color);
+    animation: fadeInUp 0.8s ease-out forwards;
 }
 
 .hero-content {
@@ -116,17 +159,20 @@ header {
     border-radius: 8px;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
 }
 
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 102, 204, 0.2);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 102, 204, 0.3);
 }
 
 .btn-secondary {
@@ -137,12 +183,14 @@ header {
 
 .btn-secondary:hover {
     background-color: #f1f5f9;
+    transform: translateY(-2px);
 }
 
 main {
     max-width: var(--max-width);
     margin: 3rem auto;
     padding: 0 2rem;
+    animation: fadeInUp 1s ease-out forwards;
 }
 
 .section-title {
@@ -163,12 +211,13 @@ main {
     border-radius: 16px;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: #cbd5e1;
 }
 
 .app-img {
@@ -177,6 +226,11 @@ main {
     object-fit: cover;
     object-position: center;
     background-color: #f1f5f9;
+    transition: transform 0.5s ease;
+}
+
+.app-card:hover .app-img {
+    transform: scale(1.03);
 }
 
 .app-info {
@@ -222,6 +276,7 @@ main {
     box-shadow: var(--shadow-sm);
     max-width: 800px;
     margin: 2rem auto;
+    animation: fadeInUp 0.8s ease-out;
 }
 
 .legal-content h1 { margin-bottom: 1.5rem; color: #0f172a;}
@@ -247,11 +302,13 @@ main {
     text-decoration: none;
     font-weight: 600;
     color: white;
-    transition: opacity 0.2s;
+    transition: all 0.2s ease;
 }
 
 .social-btn:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    opacity: 0.95;
+    box-shadow: var(--shadow-md);
 }
 
 .tg-btn { background-color: #0088cc; }
@@ -263,6 +320,7 @@ footer {
     border-top: 1px solid var(--border-color);
     padding: 3rem 2rem;
     margin-top: 5rem;
+    animation: fadeIn 1s ease-out;
 }
 
 .footer-container {
