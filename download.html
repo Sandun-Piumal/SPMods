@@ -536,7 +536,7 @@ body::before{
       <div class="done-icon">🔓</div>
       <div class="done-title">Download Unlocked!</div>
       <div class="done-sub">Thanks for watching! Your file is ready.</div>
-      <a class="btn-dl" id="dlBtn" data-cfg-href="apkLink" href="YOUR_APK_LINK_HERE" download>
+      <a class="btn-dl" id="dlBtn" data-cfg-href="apkLink" href="#" download>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-7 4v-2h14v2H5z"/></svg>
         Download SP WhatsApp
       </a>
@@ -591,7 +591,7 @@ body::before{
 </div>
 
 <script>
-const CFG={sec:15,apkUrl:'YOUR_APK_LINK_HERE'};
+const CFG={sec:15};
 const CIRC=2*Math.PI*54;
 let running=false,clicked=false;
 
@@ -634,7 +634,7 @@ function startTimer(){
 
 function done(){
   setPill('ok','g','✓ Download Unlocked!');
-  setTimeout(()=>{show('s3');setDots(3);document.getElementById('dlBtn').href=CFG.apkUrl;},500);
+  setTimeout(()=>{show('s3');setDots(3);document.getElementById('dlBtn').href=SITE.apkLink;},500);
 }
 
 function show(id){
