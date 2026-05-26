@@ -1,14 +1,14 @@
 /* ===== SITE CONFIG — edit here, changes apply to ALL pages ===== */
 const SITE = {
-  version:   "v9.65",
+  version:   "v61.3",
   downloads: "100K+",
-  fileSize:  "67 MB",
+  fileSize:  "110 MB",
   rating:    "4.9",
   minAndroid:"Android 5.0+",
-  apkLink:   "YOUR_APK_LINK_HERE",
+  apkLink:   "https://www.mediafire.com/file/lqkm1vwqopsc4h4/SPWA_V61.3_By_SPMods.apk/file",
   telegram:  "https://t.me/SPModsSandun",
   tgHandle:  "@SPModsSandun",
-  year:      "2025",
+  year:      "2026",
 };
 
 document.addEventListener("DOMContentLoaded", () => {
