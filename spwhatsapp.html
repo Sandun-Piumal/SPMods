@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP WhatsApp — Full Review &amp; Download Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Righteous&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4f0;--card:#ffffff;--s1:#f7faf7;--s2:#eef5ee;--bdr:#ddeedd;
+  --g:#1db954;--g2:#128C7E;--g3:#0f7a5a;--gdk:#0a6640;
+  --txt:#1a2e1c;--dim:#6b8f6e;--dim2:#a8c5a8;
+  --gold:#e8a800;--goldbg:#fffbee;--red:#e03050;--redbg:#fff0f2;--tl:#0a8fd1;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;line-height:1.7}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(circle,rgba(29,185,84,0.06) 1px,transparent 1px);background-size:28px 28px}
+.topbar{position:fixed;top:0;left:0;right:0;height:4px;z-index:999;background:linear-gradient(90deg,var(--g),var(--g2),var(--g));background-size:200%;animation:barslide 3s linear infinite}
+@keyframes barslide{0%{background-position:0%}100%{background-position:200%}}
+nav{position:fixed;top:4px;left:0;right:0;z-index:100;background:rgba(255,255,255,0.88);backdrop-filter:blur(18px);border-bottom:1.5px solid var(--bdr);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:10px;font-family:'Righteous',sans-serif;font-size:17px;color:var(--txt)}
+.nav-dot{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#25d366,#128C7E);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 10px rgba(29,185,84,0.3)}
+.nav-tg{display:flex;align-items:center;gap:6px;background:rgba(10,143,209,0.08);border:1.5px solid rgba(10,143,209,0.2);color:var(--tl);font-weight:800;font-size:12px;padding:7px 14px;border-radius:10px;text-decoration:none;transition:background .2s}
+.nav-tg:hover{background:rgba(10,143,209,0.15)}
+.page{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:80px 16px 60px}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim2);font-weight:700;padding:18px 0 4px;flex-wrap:wrap}
+.breadcrumb a{color:var(--dim);text-decoration:none;transition:color .2s}
+.breadcrumb a:hover{color:var(--g)}
+.hero-card{background:var(--card);border:1.5px solid var(--bdr);border-radius:28px;padding:32px 24px 28px;margin-top:4px;margin-bottom:20px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.08),0 1px 0 rgba(255,255,255,0.9) inset;animation:rise .55s cubic-bezier(.22,1,.36,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(29,185,84,0.08);border:1.5px solid rgba(29,185,84,0.2);border-radius:30px;padding:5px 16px;font-size:11px;font-weight:900;color:var(--g);letter-spacing:.8px;text-transform:uppercase;margin-bottom:20px}
+.icon-wrap{position:relative;display:inline-block;margin-bottom:16px}
+.icon-bg{width:88px;height:88px;border-radius:24px;background:linear-gradient(145deg,#25d366,#128C7E);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(29,185,84,0.35);animation:iglow 3s ease infinite}
+@keyframes iglow{0%,100%{box-shadow:0 8px 28px rgba(29,185,84,0.3)}50%{box-shadow:0 8px 40px rgba(29,185,84,0.55)}}
+.icon-bg svg{width:52px;height:52px}
+.sp-tag{position:absolute;bottom:-8px;right:-8px;background:linear-gradient(135deg,var(--gold),#c98a00);color:#fff;font-size:9px;font-weight:900;padding:3px 9px;border-radius:7px;box-shadow:0 2px 10px rgba(232,168,0,0.4);letter-spacing:1px;text-transform:uppercase}
+.hero-title{font-family:'Righteous',sans-serif;font-size:clamp(22px,5vw,36px);line-height:1.2;color:var(--txt);margin-bottom:8px;letter-spacing:.5px}
+.hero-title span{color:var(--g)}
+.hero-sub{color:var(--dim);font-size:14px;font-weight:600;margin-bottom:22px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.7}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{background:var(--s1);border:1.5px solid var(--bdr);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--dim);font-weight:800;display:flex;align-items:center;gap:5px}
+.chip.hi{border-color:rgba(29,185,84,0.35);color:var(--g);background:rgba(29,185,84,0.06)}
+.chip.gld{border-color:rgba(232,168,0,0.35);color:var(--gold);background:rgba(232,168,0,0.06)}
+.stats-card{background:var(--card);border:1.5px solid var(--bdr);border-radius:20px;overflow:hidden;margin-bottom:20px;box-shadow:0 2px 16px rgba(0,0,0,0.06);display:grid;grid-template-columns:repeat(4,1fr)}
+@media(max-width:480px){.stats-card{grid-template-columns:repeat(2,1fr)}}
+.stat-cell{padding:18px 10px;text-align:center;border-right:1.5px solid var(--bdr)}
+.stat-cell:last-child{border-right:none}
+.stat-val{font-family:'Righteous',sans-serif;font-size:24px;color:var(--g);line-height:1}
+.stat-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-top:3px;font-weight:800}
+.sec{background:var(--card);border:1.5px solid var(--bdr);border-radius:24px;padding:24px 22px;margin-bottom:16px;box-shadow:0 2px 16px rgba(0,0,0,0.06)}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sec-icon{width:40px;height:40px;border-radius:12px;background:rgba(29,185,84,0.1);border:1.5px solid rgba(29,185,84,0.2);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.sec-title{font-family:'Righteous',sans-serif;font-size:19px;color:var(--txt);letter-spacing:.3px}
+p{color:var(--dim);font-size:13.5px;font-weight:600;margin-bottom:12px;line-height:1.8}
+p:last-child{margin-bottom:0}
+strong{color:var(--txt)}
+.feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:480px){.feat-grid{grid-template-columns:1fr}}
+.feat-card{background:var(--s1);border:1.5px solid var(--bdr);border-radius:16px;padding:13px 15px;display:flex;gap:11px;align-items:flex-start;transition:border-color .2s,transform .2s}
+.feat-card:hover{border-color:rgba(29,185,84,0.35);transform:translateY(-2px)}
+.fc-icon{font-size:21px;flex-shrink:0;margin-top:2px}
+.fc-name{font-size:13px;font-weight:900;color:var(--txt);margin-bottom:3px}
+.fc-desc{font-size:12px;color:var(--dim);font-weight:600;line-height:1.5}
+.tbl-wrap{overflow-x:auto;border-radius:14px;border:1.5px solid var(--bdr)}
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px}
+.cmp-table th{background:var(--s2);padding:10px 14px;text-align:left;font-weight:900;color:var(--gdk);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1.5px solid var(--bdr)}
+.cmp-table td{padding:10px 14px;border-bottom:1px solid var(--bdr);color:var(--dim);font-weight:600}
+.cmp-table tr:last-child td{border-bottom:none}
+.cmp-table tr:hover td{background:var(--s1)}
+.yes{color:var(--g);font-weight:900}.no{color:var(--red);font-weight:800}.part{color:var(--gold);font-weight:800}
+.steps-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.step-item{background:var(--s1);border:1.5px solid var(--bdr);border-radius:16px;padding:14px 16px;display:flex;gap:13px;align-items:flex-start;transition:border-color .2s}
+.step-item:hover{border-color:rgba(29,185,84,0.3)}
+.step-num{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--g),var(--g2));display:flex;align-items:center;justify-content:center;font-family:'Righteous',sans-serif;font-size:14px;color:#fff;box-shadow:0 3px 10px rgba(29,185,84,0.3)}
+.step-title{font-size:13.5px;font-weight:900;color:var(--txt);margin-bottom:3px}
+.step-desc{font-size:12px;color:var(--dim);font-weight:600;line-height:1.6}
+.box-tip,.box-warn,.box-danger{border-radius:14px;padding:13px 15px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start}
+.box-tip{background:rgba(29,185,84,0.07);border:1.5px solid rgba(29,185,84,0.2)}
+.box-warn{background:var(--goldbg);border:1.5px solid rgba(232,168,0,0.3)}
+.box-danger{background:var(--redbg);border:1.5px solid rgba(224,48,80,0.2)}
+.box-icon{font-size:17px;flex-shrink:0;margin-top:1px}
+.box-text{font-size:12.5px;font-weight:600;color:var(--dim);line-height:1.65}
+.box-text strong{color:var(--txt)}
+.faq-item{background:var(--s1);border:1.5px solid var(--bdr);border-radius:14px;margin-bottom:8px;overflow:hidden;transition:border-color .2s}
+.faq-item.open{border-color:rgba(29,185,84,0.35)}
+.faq-q{padding:13px 16px;font-weight:800;font-size:13.5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--txt);transition:color .2s}
+.faq-item.open .faq-q{color:var(--g)}
+.faq-a{display:none;padding:12px 16px;font-size:13px;color:var(--dim);font-weight:600;line-height:1.7;border-top:1.5px solid var(--bdr)}
+.faq-item.open .faq-a{display:block}
+.faq-arr{font-size:11px;transition:transform .3s;color:var(--dim2)}
+.faq-item.open .faq-arr{transform:rotate(90deg);color:var(--g)}
+.rating-box{background:var(--s1);border:1.5px solid var(--bdr);border-radius:16px;padding:18px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.rating-big{font-family:'Righteous',sans-serif;font-size:52px;color:var(--gold);line-height:1}
+.stars{font-size:20px;margin-bottom:3px}
+.rating-count{font-size:11px;color:var(--dim);font-weight:700}
+.rating-bars{flex:1;min-width:160px}
+.rbar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.rbar-lbl{font-size:11px;color:var(--dim);font-weight:800;width:10px}
+.rbar-track{flex:1;height:5px;background:var(--bdr);border-radius:5px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--gold),#f5c542)}
+.rbar-pct{font-size:11px;color:var(--dim);font-weight:700;width:32px;text-align:right}
+.tag{display:inline-block;background:var(--s1);border:1.5px solid var(--bdr);color:var(--dim);font-size:11px;font-weight:800;padding:3px 10px;border-radius:8px;margin:2px;letter-spacing:.3px}
+.rec{display:inline-block;background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;font-size:9px;font-weight:900;padding:2px 7px;border-radius:5px;letter-spacing:.5px;text-transform:uppercase;vertical-align:middle;margin-left:6px}
+.warn-badge{display:inline-block;background:var(--goldbg);border:1px solid rgba(232,168,0,0.4);color:#7a4f00;font-size:9px;font-weight:900;padding:2px 7px;border-radius:5px;letter-spacing:.5px;text-transform:uppercase;vertical-align:middle;margin-left:6px}
+.dl-cta{background:linear-gradient(135deg,rgba(29,185,84,0.1),rgba(18,140,126,0.07));border:1.5px solid rgba(29,185,84,0.25);border-radius:24px;padding:30px 22px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.dl-cta::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(29,185,84,0.06);pointer-events:none}
+.dl-cta-title{font-family:'Righteous',sans-serif;font-size:23px;color:var(--txt);margin-bottom:6px}
+.dl-cta-sub{color:var(--dim);font-size:13px;font-weight:600;margin-bottom:22px;line-height:1.65}
+.btn-dl{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;font-family:'Righteous',sans-serif;font-size:18px;padding:16px 36px;border-radius:16px;text-decoration:none;letter-spacing:.5px;box-shadow:0 6px 24px rgba(29,185,84,0.35);transition:transform .2s,box-shadow .2s;animation:dlpulse 2.5s ease infinite}
+@keyframes dlpulse{0%,100%{box-shadow:0 6px 24px rgba(29,185,84,0.35)}50%{box-shadow:0 6px 40px rgba(29,185,84,0.6)}}
+.btn-dl:hover{transform:translateY(-3px)}
+.dl-meta{display:flex;gap:14px;justify-content:center;margin-top:13px;flex-wrap:wrap}
+.dl-meta span{font-size:11px;color:var(--dim);font-weight:800}
+.nbox{background:var(--goldbg);border:1.5px solid rgba(232,168,0,0.35);border-radius:20px;padding:20px;margin-bottom:16px}
+.nbox-title{font-size:12px;font-weight:900;color:#7a4f00;text-transform:uppercase;letter-spacing:.7px;display:flex;align-items:center;gap:6px;margin-bottom:14px}
+.nbox ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+.nbox li{font-size:13px;color:#5a4000;font-weight:600;line-height:1.55;display:flex;align-items:flex-start;gap:9px}
+.nbox li .ni{flex-shrink:0;font-size:15px;margin-top:1px}
+.scroll-top{position:fixed;bottom:22px;right:22px;z-index:50;width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--g),var(--g2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(29,185,84,0.35);opacity:0;transition:opacity .3s,transform .2s;transform:translateY(8px)}
+.scroll-top.vis{opacity:1;transform:none}
+.scroll-top:hover{transform:translateY(-2px)}
+footer{position:relative;z-index:1;border-top:1.5px solid var(--bdr);background:var(--card);text-align:center;padding:26px 20px;color:var(--dim2);font-size:12px;font-weight:700;line-height:2;margin-top:20px}
+footer a{color:var(--dim);text-decoration:none}
+footer a:hover{color:var(--g)}
+.btn-dl-nav{display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;font-weight:900;font-size:12px;padding:7px 14px;border-radius:10px;text-decoration:none;box-shadow:0 3px 12px rgba(29,185,84,0.35);transition:transform .2s}.btn-dl-nav:hover{transform:translateY(-1px)}
+</style>
+<script src="site-config.js"></script>
+</head>
+<body>
+<div class="topbar"></div>
+<nav>
+  <div class="nav-brand">
+    <div class="nav-dot">💬</div>
+    SP WhatsApp
+  </div>
+  <div style="display:flex;gap:8px;align-items:center"><a class="btn-dl-nav" href="download.html">⬇ Download</a><a class="nav-tg" href="https://t.me/SPModsSandun" target="_blank">✈️ Telegram</a></div>
+</nav>
+
+<div class="page">
+  <div class="breadcrumb">
+    <a href="#">Home</a><span style="color:var(--dim2)">›</span>
+    <a href="#">WhatsApp Mods</a><span style="color:var(--dim2)">›</span>
+    <span>SP WhatsApp <span data-cfg="version"></span></span>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero-card">
+    <div class="hero-badge">✦ Updated May 2025 · Latest Version</div>
+    <div class="icon-wrap">
+      <div class="icon-bg">
+        <svg viewBox="0 0 48 48" fill="none">
+          <path fill="#fff" d="M24 4C13 4 4 13 4 24c0 3.6 1 7 2.7 9.9L4 44l10.4-2.7C17 43 20.4 44 24 44c11 0 20-9 20-20S35 4 24 4z"/>
+          <path fill="#25D366" d="M24 6.4C14.3 6.4 6.4 14.3 6.4 24c0 3.4.9 6.6 2.6 9.4L6.7 41.3l8.2-2.1c2.7 1.5 5.8 2.4 9.1 2.4 9.7 0 17.6-7.9 17.6-17.6S33.7 6.4 24 6.4z"/>
+          <path fill="#fff" d="M17.5 14.5c-.4-.9-.8-.9-1.2-.9-.3 0-.7 0-1 0-.4 0-1 .1-1.5.7-.5.5-2 2-2 4.8s2.1 5.5 2.3 5.9c.3.4 4 6.4 9.9 8.7 4.9 1.9 5.9 1.5 6.9 1.4 1-.1 3.3-1.4 3.7-2.7.4-1.3.4-2.5.3-2.7-.1-.2-.5-.4-.9-.6-.5-.2-3.3-1.6-3.8-1.8-.5-.2-.9-.3-1.2.3-.4.5-1.4 1.8-1.7 2.2-.3.3-.6.4-1.1.1-.5-.2-2.2-.8-4.1-2.5-1.5-1.4-2.5-3-2.8-3.5-.3-.5 0-.8.2-1l1-1.2c.2-.3.3-.5.4-.9.2-.3 0-.7-.1-1z"/>
+        </svg>
+      </div>
+      <div class="sp-tag">SP MOD</div>
+    </div>
+    <div class="hero-title">SP <span>WhatsApp</span> <span data-cfg="version"></span><br>Full Review &amp; Download Guide</div>
+    <p class="hero-sub" style="margin-bottom:22px">Everything you need to know about SP WhatsApp — features, safety tips, installation guide, and how it compares to the official WhatsApp in 2025.</p>
+    <div class="meta-row">
+      <span class="chip hi">✅ Anti-Ban <span data-cfg="version"></span></span>
+      <span class="chip">📦 <span data-cfg="fileSize"></span></span>
+      <span class="chip">📱 <span data-cfg="minAndroid"></span></span>
+      <span class="chip gld">⭐ <span data-cfg="rating"></span> / 5 Rating</span>
+      <span class="chip">🔄 May 2025</span>
+      <span class="chip hi">🆓 100% Free</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-card">
+    <div class="stat-cell"><div class="stat-val"><span data-cfg="downloads"></span></div><div class="stat-lbl">Downloads</div></div>
+    <div class="stat-cell"><div class="stat-val"><span data-cfg="rating"></span>★</div><div class="stat-lbl">User Rating</div></div>
+    <div class="stat-cell"><div class="stat-val">50+</div><div class="stat-lbl">Features</div></div>
+    <div class="stat-cell" style="border-right:none"><div class="stat-val">Free</div><div class="stat-lbl">Always</div></div>
+  </div>
+
+  <!-- WHAT IS -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">💬</div><div class="sec-title">What is SP WhatsApp?</div></div>
+    <p><strong>SP WhatsApp</strong> (also called SP WA) is a <strong>modified version of WhatsApp Messenger</strong> developed by SPMods Sandun. Built on top of the original WhatsApp APK, it includes dozens of extra features, customization options, and privacy controls that the official app simply does not offer.</p>
+    <p>From hiding your online status to sending files up to 1 GB, using custom themes, and running dual accounts — SP WhatsApp has grown into one of the most popular WhatsApp mods among Android users worldwide, with over 2 million active users today.</p>
+    <p>The latest version, <strong><span data-cfg="version"></span></strong>, released in May 2025, brings improved anti-ban protection, better media sharing limits, smoother performance on older Android devices, and new UI customization options. It is completely free to download and use — no subscriptions, no ads inside the app.</p>
+    <div class="box-tip"><div class="box-icon">💡</div><div class="box-text"><strong>Good to know:</strong> SP WhatsApp connects to WhatsApp's official servers, so your messages are delivered just as fast and use the same end-to-end encryption as the original app.</div></div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">⚡</div><div class="sec-title">Key Features of SP WhatsApp <span data-cfg="version"></span></div></div>
+    <p>SP WhatsApp is packed with features unavailable in the official app. Here's a full breakdown of the most popular ones:</p>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="fc-icon">👁️</div><div><div class="fc-name">Hide Online Status</div><div class="fc-desc">Go completely invisible. No one sees when you're online, even while actively chatting.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">✔️</div><div><div class="fc-name">Hide Blue Ticks</div><div class="fc-desc">Read messages without sending read receipts. Others won't know you've seen their message.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">🎨</div><div><div class="fc-name">Custom Themes</div><div class="fc-desc">Access thousands of community themes. Change fonts, colors, and icons freely.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">📁</div><div><div class="fc-name">Share Large Files</div><div class="fc-desc">Send documents up to 1 GB and videos without any compression or quality loss.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">📷</div><div><div class="fc-name">HD Photo &amp; Video</div><div class="fc-desc">Send images and videos in full original quality without automatic compression.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">💬</div><div><div class="fc-name">Dual / Multi Account</div><div class="fc-desc">Run two WhatsApp accounts on the same device simultaneously without issues.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">🔕</div><div><div class="fc-name">DND Mode</div><div class="fc-desc">Block WhatsApp internet access while keeping Wi-Fi on. Perfect for focus time.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">📊</div><div><div class="fc-name">Longer Status Videos</div><div class="fc-desc">Upload status videos up to 7 minutes long instead of the usual 30-second limit.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">⏳</div><div><div class="fc-name">View Deleted Messages</div><div class="fc-desc">Read messages the sender deleted. Never miss important content again.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">🔐</div><div><div class="fc-name">App Lock</div><div class="fc-desc">Lock SP WhatsApp with PIN, pattern, or fingerprint for extra privacy.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">🌐</div><div><div class="fc-name">Auto-Reply Bot</div><div class="fc-desc">Set automatic replies for when you're busy — great for personal and business use.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">📌</div><div><div class="fc-name">Pin More Chats</div><div class="fc-desc">Pin up to 1000 chats to the top instead of just 3 like in official WhatsApp.</div></div></div>
+    </div>
+  </div>
+
+  <!-- COMPARE -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">⚖️</div><div class="sec-title">SP WhatsApp vs Official WhatsApp</div></div>
+    <p>A head-to-head comparison showing exactly what you gain by switching to SP WhatsApp:</p>
+    <div class="tbl-wrap">
+      <table class="cmp-table">
+        <thead><tr><th>Feature</th><th>SP WhatsApp</th><th>Official WA</th></tr></thead>
+        <tbody>
+          <tr><td>Hide Online Status</td><td class="yes">✅ Yes</td><td class="no">❌ No</td></tr>
+          <tr><td>Hide Blue Ticks</td><td class="yes">✅ Yes</td><td class="no">❌ No</td></tr>
+          <tr><td>Custom Themes</td><td class="yes">✅ Thousands</td><td class="no">❌ No</td></tr>
+          <tr><td>Max File Size</td><td class="yes">✅ 1 GB</td><td class="no">❌ 100 MB</td></tr>
+          <tr><td>HD Media (No Compression)</td><td class="yes">✅ Yes</td><td class="part">⚠️ Limited</td></tr>
+          <tr><td>Status Video Duration</td><td class="yes">✅ 7 min</td><td class="no">❌ 30 sec</td></tr>
+          <tr><td>Dual Account Support</td><td class="yes">✅ Yes</td><td class="no">❌ No</td></tr>
+          <tr><td>DND Mode</td><td class="yes">✅ Yes</td><td class="no">❌ No</td></tr>
+          <tr><td>View Deleted Messages</td><td class="yes">✅ Yes</td><td class="no">❌ No</td></tr>
+          <tr><td>Auto-Reply Bot</td><td class="yes">✅ Yes</td><td class="no">❌ No</td></tr>
+          <tr><td>App Lock (Built-in)</td><td class="yes">✅ Yes</td><td class="part">⚠️ Limited</td></tr>
+          <tr><td>Anti-Ban Protection</td><td class="yes">✅ Yes</td><td>N/A</td></tr>
+          <tr><td>Google Play Store</td><td class="no">❌ No</td><td class="yes">✅ Yes</td></tr>
+          <tr><td>Cost</td><td class="yes">✅ Free</td><td class="yes">✅ Free</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- INSTALL -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">📲</div><div class="sec-title">How to Install SP WhatsApp</div></div>
+    <p>Follow these steps carefully and you'll be set up in under 5 minutes:</p>
+    <ul class="steps-list">
+      <li class="step-item"><div class="step-num">1</div><div><div class="step-title">Backup Your Chats</div><div class="step-desc">Open official WhatsApp → Settings → Chats → Chat Backup → tap "Back Up Now". This ensures you don't lose any messages during the switch.</div></div></li>
+      <li class="step-item"><div class="step-num">2</div><div><div class="step-title">Enable Unknown App Installations</div><div class="step-desc">Android Settings → Apps → Special App Access → Install Unknown Apps → find your browser → toggle ON to allow APK installs.</div></div></li>
+      <li class="step-item"><div class="step-num">3</div><div><div class="step-title">Download the APK</div><div class="step-desc">Tap the Download button below to get the latest official SP WhatsApp <span data-cfg="version"></span> APK (<span data-cfg="fileSize"></span>). Only download from our verified link.</div></div></li>
+      <li class="step-item"><div class="step-num">4</div><div><div class="step-title">Install the APK</div><div class="step-desc">Open your Downloads folder, tap the SP WhatsApp APK file, and tap Install. The process takes about 30–60 seconds.</div></div></li>
+      <li class="step-item"><div class="step-num">5</div><div><div class="step-title">Restore Your Backup</div><div class="step-desc">When SP WhatsApp opens for the first time, tap Restore to bring back all your messages, media, and contacts automatically.</div></div></li>
+      <li class="step-item"><div class="step-num">6</div><div><div class="step-title">Login via Link Device (Recommended)</div><div class="step-desc">Scan the QR code from your official WhatsApp → Linked Devices → Link a Device. Much safer than phone number login.</div></div></li>
+    </ul>
+    <div class="box-warn" style="margin-top:13px"><div class="box-icon">⚠️</div><div class="box-text"><strong>Android only.</strong> SP WhatsApp requires Android 5.0 or above. There is no iOS version available.</div></div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">🔑</div><div class="sec-title">Login Methods — Which One to Use?</div></div>
+    <div class="box-tip"><div class="box-icon">✅</div><div class="box-text"><strong>Link Device Mode <span class="rec">✓ Recommended</span></strong><br>Open official WhatsApp → Linked Devices → Link a Device → scan the QR shown in SP WhatsApp. Your account remains registered on the official app and SP WA acts as a companion device. WhatsApp is far less likely to detect or ban you this way.</div></div>
+    <div class="box-danger"><div class="box-icon">⚠️</div><div class="box-text"><strong>Phone Number Login <span class="warn-badge">Higher Ban Risk</span></strong><br>You can also enter your phone number directly and verify with OTP. This works but WhatsApp may detect the modified client and ban your account. Only recommended for secondary numbers or if you accept the risk.</div></div>
+    <p>The anti-ban features in <span data-cfg="version"></span> greatly reduce — but do not fully eliminate — detection risk. For your main number, always choose Link Device mode.</p>
+  </div>
+
+  <!-- PRIVACY -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">🔒</div><div class="sec-title">Privacy Features Explained</div></div>
+    <p>One of the biggest reasons millions switch to SP WhatsApp is its advanced privacy controls not available in any official version:</p>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="fc-icon">🟢</div><div><div class="fc-name">Ghost Mode</div><div class="fc-desc">Appear completely offline even while actively using the app. No one sees your green dot.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">👀</div><div><div class="fc-name">View Status Secretly</div><div class="fc-desc">Watch others' status updates without them knowing you viewed it.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">🔵</div><div><div class="fc-name">Disable Blue Ticks</div><div class="fc-desc">Read receipts only appear when you consciously choose to enable them.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">⌨️</div><div><div class="fc-name">Hide Typing Indicator</div><div class="fc-desc">The "typing…" bubble won't appear to others while you compose messages.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">🔔</div><div><div class="fc-name">Hide Recording Status</div><div class="fc-desc">Record voice messages privately — others won't see you're currently recording.</div></div></div>
+      <div class="feat-card"><div class="fc-icon">📵</div><div><div class="fc-name">Anti-Revoke</div><div class="fc-desc">Messages deleted by the sender still appear in your chat. Your choice to keep them.</div></div></div>
+    </div>
+  </div>
+
+  <!-- SAFE -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">🛡️</div><div class="sec-title">Is SP WhatsApp Safe to Use?</div></div>
+    <p><strong>Security-wise:</strong> SP WhatsApp <span data-cfg="version"></span> distributed through SPMods Sandun's official channel has been tested and contains no malware, spyware, or harmful code. Always download from our verified link on this page — third-party APK sites may distribute modified, malicious versions.</p>
+    <p><strong>Account safety:</strong> There is always a small risk of banning when using any modified WhatsApp. SP WhatsApp <span data-cfg="version"></span> includes anti-ban protection that has worked reliably for millions of users, but WhatsApp occasionally rolls out detection updates. Using Link Device mode significantly reduces this risk.</p>
+    <p><strong>Data privacy:</strong> SP WhatsApp connects to WhatsApp's official servers using the same end-to-end encryption. The SPMods team does not collect or store your personal data or messages.</p>
+    <div class="box-tip"><div class="box-icon">✅</div><div class="box-text"><strong>Bottom line:</strong> For users who download from the official source and use Link Device mode, SP WhatsApp has been a safe, stable experience for over 2 million daily users worldwide.</div></div>
+    <div class="box-warn"><div class="box-icon">⚠️</div><div class="box-text"><strong>Disclaimer:</strong> Not affiliated with WhatsApp Inc. or Meta Platforms. Use responsibly and keep a chat backup at all times.</div></div>
+  </div>
+
+  <!-- RATING -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">⭐</div><div class="sec-title">User Ratings &amp; Reviews</div></div>
+    <div class="rating-box">
+      <div>
+        <div class="rating-big"><span data-cfg="rating"></span></div>
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <div class="rating-count">Based on <span data-cfg="downloads"></span>users</div>
+      </div>
+      <div class="rating-bars">
+        <div class="rbar-row"><div class="rbar-lbl">5</div><div class="rbar-track"><div class="rbar-fill" style="width:88%"></div></div><div class="rbar-pct">88%</div></div>
+        <div class="rbar-row"><div class="rbar-lbl">4</div><div class="rbar-track"><div class="rbar-fill" style="width:9%"></div></div><div class="rbar-pct">9%</div></div>
+        <div class="rbar-row"><div class="rbar-lbl">3</div><div class="rbar-track"><div class="rbar-fill" style="width:2%"></div></div><div class="rbar-pct">2%</div></div>
+        <div class="rbar-row"><div class="rbar-lbl">2</div><div class="rbar-track"><div class="rbar-fill" style="width:1%"></div></div><div class="rbar-pct">1%</div></div>
+        <div class="rbar-row"><div class="rbar-lbl">1</div><div class="rbar-track"><div class="rbar-fill" style="width:0%"></div></div><div class="rbar-pct">0%</div></div>
+      </div>
+    </div>
+    <p style="margin-top:14px">Users consistently praise SP WhatsApp for its <strong>privacy features</strong>, <strong>stability</strong>, and <strong>frequent updates</strong>. The most praised features are ghost mode, large file sharing, and custom themes. The main concern is ban risk — which is exactly why we always recommend Link Device mode.</p>
+  </div>
+
+  <!-- FAQ -->
+  <div class="sec">
+    <div class="sec-head"><div class="sec-icon">❓</div><div class="sec-title">Frequently Asked Questions</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Is SP WhatsApp completely free? <span class="faq-arr">▶</span></div><div class="faq-a">Yes, 100% free. No subscriptions, no premium tiers, and no hidden charges. All features are available to everyone forever at no cost.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Can I use it alongside official WhatsApp? <span class="faq-arr">▶</span></div><div class="faq-a">Yes! Using Link Device, SP WhatsApp runs alongside official WhatsApp on the same phone using the same number. Both apps sync messages in real time — this is also the safest setup possible.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Will my contacts know I'm using SP WhatsApp? <span class="faq-arr">▶</span></div><div class="faq-a">No. From your contacts' perspective, your messages look exactly the same as regular WhatsApp. They have absolutely no way to know which client you're using unless you tell them.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What is the maximum file size I can send? <span class="faq-arr">▶</span></div><div class="faq-a">SP WhatsApp <span data-cfg="version"></span> lets you send files up to 1 GB in a single message — documents, videos, and more. The official WhatsApp limits this to just 100 MB.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Is there an iOS / iPhone version available? <span class="faq-arr">▶</span></div><div class="faq-a">No. SP WhatsApp is Android-exclusive. Apple's iOS does not allow sideloading APKs outside the App Store, so no iOS version exists. It works on Android 5.0 and above.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">How do I get future updates? <span class="faq-arr">▶</span></div><div class="faq-a">Join the official Telegram channel (@SPModsSandun) to get notified when new versions release. Simply download the new APK and install it over the existing app — all your data is preserved.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Can I get banned for using SP WhatsApp? <span class="faq-arr">▶</span></div><div class="faq-a">There's always a small risk with any modified WhatsApp. <span data-cfg="version"></span> includes improved anti-ban technology that works reliably for millions of users. No mod can guarantee 100% safety. Using Link Device mode for your main number greatly reduces detection risk.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Will I lose my chat history when switching? <span class="faq-arr">▶</span></div><div class="faq-a">Not if you back up first. Open official WhatsApp → Settings → Chats → Chat Backup before installing. SP WhatsApp finds and restores your backup automatically on first launch.</div></div>
+  </div>
+
+  <!-- TAGS -->
+  <div class="sec" style="padding:18px 22px">
+    <span style="font-size:11px;color:var(--dim2);font-weight:800;text-transform:uppercase;letter-spacing:.7px">Tags: </span>
+    <span class="tag">SP WhatsApp</span><span class="tag">WhatsApp Mod</span><span class="tag">SP WA <span data-cfg="version"></span></span><span class="tag">WhatsApp APK</span><span class="tag">Anti-Ban</span><span class="tag">Hide Online</span><span class="tag">Custom Themes</span><span class="tag">WhatsApp 2025</span><span class="tag">SPMods</span>
+  </div>
+
+  <!-- DOWNLOAD CTA -->
+  <div class="dl-cta">
+    <div class="dl-cta-title">🔓 Ready to Download?</div>
+    <div class="dl-cta-sub">Get SP WhatsApp <span data-cfg="version"></span> for free — anti-ban protection, HD media, ghost mode &amp; 50+ exclusive features.</div>
+    <a class="btn-dl" href="download.html">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-7 4v-2h14v2H5z"/></svg>
+      Download SP WhatsApp Free
+    </a>
+    <div class="dl-meta">
+      <span>📦 <span data-cfg="fileSize"></span></span><span>📱 <span data-cfg="minAndroid"></span></span><span>🔒 Virus Scanned</span><span>✅ Anti-Ban <span data-cfg="version"></span></span><span>🆓 Always Free</span>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="nbox">
+    <div class="nbox-title">📋 Before You Install</div>
+    <ul>
+      <li><span class="ni">💾</span><span><strong>Backup first</strong> — Open original WhatsApp → Settings → Chats → Chat Backup before installing.</span></li>
+      <li><span class="ni">⚙️</span><span><strong>Allow unknown apps</strong> — Android Settings → Install Unknown Apps → enable for your browser.</span></li>
+      <li><span class="ni">🔗</span><span><strong>Use Link Device</strong><span class="rec">✓ Recommended</span> — Don't log in with your phone number. Scan QR from official WhatsApp → Linked Devices → Link a Device. <strong>Much lower ban risk!</strong></span></li>
+      <li><span class="ni">📢</span><span>Join our <strong>Telegram</strong> (@SPModsSandun) for updates &amp; support.</span></li>
+      <li><span class="ni">ℹ️</span><span style="font-size:12px">Not affiliated with WhatsApp Inc. or Meta Platforms.</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<footer id="site-footer">
+  <div style="margin-bottom:6px"><a href="download.html">Download</a> &nbsp;·&nbsp; <a href="#">Privacy Policy</a> &nbsp;·&nbsp; <a href="https://t.me/SPModsSandun" target="_blank">Telegram</a> &nbsp;·&nbsp; <a href="#">Contact</a></div>
+  <div>SP WhatsApp <span data-cfg="version"></span> — Updated May <span data-cfg="year"></span> · Not affiliated with WhatsApp Inc. or Meta Platforms.</div>
+  <div style="margin-top:4px;color:var(--dim2)">© 2025 SPMods Sandun. All rights reserved.</div>
+</footer>
+
+<button class="scroll-top" id="scrollBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 4l8 8h-5v8h-6v-8H4z"/></svg>
+</button>
+<script>
+function toggleFaq(el){el.parentElement.classList.toggle('open')}
+window.addEventListener('scroll',()=>{document.getElementById('scrollBtn').classList.toggle('vis',window.scrollY>400)})
+</script>
+</body>
+</html>

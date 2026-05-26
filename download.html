@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP WhatsApp — Download</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Righteous&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4f0;
+  --card:#ffffff;
+  --s1:#f7faf7;
+  --s2:#eef5ee;
+  --bdr:#ddeedd;
+  --g:#1db954;
+  --g2:#128C7E;
+  --g3:#0f7a5a;
+  --gdk:#0a6640;
+  --tl:#0a8fd1;
+  --txt:#1a2e1c;
+  --dim:#6b8f6e;
+  --dim2:#a8c5a8;
+  --gold:#e8a800;
+  --goldbg:#fffbee;
+  --red:#e03050;
+  --redbg:#fff0f2;
+  --shadow:0 2px 24px rgba(0,0,0,0.08);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:'Nunito',sans-serif;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:80px 14px 20px;
+}
+
+/* ── subtle bg pattern ── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle,rgba(29,185,84,0.06) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+
+
+/* ── Fixed Nav ── */
+.site-nav{
+  position:fixed;top:4px;left:0;right:0;z-index:200;
+  background:rgba(255,255,255,0.92);backdrop-filter:blur(18px);
+  border-bottom:1.5px solid var(--bdr);
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.nav-brand{display:flex;align-items:center;gap:10px;font-family:'Righteous',sans-serif;font-size:17px;color:var(--txt);text-decoration:none}
+.nav-dot{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#25d366,#128C7E);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 10px rgba(29,185,84,0.3)}
+.nav-tg{display:flex;align-items:center;gap:6px;background:rgba(10,143,209,0.08);border:1.5px solid rgba(10,143,209,0.2);color:var(--tl);font-weight:800;font-size:12px;padding:7px 14px;border-radius:10px;text-decoration:none;transition:background .2s}
+.nav-tg:hover{background:rgba(10,143,209,0.15)}
+.nav-back{display:flex;align-items:center;gap:5px;background:var(--s1);border:1.5px solid var(--bdr);color:var(--dim);font-weight:800;font-size:12px;padding:7px 14px;border-radius:10px;text-decoration:none;transition:background .2s}
+.nav-back:hover{background:var(--s2)}
+/* ── Footer ── */
+.site-footer{
+  position:relative;z-index:1;
+  border-top:1.5px solid var(--bdr);background:var(--card);
+  text-align:center;padding:22px 20px;
+  color:var(--dim2);font-size:12px;font-weight:700;line-height:2;
+  margin-top:24px;
+}
+.site-footer a{color:var(--dim);text-decoration:none}
+.site-footer a:hover{color:var(--g)}
+
+/* top gradient strip */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:4px;z-index:99;
+  background:linear-gradient(90deg,var(--g),var(--g2),var(--g));
+  background-size:200% 100%;
+  animation:barslide 3s linear infinite;
+}
+@keyframes barslide{0%{background-position:0%}100%{background-position:200%}}
+
+/* ── Card ── */
+.card{
+  position:relative;z-index:1;
+  background:var(--card);
+  border:1.5px solid var(--bdr);
+  border-radius:28px;
+  width:min(460px,100%);
+  overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,0.1),0 1px 0 rgba(255,255,255,0.9) inset;
+  animation:rise .55s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+.card-inner{padding:28px 24px 24px}
+
+/* ── Header ── */
+.hdr{display:flex;flex-direction:column;align-items:center;margin-bottom:22px}
+
+.icon-wrap{position:relative;margin-bottom:14px}
+.icon-bg{
+  width:84px;height:84px;border-radius:24px;
+  background:linear-gradient(145deg,#25d366,#128C7E);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 24px rgba(29,185,84,0.35);
+  animation:iglow 3s ease infinite;
+}
+@keyframes iglow{
+  0%,100%{box-shadow:0 8px 24px rgba(29,185,84,0.35)}
+  50%{box-shadow:0 8px 36px rgba(29,185,84,0.55)}
+}
+.icon-bg svg{width:48px;height:48px}
+
+.sp-tag{
+  position:absolute;bottom:-8px;right:-8px;
+  background:linear-gradient(135deg,var(--gold),#c98a00);
+  color:#fff;font-size:9px;font-weight:900;
+  padding:3px 9px;border-radius:7px;
+  box-shadow:0 2px 10px rgba(232,168,0,0.45);
+  letter-spacing:1px;text-transform:uppercase;
+}
+
+.name{
+  font-family:'Righteous',sans-serif;
+  font-size:30px;letter-spacing:1px;
+  color:var(--txt);margin-bottom:4px;
+}
+.name span{color:var(--g)}
+
+.tagline{color:var(--dim);font-size:13px;font-weight:600}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.chip{
+  background:var(--s1);border:1.5px solid var(--bdr);
+  border-radius:20px;padding:4px 12px;
+  font-size:11px;color:var(--dim);font-weight:700;letter-spacing:.2px;
+}
+.chip.hi{border-color:rgba(29,185,84,0.4);color:var(--g);background:rgba(29,185,84,0.06)}
+
+/* ── Stats ── */
+.stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--bdr);
+  border-radius:18px;overflow:hidden;margin-bottom:20px;
+}
+.stat{background:var(--s1);padding:13px 6px;text-align:center}
+.sv{font-family:'Righteous',sans-serif;font-size:20px;color:var(--g);line-height:1}
+.sl{font-size:10px;color:var(--dim);margin-top:3px;text-transform:uppercase;letter-spacing:.7px;font-weight:700}
+
+/* ── Features ── */
+.feats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:22px}
+.feat{
+  background:var(--s1);border:1.5px solid var(--bdr);
+  border-radius:20px;padding:5px 13px;
+  font-size:12px;color:var(--dim);font-weight:700;
+}
+
+/* ── Stepper ── */
+.stepper{display:flex;align-items:center;justify-content:center;margin-bottom:5px}
+.sdot{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--s2);border:2px solid var(--bdr);
+  color:var(--dim2);font-size:13px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Righteous',sans-serif;
+  transition:all .4s cubic-bezier(.22,1,.36,1);
+}
+.sdot.tg{background:rgba(10,143,209,0.1);border-color:var(--tl);color:var(--tl);box-shadow:0 0 14px rgba(10,143,209,0.2)}
+.sdot.on{background:var(--g);border-color:var(--g);color:#fff;box-shadow:0 0 18px rgba(29,185,84,0.4)}
+.sdot.dn{background:rgba(29,185,84,0.1);border-color:var(--g);color:var(--g)}
+.sdot.dn span{display:none}
+.sdot.dn::after{content:'✓';font-size:14px;font-weight:900}
+.sln{height:2px;width:52px;background:var(--bdr);transition:background .4s}
+.sln.dn{background:var(--g)}
+.slbls{display:flex;justify-content:space-between;margin-bottom:20px;padding:0 8px}
+.slbl{font-size:10px;color:var(--dim2);text-align:center;width:34px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;transition:color .3s}
+.slbl.tg{color:var(--tl)}
+.slbl.on{color:var(--g)}
+
+/* ── Step ── */
+.step{display:none}
+.step.on{display:block;animation:fin .38s cubic-bezier(.22,1,.36,1) both}
+@keyframes fin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.sh{font-family:'Righteous',sans-serif;font-size:20px;letter-spacing:.5px;text-align:center;margin-bottom:5px;color:var(--txt)}
+.sd{color:var(--dim);font-size:13px;text-align:center;margin-bottom:18px;line-height:1.6;font-weight:600}
+
+/* ── Telegram ── */
+.tgbox{
+  background:rgba(10,143,209,0.05);
+  border:1.5px solid rgba(10,143,209,0.15);
+  border-radius:16px;padding:14px 16px;
+  display:flex;align-items:center;gap:12px;margin-bottom:14px;
+}
+.tgav{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#0a8fd1,#0668a0);
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  box-shadow:0 4px 14px rgba(10,143,209,0.25);
+}
+.tgi .tgn{font-weight:900;font-size:15px;color:var(--txt)}
+.tgi .tgh{font-size:12px;color:var(--tl);margin-top:2px;font-weight:700}
+.tgi .tgs{font-size:11px;color:var(--dim);margin-top:2px;font-weight:600}
+
+.btn-tg{
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,#0a8fd1,#0668a0);
+  border:none;border-radius:14px;color:#fff;
+  font-family:'Righteous',sans-serif;font-size:17px;letter-spacing:1px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;
+  text-decoration:none;
+  box-shadow:0 4px 18px rgba(10,143,209,0.3);
+  transition:transform .2s,box-shadow .2s;
+}
+.btn-tg:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(10,143,209,0.45)}
+.btn-tg:active{transform:none}
+
+.skip{text-align:center;margin-top:11px}
+.skip button{
+  background:none;border:none;color:var(--dim);
+  font-size:12px;cursor:pointer;font-weight:700;
+  font-family:'Nunito',sans-serif;
+  text-decoration:underline;text-underline-offset:3px;
+  transition:color .2s;
+}
+.skip button:hover{color:var(--g)}
+
+/* ── AD Step ── */
+.ad-body{display:flex;flex-direction:column;align-items:center}
+
+/* !! MUST VIEW banner */
+.must-view-banner{
+  width:100%;
+  background:linear-gradient(135deg,#fff3cd,#ffe69c);
+  border:1.5px solid #ffc107;
+  border-radius:14px;
+  padding:12px 16px;
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;
+}
+.mvb-icon{font-size:24px;flex-shrink:0}
+.mvb-text .mvb-title{font-size:13px;font-weight:900;color:#7a4f00;margin-bottom:2px}
+.mvb-text .mvb-sub{font-size:11px;font-weight:700;color:#a06000;line-height:1.4}
+
+/* Open Ad button */
+.btn-openad{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  width:100%;padding:16px 20px;
+  background:linear-gradient(135deg,var(--g),var(--g2));
+  border:none;border-radius:16px;color:#fff;
+  font-family:'Righteous',sans-serif;font-size:17px;letter-spacing:1px;
+  cursor:pointer;text-decoration:none;margin-bottom:16px;
+  box-shadow:0 4px 22px rgba(29,185,84,0.35);
+  transition:transform .2s,box-shadow .2s;
+  position:relative;overflow:hidden;
+}
+.btn-openad::before{
+  content:'';position:absolute;top:-50%;left:-60%;
+  width:50%;height:200%;
+  background:rgba(255,255,255,0.12);
+  transform:skewX(-20deg);
+  animation:shine 3s ease infinite;
+}
+@keyframes shine{0%,100%{left:-60%}50%{left:120%}}
+.btn-openad:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(29,185,84,0.5)}
+.btn-openad:active{transform:none}
+.btn-openad.used{
+  background:linear-gradient(135deg,#aaa,#888);
+  box-shadow:none;pointer-events:none;
+}
+.btn-openad.used::before{display:none}
+.play-circle{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+
+/* status pill */
+.spill{
+  display:inline-flex;align-items:center;gap:7px;
+  border-radius:20px;padding:6px 16px;margin-bottom:14px;
+  font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+}
+.spill.wait{background:#fff8e1;border:1.5px solid #ffc107;color:#7a4f00}
+.spill.run{background:var(--redbg);border:1.5px solid rgba(224,48,80,0.3);color:var(--red)}
+.spill.ok{background:rgba(29,185,84,0.08);border:1.5px solid rgba(29,185,84,0.3);color:var(--gdk)}
+.dot{width:7px;height:7px;border-radius:50%;animation:bl 1s ease infinite}
+.dot.y{background:#ffc107}
+.dot.r{background:var(--red)}
+.dot.g{background:var(--g)}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
+
+/* Timer */
+.tshell{position:relative;width:120px;height:120px;margin:0 auto 16px}
+.tring{transform:rotate(-90deg);width:120px;height:120px}
+.rtr{fill:none;stroke:var(--bdr);stroke-width:7}
+.rfi{
+  fill:none;stroke:var(--g);stroke-width:7;stroke-linecap:round;
+  stroke-dasharray:339.3;stroke-dashoffset:339.3;
+  transition:stroke-dashoffset 1s linear;
+  filter:drop-shadow(0 0 5px rgba(29,185,84,0.5));
+}
+.locked .rfi{stroke:var(--bdr)}
+.tinner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.tnum{font-family:'Righteous',sans-serif;font-size:38px;color:var(--g);line-height:1;transition:color .3s}
+.locked .tnum{color:var(--dim2)}
+.tunit{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px;font-weight:800}
+
+.anote{color:var(--dim);font-size:12px;text-align:center;line-height:1.55;margin-bottom:12px;font-weight:600}
+
+.prog{width:100%;margin-top:4px}
+.pbar{width:100%;height:5px;background:var(--bdr);border-radius:5px;overflow:hidden}
+.pfil{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--g3),var(--g));
+  border-radius:5px;transition:width 1s linear;
+}
+.plbl{display:flex;justify-content:space-between;margin-top:5px}
+.plbl span{font-size:10px;color:var(--dim);font-weight:700}
+
+/* ── Done ── */
+.done{text-align:center}
+.done-icon{
+  width:76px;height:76px;border-radius:50%;
+  background:rgba(29,185,84,0.1);border:2px solid rgba(29,185,84,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;margin:0 auto 16px;
+  animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes pop{from{opacity:0;transform:scale(.35)}to{opacity:1;transform:scale(1)}}
+.done-title{font-family:'Righteous',sans-serif;font-size:26px;color:var(--g);margin-bottom:5px}
+.done-sub{color:var(--dim);font-size:13px;margin-bottom:22px;line-height:1.55;font-weight:600}
+.btn-dl{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:17px;
+  background:linear-gradient(135deg,var(--g),var(--g2));
+  border:none;border-radius:16px;color:#fff;
+  font-family:'Righteous',sans-serif;font-size:19px;letter-spacing:1px;
+  cursor:pointer;text-decoration:none;
+  box-shadow:0 4px 24px rgba(29,185,84,0.4);
+  animation:dlp 2.5s ease infinite;
+  transition:transform .2s;
+}
+.btn-dl:hover{transform:translateY(-2px)}
+@keyframes dlp{
+  0%,100%{box-shadow:0 4px 24px rgba(29,185,84,0.4)}
+  50%{box-shadow:0 4px 40px rgba(29,185,84,0.65)}
+}
+.dl-meta{display:flex;justify-content:center;gap:16px;margin-top:12px;flex-wrap:wrap}
+.dl-meta span{font-size:11px;color:var(--dim);font-weight:700}
+
+/* ── Divider ── */
+.div{height:1px;background:var(--bdr);margin:20px 0}
+
+/* ── Notes box ── */
+.nbox{
+  background:var(--goldbg);
+  border:1.5px solid #ffe08a;
+  border-radius:16px;padding:16px 18px;
+}
+.nttl{
+  font-size:12px;font-weight:900;color:#7a4f00;
+  text-transform:uppercase;letter-spacing:.7px;
+  display:flex;align-items:center;gap:6px;margin-bottom:12px;
+}
+.nbox ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.nbox ul li{
+  font-size:13px;color:#5a4000;
+  display:flex;align-items:flex-start;gap:9px;line-height:1.5;font-weight:600;
+}
+.nbox ul li .icon{flex-shrink:0;font-size:15px;margin-top:1px}
+
+/* recommended badge */
+.rec{
+  display:inline-block;
+  background:linear-gradient(135deg,var(--g),var(--g2));
+  color:#fff;font-size:9px;font-weight:900;
+  padding:2px 7px;border-radius:5px;
+  letter-spacing:.6px;text-transform:uppercase;
+  vertical-align:middle;margin-left:5px;
+}
+/* warning badge */
+.warn{
+  display:inline-block;
+  background:#ffe08a;
+  color:#7a4f00;font-size:9px;font-weight:900;
+  padding:2px 7px;border-radius:5px;
+  letter-spacing:.5px;text-transform:uppercase;
+  vertical-align:middle;margin-left:5px;
+}
+</style>
+<script src="site-config.js"></script>
+</head>
+<body>
+
+<div class="topbar"></div>
+
+<nav class="site-nav">
+  <a class="nav-brand" href="index.html"><div class="nav-dot">💬</div> SP WhatsApp</a>
+  <div style="display:flex;gap:8px;">
+    <a class="nav-back" href="index.html">← Review</a>
+    <a class="nav-tg" href="https://t.me/SPModsSandun" target="_blank">✈️ Telegram</a>
+  </div>
+</nav>
+
+<div class="card">
+<div class="card-inner">
+
+  <!-- ── Header ── -->
+  <div class="hdr">
+    <div class="icon-wrap">
+      <div class="icon-bg">
+        <svg viewBox="0 0 48 48" fill="none">
+          <path fill="#fff" d="M24 4C13 4 4 13 4 24c0 3.6 1 7 2.7 9.9L4 44l10.4-2.7C17 43 20.4 44 24 44c11 0 20-9 20-20S35 4 24 4z"/>
+          <path fill="#25D366" d="M24 6.4C14.3 6.4 6.4 14.3 6.4 24c0 3.4.9 6.6 2.6 9.4L6.7 41.3l8.2-2.1c2.7 1.5 5.8 2.4 9.1 2.4 9.7 0 17.6-7.9 17.6-17.6S33.7 6.4 24 6.4z"/>
+          <path fill="#fff" d="M17.5 14.5c-.4-.9-.8-.9-1.2-.9-.3 0-.7 0-1 0-.4 0-1 .1-1.5.7-.5.5-2 2-2 4.8s2.1 5.5 2.3 5.9c.3.4 4 6.4 9.9 8.7 4.9 1.9 5.9 1.5 6.9 1.4 1-.1 3.3-1.4 3.7-2.7.4-1.3.4-2.5.3-2.7-.1-.2-.5-.4-.9-.6-.5-.2-3.3-1.6-3.8-1.8-.5-.2-.9-.3-1.2.3-.4.5-1.4 1.8-1.7 2.2-.3.3-.6.4-1.1.1-.5-.2-2.2-.8-4.1-2.5-1.5-1.4-2.5-3-2.8-3.5-.3-.5 0-.8.2-1l1-1.2c.2-.3.3-.5.4-.9.2-.3 0-.7-.1-1z"/>
+        </svg>
+      </div>
+      <div class="sp-tag">SP MOD</div>
+    </div>
+    <div class="name">SP <span>WhatsApp</span></div>
+    <div class="tagline">Enhanced WhatsApp Experience by SPMods</div>
+    <div class="chips">
+      <span class="chip hi"><span data-cfg="version"></span></span>
+      <span class="chip"><span data-cfg="fileSize"></span></span>
+      <span class="chip"><span data-cfg="minAndroid"></span></span>
+      <span class="chip hi">✅ Anti-Ban <span data-cfg="version"></span></span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="sv"><span data-cfg="rating"></span>★</div><div class="sl">Rating</div></div>
+    <div class="stat"><div class="sv"><span data-cfg="downloads"></span></div><div class="sl">Downloads</div></div>
+    <div class="stat"><div class="sv">Free</div><div class="sl">Always</div></div>
+  </div>
+
+  <!-- Features -->
+  <div class="feats">
+    <span class="feat">🔒 Hide Online</span>
+    <span class="feat">📁 Large Files</span>
+    <span class="feat">🎨 Themes</span>
+    <span class="feat">📷 HD Media</span>
+    <span class="feat">🔕 DND Mode</span>
+    <span class="feat">💬 Multi-Account</span>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="sdot tg" id="d1"><span>1</span></div>
+    <div class="sln" id="l1"></div>
+    <div class="sdot" id="d2"><span>2</span></div>
+    <div class="sln" id="l2"></div>
+    <div class="sdot" id="d3"><span>3</span></div>
+  </div>
+  <div class="slbls">
+    <div class="slbl tg" id="lb1">Join</div>
+    <div style="flex:1"></div>
+    <div class="slbl" id="lb2">Ad</div>
+    <div style="flex:1"></div>
+    <div class="slbl" id="lb3">Get</div>
+  </div>
+
+  <!-- ═══ STEP 1 ═══ -->
+  <div class="step on" id="s1">
+    <div class="sh">📢 Join Our Channel</div>
+    <div class="sd">Get the latest updates &amp; future versions — join our Telegram before downloading.</div>
+    <div class="tgbox">
+      <div class="tgav">✈️</div>
+      <div class="tgi">
+        <div class="tgn">SP Mods Sandun</div>
+        <div class="tgh">@SPModsSandun</div>
+        <div class="tgs">Latest mods · Fast updates · Free</div>
+      </div>
+    </div>
+    <a class="btn-tg" href="https://t.me/SPModsSandun" target="_blank" onclick="onJoin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.9 8.2l-2 9.4c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.4.2-.7.1l.3-3.8 6.3-5.7c.3-.2-.1-.4-.4-.2L6.4 13.5 3.7 12.7c-.6-.2-.6-.6.1-.9l11.5-4.4c.6-.2 1.1.1.6.8z"/></svg>
+      Join Telegram Channel
+    </a>
+    <div class="skip"><button onclick="goS2()">Already joined? Continue →</button></div>
+  </div>
+
+  <!-- ═══ STEP 2 ═══ -->
+  <div class="step" id="s2">
+    <div class="ad-body">
+      <div class="sh">🔒 Unlock Your Download</div>
+      <div class="sd">One small step — view the ad to get your free download.</div>
+
+      <!-- MUST VIEW banner -->
+      <div class="must-view-banner">
+        <div class="mvb-icon">⚠️</div>
+        <div class="mvb-text">
+          <div class="mvb-title">You MUST fully view the ad!</div>
+          <div class="mvb-sub">The download button unlocks only after the timer finishes. Please don't close the ad tab.</div>
+        </div>
+      </div>
+
+      <!-- Ad button -->
+      <a class="btn-openad" id="adBtn" href="https://omg10.com/4/11059608" target="_blank" onclick="onAdClick()">
+        <div class="play-circle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span id="adBtnTxt">▶ Open &amp; View Ad Now</span>
+      </a>
+
+      <!-- Status -->
+      <div class="spill wait" id="pill">
+        <div class="dot y" id="pdot"></div>
+        <span id="ptxt">Waiting — Tap button above</span>
+      </div>
+
+      <!-- Timer -->
+      <div class="tshell locked" id="tshell">
+        <svg class="tring" viewBox="0 0 120 120">
+          <circle class="rtr" cx="60" cy="60" r="54"/>
+          <circle class="rfi" cx="60" cy="60" r="54" id="ring"/>
+        </svg>
+        <div class="tinner">
+          <div class="tnum" id="tnum">—</div>
+          <div class="tunit" id="tunit">tap above</div>
+        </div>
+      </div>
+
+      <p class="anote" id="anote">Ad will open in a new tab.<br>Keep this page open — don't close it!</p>
+
+      <div class="prog">
+        <div class="pbar"><div class="pfil" id="pfil"></div></div>
+        <div class="plbl"><span>Progress</span><span id="ppct">0%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3 ═══ -->
+  <div class="step" id="s3">
+    <div class="done">
+      <div class="done-icon">🔓</div>
+      <div class="done-title">Download Unlocked!</div>
+      <div class="done-sub">Thanks for watching! Your file is ready.</div>
+      <a class="btn-dl" id="dlBtn" data-cfg-href="apkLink" href="YOUR_APK_LINK_HERE" download>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-7 4v-2h14v2H5z"/></svg>
+        Download SP WhatsApp
+      </a>
+      <div class="dl-meta">
+        <span>🔒 Verified Safe</span>
+        <span>📦 <span data-cfg="fileSize"></span></span>
+        <span>✅ Anti-Ban</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- ── Notes ── -->
+  <div class="nbox">
+    <div class="nttl">📋 Before You Install</div>
+    <ul>
+      <li>
+        <span class="icon">💾</span>
+        <span><strong>Backup first</strong> — Open original WhatsApp → Settings → Chats → Chat Backup before installing.</span>
+      </li>
+      <li>
+        <span class="icon">⚙️</span>
+        <span><strong>Allow unknown apps</strong> — Android Settings → Install Unknown Apps → enable for your browser.</span>
+      </li>
+      <li>
+        <span class="icon">🔗</span>
+        <span>
+          <strong>Link Device</strong><span class="rec">✓ Recommended</span><br>
+          <span style="font-size:12px;color:#7a5500">Don't log in with your phone number. Instead → open original WhatsApp → Linked Devices → Link a Device → scan QR with SP WhatsApp. <strong>Much lower ban risk!</strong></span>
+        </span>
+      </li>
+      <li>
+        <span class="icon">⚠️</span>
+        <span>
+          <strong>Number login</strong><span class="warn">Higher Ban Risk</span><br>
+          <span style="font-size:12px;color:#7a5500">Logging in with your number directly works but WhatsApp may detect the mod and ban your account. Use at your own risk.</span>
+        </span>
+      </li>
+      <li>
+        <span class="icon">📢</span>
+        <span>Join our <strong>Telegram</strong> for updates, new versions &amp; support.</span>
+      </li>
+      <li>
+        <span class="icon">ℹ️</span>
+        <span style="font-size:12px">Not affiliated with WhatsApp Inc. or Meta Platforms.</span>
+      </li>
+    </ul>
+  </div>
+
+</div>
+</div>
+
+<script>
+const CFG={sec:15,apkUrl:'YOUR_APK_LINK_HERE'};
+const CIRC=2*Math.PI*54;
+let running=false,clicked=false;
+
+function onJoin(){setTimeout(goS2,2000)}
+function goS2(){show('s2');setDots(2)}
+
+function onAdClick(){
+  if(clicked)return;
+  clicked=true;
+  document.getElementById('adBtnTxt').textContent='✓ Ad Opened — Timer Running…';
+  document.getElementById('adBtn').classList.add('used');
+  setPill('run','r','Ad Running — Please Wait…');
+  document.getElementById('anote').innerHTML='✅ Ad opened! Keep this tab open.<br>Download unlocks when timer hits 0.';
+  document.getElementById('tshell').classList.remove('locked');
+  document.getElementById('tunit').textContent='seconds';
+  startTimer();
+}
+
+function startTimer(){
+  if(running)return;running=true;
+  let rem=CFG.sec;
+  const ring=document.getElementById('ring');
+  const tnum=document.getElementById('tnum');
+  const pfil=document.getElementById('pfil');
+  const ppct=document.getElementById('ppct');
+  ring.style.strokeDasharray=CIRC;
+  ring.style.strokeDashoffset=CIRC;
+  tnum.textContent=rem;
+  const iv=setInterval(()=>{
+    rem--;
+    tnum.textContent=Math.max(0,rem);
+    const p=(CFG.sec-rem)/CFG.sec;
+    ring.style.strokeDashoffset=CIRC*(1-p);
+    const pct=Math.min(100,Math.round(p*100));
+    pfil.style.width=pct+'%';
+    ppct.textContent=pct+'%';
+    if(rem<=0){clearInterval(iv);done();}
+  },1000);
+}
+
+function done(){
+  setPill('ok','g','✓ Download Unlocked!');
+  setTimeout(()=>{show('s3');setDots(3);document.getElementById('dlBtn').href=CFG.apkUrl;},500);
+}
+
+function show(id){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function setPill(cls,dcls,txt){
+  const p=document.getElementById('pill');
+  p.className='spill '+cls;
+  document.getElementById('pdot').className='dot '+dcls;
+  document.getElementById('ptxt').textContent=txt;
+}
+
+function setDots(cur){
+  const ds=[null,'d1','d2','d3'].map(i=>i&&document.getElementById(i));
+  const ls=[null,'l1','l2'].map(i=>i&&document.getElementById(i));
+  const lb=[null,'lb1','lb2','lb3'].map(i=>i&&document.getElementById(i));
+  ds.forEach((d,i)=>{
+    if(!d)return;d.className='sdot';
+    if(i<cur)d.classList.add('dn');
+    else if(i===cur)d.classList.add(cur===1?'tg':'on');
+  });
+  ls.forEach((l,i)=>{if(l)l.classList.toggle('dn',i<cur-1);});
+  lb.forEach((l,i)=>{
+    if(!l)return;l.className='slbl';
+    if(i===cur)l.classList.add(cur===1?'tg':'on');
+  });
+  if(cur===1&&ds[1]){ds[1].className='sdot tg';if(lb[1])lb[1].classList.add('tg');}
+}
+</script>
+
+<footer class="site-footer">
+  <div style="margin-bottom:6px"><a href="index.html">Review</a> &nbsp;·&nbsp; <a href="download.html">Download</a> &nbsp;·&nbsp; <a href="#">Privacy Policy</a> &nbsp;·&nbsp; <a href="https://t.me/SPModsSandun" target="_blank">Telegram</a></div>
+  <div>SP WhatsApp <span data-cfg="version"></span> — Updated May <span data-cfg="year"></span> · Not affiliated with WhatsApp Inc. or Meta Platforms.</div>
+  <div style="margin-top:4px;color:var(--dim2)">© <span data-cfg="year"></span> SPMods Sandun. All rights reserved.</div>
+</footer>
+</body>
+</html>
