@@ -3,12 +3,12 @@
 const SITE = {
   /* ── SP WhatsApp ── */
   wa: {
-    version:    "v61.3",
+    version:    "v62.0",
     downloads:  "100K+",
     fileSize:   "110 MB",
     rating:     "4.9",
     minAndroid: "Android 5.0+",
-    apkLink:    "https://www.mediafire.com/file/lqkm1vwqopsc4h4/SPWA_V61.3_By_SPMods.apk/file",
+    apkLink:    "https://www.mediafire.com/file/4ap3yuteszznpru/SPWA_V62.0_By_SPMods.apk/file",
   },
 
   /* ── YouTube Pro ── */
