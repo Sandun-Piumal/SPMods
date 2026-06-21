@@ -21,6 +21,17 @@ const SITE = {
     apkLink:    "https://www.mediafire.com/file/q2dr8a6ahj3qxsd/YTPro_V4.0_By_SPMods.apk/file",
   },
 
+  /* ── SPGram Messenger ── */
+  sgm: {
+    version:    "v0.1.0 Beta",
+    downloads:  "10K+",
+    fileSize:   "77 MB",
+    rating:     "4.8",
+    minAndroid: "Android 5.0+",
+    apkLink:    "https://www.mediafire.com/",
+  },
+
+
   /* ── Shared ── */
   telegram:  "https://t.me/SPModsSandun",
   tgHandle:  "@SPModsSandun",
