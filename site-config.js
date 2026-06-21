@@ -28,7 +28,7 @@ const SITE = {
     fileSize:   "77 MB",
     rating:     "4.8",
     minAndroid: "Android 5.0+",
-    apkLink:    "https://www.mediafire.com/",
+    apkLink:    "https://t.me/SPModsSandun",
   },
 
 
