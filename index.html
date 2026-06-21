@@ -60,6 +60,7 @@
   --txt:#1a2e1c;--dim:#6b8f6e;--dim2:#a8c5a8;
   --gold:#e8a800;--goldbg:#fffbee;--red:#e03050;--redbg:#fff0f2;--tl:#0a8fd1;
   --yt:#ff0000;--yt2:#cc0000;
+  --tg:#2AABEE;--tg2:#229ED9;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -129,24 +130,29 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
   transition:transform .25s,box-shadow .25s;
   animation:rise .6s cubic-bezier(.22,1,.36,1) both}
 .app-card:nth-child(2){animation-delay:.09s}
+.app-card:nth-child(3){animation-delay:.18s}
 .app-card:hover{transform:translateY(-3px);box-shadow:0 10px 40px rgba(0,0,0,0.11)}
 .app-card-bar{height:4px;background:linear-gradient(90deg,var(--g),var(--g2),var(--g));
   background-size:200%;animation:barslide 4s linear infinite}
 .app-card-bar.yt{background:linear-gradient(90deg,var(--yt),#ff6b35,var(--yt));background-size:200%}
+.app-card-bar.tg{background:linear-gradient(90deg,var(--tg),#a05cff,var(--tg));background-size:200%}
 .app-card-body{padding:24px 22px}
 
 /* card top */
 .app-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px}
 .app-icon{width:72px;height:72px;border-radius:20px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 6px 20px rgba(0,0,0,0.15)}
+  box-shadow:0 6px 20px rgba(0,0,0,0.15);overflow:hidden}
 .app-icon.wa{background:linear-gradient(145deg,#25d366,#128C7E)}
 .app-icon.yt{background:linear-gradient(145deg,#ff0000,#990000)}
+.app-icon.tg{background:linear-gradient(145deg,#2AABEE,#6a3df0);padding:0}
+.app-icon.tg img{width:100%;height:100%;object-fit:cover;border-radius:20px}
 .app-info{flex:1;min-width:0}
 .app-name{font-family:'Righteous',sans-serif;font-size:22px;
   color:var(--txt);letter-spacing:.3px;margin-bottom:4px}
 .app-name .hi{color:var(--g)}
 .app-name .hi-yt{color:var(--yt)}
+.app-name .hi-tg{color:var(--tg2)}
 .app-tagline{color:var(--dim);font-size:13px;font-weight:600;line-height:1.5}
 .app-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .badge{border-radius:20px;padding:3px 10px;font-size:10px;font-weight:900;letter-spacing:.3px}
@@ -155,6 +161,7 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
 .badge.red{background:rgba(255,0,0,0.08);border:1.5px solid rgba(255,0,0,0.2);color:#990000}
 .badge.blue{background:rgba(10,143,209,0.08);border:1.5px solid rgba(10,143,209,0.2);color:#0668a0}
 .badge.gray{background:var(--s1);border:1.5px solid var(--bdr);color:var(--dim)}
+.badge.purple{background:rgba(106,61,240,0.08);border:1.5px solid rgba(106,61,240,0.2);color:#5a2fd0}
 
 /* desc */
 .app-desc{color:var(--dim);font-size:13.5px;font-weight:600;
@@ -169,6 +176,7 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
   display:flex;align-items:center;gap:5px}
 .feat-pill.hi{border-color:rgba(29,185,84,0.3);color:var(--gdk);background:rgba(29,185,84,0.06)}
 .feat-pill.hi-yt{border-color:rgba(255,0,0,0.2);color:#990000;background:rgba(255,0,0,0.05)}
+.feat-pill.hi-tg{border-color:rgba(42,171,238,0.25);color:#0668a0;background:rgba(42,171,238,0.06)}
 
 /* mini stats */
 .app-stats{display:grid;grid-template-columns:repeat(4,1fr);
@@ -176,6 +184,7 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
 .astat{background:var(--s1);padding:12px 6px;text-align:center}
 .astat-val{font-family:'Righteous',sans-serif;font-size:17px;color:var(--g);line-height:1}
 .astat-val.yt{color:var(--yt)}
+.astat-val.tg{color:var(--tg2)}
 .astat-lbl{font-size:9px;color:var(--dim);margin-top:3px;
   text-transform:uppercase;letter-spacing:.6px;font-weight:700}
 
@@ -191,8 +200,11 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
   box-shadow:0 5px 20px rgba(29,185,84,0.35);animation:wpulse 2.5s ease infinite}
 .btn-primary.yt{background:linear-gradient(135deg,var(--yt),var(--yt2));color:#fff;
   box-shadow:0 5px 20px rgba(255,0,0,0.3);animation:ypulse 2.5s ease infinite}
+.btn-primary.tg{background:linear-gradient(135deg,var(--tg),var(--tg2));color:#fff;
+  box-shadow:0 5px 20px rgba(42,171,238,0.35);animation:tpulse 2.5s ease infinite}
 @keyframes wpulse{0%,100%{box-shadow:0 5px 20px rgba(29,185,84,0.35)}50%{box-shadow:0 5px 32px rgba(29,185,84,0.55)}}
 @keyframes ypulse{0%,100%{box-shadow:0 5px 20px rgba(255,0,0,0.3)}50%{box-shadow:0 5px 32px rgba(255,0,0,0.5)}}
+@keyframes tpulse{0%,100%{box-shadow:0 5px 20px rgba(42,171,238,0.35)}50%{box-shadow:0 5px 32px rgba(42,171,238,0.55)}}
 .btn-primary:hover{transform:translateY(-2px)}
 .btn-secondary{display:flex;align-items:center;justify-content:center;gap:7px;
   padding:14px 18px;border-radius:16px;
@@ -316,7 +328,7 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
     <div class="hero-stats">
       <div class="hstat"><div class="hstat-val">100K+</div><div class="hstat-lbl">Happy Users</div></div>
       <div class="hstat"><div class="hstat-val">4.9★</div><div class="hstat-lbl">Avg Rating</div></div>
-      <div class="hstat"><div class="hstat-val">2+</div><div class="hstat-lbl">Apps Available</div></div>
+      <div class="hstat"><div class="hstat-val">3+</div><div class="hstat-lbl">Apps Available</div></div>
       <div class="hstat"><div class="hstat-val">Free</div><div class="hstat-lbl">Always</div></div>
     </div>
   </div>
@@ -329,6 +341,69 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
   </div>
 
   <div class="apps-grid">
+
+    <!-- SPGram Messenger -->
+    <div class="app-card">
+      <div class="app-card-bar tg"></div>
+      <div class="app-card-body">
+        <div class="app-top">
+          <div class="app-icon tg">
+            <img src="spgram-icon.png" alt="SPGram Messenger logo">
+          </div>
+          <div class="app-info">
+            <div class="app-name">SP<span class="hi-tg">Gram</span> Messenger</div>
+            <div class="app-tagline">A faster, more private Telegram client with extra customization built-in</div>
+            <div class="app-badges">
+              <span class="badge purple">🚀 Custom Client</span>
+              <span class="badge gold">⭐ 4.8 Rating</span>
+              <span class="badge gray">📦 45 MB</span>
+              <span class="badge blue">🆓 Free</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="app-desc">
+          SPGram Messenger is our own custom-built Telegram client for Android, made from the
+          ground up by the SPMods team. It keeps everything you love about Telegram and adds
+          <strong>extra speed, privacy controls, and deep customization</strong> on top — without
+          touching your account security. Built for users who want more control over their
+          messaging experience, fully free with no ads and no subscriptions. Updated regularly
+          alongside our other apps.
+        </p>
+
+        <div class="feat-pills">
+          <span class="feat-pill hi-tg">⚡ Faster Performance</span>
+          <span class="feat-pill hi-tg">🔒 Extra Privacy Controls</span>
+          <span class="feat-pill hi-tg">🎨 Custom Themes</span>
+          <span class="feat-pill">🌙 True Dark Mode</span>
+          <span class="feat-pill">🔔 Advanced Notifications</span>
+          <span class="feat-pill">📌 Pin Unlimited Chats</span>
+          <span class="feat-pill">🚫 No Ads</span>
+          <span class="feat-pill">💬 Hide Online Status</span>
+          <span class="feat-pill">📁 Larger File Sharing</span>
+          <span class="feat-pill">🔁 Auto Updates</span>
+        </div>
+
+        <div class="app-stats">
+          <div class="astat"><div class="astat-val tg">4.8★</div><div class="astat-lbl">Rating</div></div>
+          <div class="astat"><div class="astat-val tg">10K+</div><div class="astat-lbl">Downloads</div></div>
+          <div class="astat"><div class="astat-val tg">20+</div><div class="astat-lbl">Features</div></div>
+          <div class="astat"><div class="astat-val tg">Free</div><div class="astat-lbl">Always</div></div>
+        </div>
+
+        <div class="app-actions">
+          <a class="btn-primary tg" href="spgram.html">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 14.5H11V11h2v5.5zm0-7H11V7h2v2.5z"/></svg>
+            Full Review
+          </a>
+          <a class="btn-primary tg" href="spgram.html">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="white"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-7 4v-2h14v2H5z"/></svg>
+            Download APK
+          </a>
+          <a class="btn-secondary" href="https://t.me/SPModsSandun" target="_blank">✈️ Updates</a>
+        </div>
+      </div>
+    </div>
 
     <!-- SP WhatsApp -->
     <div class="app-card">
@@ -543,7 +618,7 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
   <div class="nbox">
     <div class="nbox-title">📋 Important Notes</div>
     <ul>
-      <li><span class="ni">⚠️</span><span>All apps on SPMods are <strong>third-party modifications</strong> — not affiliated with WhatsApp Inc., Meta Platforms, Google LLC, or YouTube.</span></li>
+      <li><span class="ni">⚠️</span><span>All apps on SPMods are <strong>third-party modifications</strong> — not affiliated with WhatsApp Inc., Meta Platforms, Google LLC, Telegram FZ-LLC, or YouTube.</span></li>
       <li><span class="ni">🔒</span><span>Always <strong>download only from our official Telegram channel or this website</strong>. Third-party mirrors may distribute tampered APKs that contain malware.</span></li>
       <li><span class="ni">💾</span><span><strong>Back up your data</strong> before installing any modified app — especially for WhatsApp. Go to Settings → Chats → Chat Backup first.</span></li>
       <li><span class="ni">📱</span><span>All apps require <strong>Android 5.0 or above</strong>. iOS is not supported — Apple does not allow APK sideloading outside the App Store.</span></li>
@@ -566,6 +641,7 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
       <div class="footer-col">
         <div class="footer-col-title">Apps</div>
         <a href="index.html">Home</a>
+        <a href="spgram.html">SPGram Messenger</a>
         <a href="spwhatsapp.html">SP WhatsApp</a>
         <a href="youtubepro.html">YouTube Pro</a>
       </div>
@@ -584,7 +660,7 @@ nav{position:fixed;top:4px;left:0;right:0;z-index:100;
     </div>
   </div>
   <div class="footer-bottom">
-    <div class="footer-legal">Not affiliated with WhatsApp Inc., Meta Platforms, Google LLC, or YouTube.</div>
+    <div class="footer-legal">Not affiliated with WhatsApp Inc., Meta Platforms, Google LLC, Telegram FZ-LLC, or YouTube.</div>
     <div class="footer-copy">© 2026 SPMods. All rights reserved.</div>
   </div>
 </footer>
