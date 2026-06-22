@@ -28,7 +28,7 @@ const SITE = {
     fileSize:   "77 MB",
     rating:     "4.8",
     minAndroid: "Android 5.0+",
-    apkLink:    "https://t.me/SPModsSandun",
+    apkLink:    "https://www.mediafire.com/file/f4q7nupm0xl71em/SPGram%2528Beta_v0.1%2529.apk/file",
   },
 
 
