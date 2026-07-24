@@ -23,12 +23,12 @@ const SITE = {
 
   /* ── SPGram Messenger ── */
   sgm: {
-    version:    "v0.1.0 Beta",
+    version:    "v0.1.1 Beta",
     downloads:  "10K+",
     fileSize:   "77 MB",
     rating:     "4.8",
     minAndroid: "Android 5.0+",
-    apkLink:    "https://www.mediafire.com/file/f4q7nupm0xl71em/SPGram%2528Beta_v0.1%2529.apk/file",
+    apkLink:    "https://www.mediafire.com/file/k3mn2uv2yqfk6ey/SPGram%2528Beta_v0.1.1%2529.apk/file",
   },
 
 
